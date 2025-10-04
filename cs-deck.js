@@ -40,7 +40,7 @@ let allCards = [];
 let currentResults = [];
 let renderedCount = 0;
 let isRenderingResults = false; // guard to prevent duplicate appends during infinite scroll
-const SEARCH_CHUNK_SIZE = 60;
+const SEARCH_CHUNK_SIZE = 20;
 // Lazy name resolution cache and inflight tracker
 const nameCache = new Map(); // id -> name
 const nameFetchInFlight = new Map(); // id -> Promise<string|null>
@@ -282,14 +282,36 @@ function renderNextChunk(){
   if (!currentResults || renderedCount >= currentResults.length) return;
   isRenderingResults = true;
   const end = Math.min(renderedCount + SEARCH_CHUNK_SIZE, currentResults.length);
-  for (let i=renderedCount;i<end;i++){
+  // Simple image load queue
+  let queue = [];
+  for (let i = renderedCount; i < end; i++) {
     const card = currentResults[i];
     const el = createCardElement(card);
     el.title = 'Click: Main | Right-Click: Extra (if Extra type) | Shift+Click: Side | Ctrl+Right-Click: Side';
-    el.addEventListener('click', (evt)=>{ if (evt.shiftKey) addToDeck(card,'side'); else addToDeck(card, isExtraDeckCard(card)?'extra':'main'); });
-    el.addEventListener('contextmenu', (evt)=>{ evt.preventDefault(); if (evt.ctrlKey||evt.metaKey) addToDeck(card,'side'); else addToDeck(card,'extra'); });
+    el.addEventListener('click', (evt) => { if (evt.shiftKey) addToDeck(card, 'side'); else addToDeck(card, isExtraDeckCard(card) ? 'extra' : 'main'); });
+    el.addEventListener('contextmenu', (evt) => { evt.preventDefault(); if (evt.ctrlKey || evt.metaKey) addToDeck(card, 'side'); else addToDeck(card, 'extra'); });
     searchResults.appendChild(el);
+    // Queue image for loading
+    const img = el.querySelector('img');
+    if (img) queue.push(img);
   }
+  // Limit concurrent loads to 8
+  let activeLoads = 0;
+  function loadNext() {
+    if (queue.length === 0) return;
+    while (activeLoads < 8 && queue.length > 0) {
+      const img = queue.shift();
+      if (img.dataset.src) {
+        img.src = img.dataset.src;
+      }
+      activeLoads++;
+      img.onload = img.onerror = function () {
+        activeLoads--;
+        loadNext();
+      };
+    }
+  }
+  loadNext();
   renderedCount = end;
   isRenderingResults = false;
 }
@@ -311,10 +333,10 @@ function createCardElement(card){
   }
   // Fallback jsDelivr URL for custom images
   const fallbackJsDelivrUrl = `https://cdn.jsdelivr.net/gh/JustBryant/KingdomsImages@main/CS_Images/${card.id}.jpg`;
+  // Use data-src for queued loading
   if (imgSrc) {
-    img.src = imgSrc;
+    img.dataset.src = imgSrc;
     img.onerror = function() {
-      // Only fallback if not already tried jsDelivr
       if (img.src !== fallbackJsDelivrUrl) {
         img.src = fallbackJsDelivrUrl;
         img.onerror = function() {
@@ -322,15 +344,13 @@ function createCardElement(card){
         };
       }
     };
-    // If no small image and from anime_cards.js, scale down
     if (!card.card_images[0].image_url_small && typeof allAnimeCardsData !== 'undefined' && allAnimeCardsData[card.id]) {
-      img.style.width = '120px'; // Match regular card width
-      img.style.height = '175px'; // Match regular card height
+      img.style.width = '120px';
+      img.style.height = '175px';
       img.style.objectFit = 'cover';
     }
   } else {
-    // If no image at all, try jsDelivr directly
-    img.src = fallbackJsDelivrUrl;
+    img.dataset.src = fallbackJsDelivrUrl;
     img.onerror = function() {
       img.src = 'https://cdn.jsdelivr.net/gh/ProjectIgnis/images@master/pics/placeholder.jpg';
     };
