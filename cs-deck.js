@@ -734,10 +734,21 @@ function renderDeck(){
       const el = document.createElement('div'); el.className='card'; el.dataset.cardId=id;
       el.draggable = true; el.addEventListener('dragstart', (e)=> onDragStartFromDeck(e,id)); el.addEventListener('dragend', onDragEndGlobal);
       const img = document.createElement('img'); img.alt=c.name; img.loading='lazy'; el.appendChild(img);
-      {
-        const apiSmall = c?.card_images?.[0]?.image_url_small || null;
-        if (apiSmall) { img.src = apiSmall; }
-      }
+      // Always use user's GitHub repo for images (.jpg then .png), scale down
+      const fallbackJsDelivrJpg = `https://cdn.jsdelivr.net/gh/JustBryant/KingdomsImages@main/CS_Images/${c.id}.jpg`;
+      const fallbackJsDelivrPng = `https://cdn.jsdelivr.net/gh/JustBryant/KingdomsImages@main/CS_Images/${c.id}.png`;
+      img.src = fallbackJsDelivrJpg;
+      img.onerror = function() {
+        if (img.src !== fallbackJsDelivrPng) {
+          img.src = fallbackJsDelivrPng;
+          img.onerror = function() {
+            img.src = 'https://cdn.jsdelivr.net/gh/ProjectIgnis/images@master/pics/placeholder.jpg';
+          };
+        }
+      };
+      img.style.width = '120px';
+      img.style.height = '175px';
+      img.style.objectFit = 'cover';
 
       // Character list badges on deck cards too
       if (limitsMap && limitsMap.has(c.id)){
