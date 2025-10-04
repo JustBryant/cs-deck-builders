@@ -4,7 +4,6 @@
 const VERSION = 'v1';
 const IMG_CACHE = `card-images-${VERSION}`;
 const IMG_HOSTS = new Set([
-  'images.ygoprodeck.com',
   'cdn.jsdelivr.net'
 ]);
 
@@ -26,7 +25,7 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(req.url);
   const isImage = req.destination === 'image' || url.pathname.match(/\.(png|jpg|jpeg|webp|gif)$/i);
   const fromKnownHost = IMG_HOSTS.has(url.host);
-  const isCardPath = /\/images\/cards|\/images\/cards_small|\/images\/cards_cropped|\/pics|\/pics_small/i.test(url.pathname);
+  const isCardPath = /\/CS_Images|\/pics|\/pics_small/i.test(url.pathname);
   if (req.method !== 'GET' || !isImage || !(fromKnownHost && isCardPath)) return; // passthrough
 
   event.respondWith((async () => {

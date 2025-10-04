@@ -34,22 +34,52 @@ const officialGenesysList = {}; // name -> points (rebuilt dynamically)
 let allCards = []; // raw array for convenience
 // Search render state
 let currentResults = [];
-    // Always use user's GitHub repo for images (.jpg then .png)
-    const fallbackJsDelivrJpg = `https://cdn.jsdelivr.net/gh/JustBryant/KingdomsImages@main/CS_Images/${card.id}.jpg`;
-    const fallbackJsDelivrPng = `https://cdn.jsdelivr.net/gh/JustBryant/KingdomsImages@main/CS_Images/${card.id}.png`;
-    img.dataset.src = fallbackJsDelivrJpg;
-    img.onerror = function() {
-        if (img.src !== fallbackJsDelivrPng) {
-            img.src = fallbackJsDelivrPng;
-            img.onerror = function() {
-                img.src = 'https://cdn.jsdelivr.net/gh/ProjectIgnis/images@master/pics/placeholder.jpg';
-            };
+let renderedCount = 0;
+const SEARCH_CHUNK_SIZE = 60; // render in chunks to keep UI responsive
+
+// Canonical Monster Types (API "race" values for monsters)
+const MONSTER_TYPES = [
+    'Aqua', 'Beast', 'Beast-Warrior', 'Cyberse', 'Dinosaur', 'Divine-Beast',
+    'Dragon', 'Fairy', 'Fiend', 'Fish', 'Insect', 'Machine', 'Plant', 'Psychic',
+    'Pyro', 'Reptile', 'Rock', 'Sea Serpent', 'Spellcaster', 'Thunder', 'Warrior',
+    'Winged Beast', 'Wyrm', 'Zombie', 'Creator God', 'Illusion'
+];
+
+// Selection state
+let selectionMode = false;
+const selectedSearchCardIds = new Set(); // id numbers
+
+// Filter DOM refs
+const fCategory = document.getElementById('f-category');
+const fAttribute = document.getElementById('f-attribute');
+const fRace = document.getElementById('f-race');
+const fCardType = document.getElementById('f-type');
+const fLevel = document.getElementById('f-level');
+const fScale = document.getElementById('f-scale');
+const fLimit = document.getElementById('f-limit');
+const fAtk = document.getElementById('f-atk');
+const fDef = document.getElementById('f-def');
+const fClearBtn = document.getElementById('f-clear');
+const monsterTagCheckboxes = Array.from(document.querySelectorAll('.f-monster-tag'));
+
+// --- Initialization & Data Load ---
+async function initializeApp() {
+    // Theme bootstrap
+    initTheme();
+    showLoading(true, 'Loading Card Database...');
+    // Set initial disabled states before loading data
+    try { updateCardTypeOptions(); } catch {}
+    try { updateFilterEnablement(); } catch {}
+        // Ensure Type list is populated immediately (independent of API load)
+        if (fRace) {
+            const opts = ['<option value="all" selected>All</option>'].concat(MONSTER_TYPES.map(t => `<option value="${t}">${t}</option>`));
+            fRace.innerHTML = opts.join('');
+            fRace.value = 'all';
         }
-    };
-    img.style.width = '120px';
-    img.style.height = '175px';
-    img.style.objectFit = 'cover';
-    div.appendChild(img);
+    try {
+        const response = await fetch('https://db.ygoprodeck.com/api/v7/cardinfo.php?format=genesys&misc=yes');
+        if (!response.ok) throw new Error(`Network response was not ok: ${response.status} ${response.statusText}`);
+        const payload = await response.json();
         allCards = payload.data || [];
 
         // clear any placeholder data
