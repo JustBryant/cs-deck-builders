@@ -331,16 +331,24 @@ function createCardElement(card){
   if (card?.card_images?.[0]) {
     imgSrc = card.card_images[0].image_url_small || card.card_images[0].image_url || null;
   }
-  // Fallback jsDelivr URL for custom images
-  const fallbackJsDelivrUrl = `https://cdn.jsdelivr.net/gh/JustBryant/KingdomsImages@main/CS_Images/${card.id}.jpg`;
+  // Fallback jsDelivr URLs for custom images (.jpg and .png)
+  const fallbackJsDelivrJpg = `https://cdn.jsdelivr.net/gh/JustBryant/KingdomsImages@main/CS_Images/${card.id}.jpg`;
+  const fallbackJsDelivrPng = `https://cdn.jsdelivr.net/gh/JustBryant/KingdomsImages@main/CS_Images/${card.id}.png`;
   // Use data-src for queued loading
   if (imgSrc) {
     img.dataset.src = imgSrc;
     img.onerror = function() {
-      if (img.src !== fallbackJsDelivrUrl) {
-        img.src = fallbackJsDelivrUrl;
+      // Try .jpg fallback first
+      if (img.src !== fallbackJsDelivrJpg) {
+        img.src = fallbackJsDelivrJpg;
         img.onerror = function() {
-          img.src = 'https://cdn.jsdelivr.net/gh/ProjectIgnis/images@master/pics/placeholder.jpg';
+          // Try .png fallback next
+          if (img.src !== fallbackJsDelivrPng) {
+            img.src = fallbackJsDelivrPng;
+            img.onerror = function() {
+              img.src = 'https://cdn.jsdelivr.net/gh/ProjectIgnis/images@master/pics/placeholder.jpg';
+            };
+          }
         };
       }
     };
@@ -350,9 +358,15 @@ function createCardElement(card){
       img.style.objectFit = 'cover';
     }
   } else {
-    img.dataset.src = fallbackJsDelivrUrl;
+    // Try .jpg first, then .png
+    img.dataset.src = fallbackJsDelivrJpg;
     img.onerror = function() {
-      img.src = 'https://cdn.jsdelivr.net/gh/ProjectIgnis/images@master/pics/placeholder.jpg';
+      if (img.src !== fallbackJsDelivrPng) {
+        img.src = fallbackJsDelivrPng;
+        img.onerror = function() {
+          img.src = 'https://cdn.jsdelivr.net/gh/ProjectIgnis/images@master/pics/placeholder.jpg';
+        };
+      }
     };
     img.style.width = '120px';
     img.style.height = '175px';
