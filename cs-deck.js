@@ -327,22 +327,16 @@ function renderSearchPage() {
     const end = Math.min(start + CARDS_PER_PAGE, currentResults.length);
     const pageResults = currentResults.slice(start, end);
 
-    let queue = [];
-    
     pageResults.forEach(card => {
         const el = createCardElement(card);
         el.title = 'Click: Main | Right-Click: Extra (if Extra type) | Shift+Click: Side | Ctrl+Right-Click: Side';
         el.addEventListener('click', (evt) => { if (evt.shiftKey) addToDeck(card, 'side'); else addToDeck(card, isExtraDeckCard(card) ? 'extra' : 'main'); });
         el.addEventListener('contextmenu', (evt) => { evt.preventDefault(); if (evt.ctrlKey || evt.metaKey) addToDeck(card, 'side'); else addToDeck(card, 'extra'); });
         searchResults.appendChild(el);
-        
-        const img = el.querySelector('img');
-        if (img) {
-            queue.push(img);
-        }
+    // Image now loads immediately with internal fallback logic (no queue)
     });
 
-    loadImagesSequentially(queue);
+  // Queue based loader removed for search results (immediate load now)
 
     // Remove old pagination controls if they exist
     const oldPagination = document.getElementById('pagination-controls');
@@ -417,6 +411,9 @@ function createCardElement(card){
   
   div.appendChild(img);
 
+  // Start loading immediately (independent of batch queue)
+  loadSingleCardImage(img, card.id);
+
   // Character list badge
   if (activeChar){
     const lim = limitsMap.get(card.id);
@@ -441,6 +438,28 @@ function createCardElement(card){
   div.addEventListener('mousemove', (e)=> positionPreview(e));
   div.addEventListener('mouseleave', hidePreview);
   return div;
+}
+
+// Load a single card image immediately with fallback chain.
+function loadSingleCardImage(img, cardId){
+  if (!img || !cardId) return;
+  const sources = [
+    `https://cdn.jsdelivr.net/gh/JustBryant/KingdomsImages@main/CS_Images/${cardId}.jpg`,
+    `https://cdn.jsdelivr.net/gh/franluque2/character-showdown@main/pics/${cardId}.jpg`
+  ];
+  let attempt = 0;
+  function tryNext(){
+    if (attempt < sources.length){
+      const url = sources[attempt];
+      console.log(`Immediate image load attempt ${attempt+1}/${sources.length} for ${cardId}: ${url}`);
+      img.src = url;
+    } else {
+      attachPlaceholder(img);
+    }
+  }
+  img.onload = () => { /* success */ };
+  img.onerror = () => { attempt++; tryNext(); };
+  tryNext();
 }
 
 function matchesQueryAndFilters(card, query){
