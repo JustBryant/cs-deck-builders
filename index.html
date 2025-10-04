@@ -7,11 +7,7 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <h1>Character Showdown Deck Builder</h1>
-    <a href="index.html" class="theme-toggle" style="left:12px; right:auto; position:absolute;">← Back</a>
-    <button id="theme-toggle" class="theme-toggle" type="button" title="Toggle dark mode">Dark Mode</button>
-  </header>
+
   <div id="loading-overlay">
     <div class="spinner"></div>
     <p>Loading Card Database...</p>
@@ -122,6 +118,7 @@
             <button id="clear-deck">Clear Deck</button>
             <button id="export-ydk">Download .ydk</button>
             <button id="copy-ydke">Copy YDKE</button>
+            <button id="theme-toggle" class="theme-toggle" type="button" title="Toggle dark mode">Dark Mode</button>
             <span id="import-status" class="muted" aria-live="polite"></span>
           </div>
         </div>
@@ -141,6 +138,7 @@
         </div>
       </div>
     </div>
+  </main>
   </main>
   <div id="card-preview" aria-hidden="true"></div>
   <script src="cs-characters.js"></script>

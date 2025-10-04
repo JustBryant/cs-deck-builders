@@ -153,14 +153,11 @@ input:focus, select:focus, textarea:focus {
 }
 
 .theme-toggle {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: transparent;
-    color: var(--header-text);
-    border: 1px solid rgba(255,255,255,0.25);
-    padding: 4px 8px;
+    position: static;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    border: 1px solid var(--btn-border);
+    padding: 6px 10px;
     border-radius: 6px;
     cursor: pointer;
 }
