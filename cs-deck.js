@@ -877,9 +877,19 @@ function showPreview(url, evt, card = null){
 
   previewEl.innerHTML = '';
   previewEl.appendChild(content);
-  // Use API large image only
-  if (card && card.card_images && card.card_images[0] && card.card_images[0].image_url) {
-    img.src = card.card_images[0].image_url;
+  // Always use user's GitHub repo for images (.jpg then .png)
+  if (card && card.id) {
+    const fallbackJsDelivrJpg = `https://cdn.jsdelivr.net/gh/JustBryant/KingdomsImages@main/CS_Images/${card.id}.jpg`;
+    const fallbackJsDelivrPng = `https://cdn.jsdelivr.net/gh/JustBryant/KingdomsImages@main/CS_Images/${card.id}.png`;
+    img.src = fallbackJsDelivrJpg;
+    img.onerror = function() {
+      if (img.src !== fallbackJsDelivrPng) {
+        img.src = fallbackJsDelivrPng;
+        img.onerror = function() {
+          img.src = 'https://cdn.jsdelivr.net/gh/ProjectIgnis/images@master/pics/placeholder.jpg';
+        };
+      }
+    };
   }
   previewEl.style.display='block'; positionPreview(evt);
 }
