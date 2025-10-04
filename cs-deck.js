@@ -327,51 +327,21 @@ function createCardElement(card){
   img.alt = card.name;
   img.loading = 'lazy';
   // If custom card (from anime_cards.js) and no small image, use main image and scale down
-  let imgSrc = null;
-  if (card?.card_images?.[0]) {
-    imgSrc = card.card_images[0].image_url_small || card.card_images[0].image_url || null;
-  }
-  // Fallback jsDelivr URLs for custom images (.jpg and .png)
+  // Always use user's GitHub repo for images (.jpg then .png)
   const fallbackJsDelivrJpg = `https://cdn.jsdelivr.net/gh/JustBryant/KingdomsImages@main/CS_Images/${card.id}.jpg`;
   const fallbackJsDelivrPng = `https://cdn.jsdelivr.net/gh/JustBryant/KingdomsImages@main/CS_Images/${card.id}.png`;
-  // Use data-src for queued loading
-  if (imgSrc) {
-    img.dataset.src = imgSrc;
-    img.onerror = function() {
-      // Try .jpg fallback first
-      if (img.src !== fallbackJsDelivrJpg) {
-        img.src = fallbackJsDelivrJpg;
-        img.onerror = function() {
-          // Try .png fallback next
-          if (img.src !== fallbackJsDelivrPng) {
-            img.src = fallbackJsDelivrPng;
-            img.onerror = function() {
-              img.src = 'https://cdn.jsdelivr.net/gh/ProjectIgnis/images@master/pics/placeholder.jpg';
-            };
-          }
-        };
-      }
-    };
-    if (!card.card_images[0].image_url_small && typeof allAnimeCardsData !== 'undefined' && allAnimeCardsData[card.id]) {
-      img.style.width = '120px';
-      img.style.height = '175px';
-      img.style.objectFit = 'cover';
+  img.dataset.src = fallbackJsDelivrJpg;
+  img.onerror = function() {
+    if (img.src !== fallbackJsDelivrPng) {
+      img.src = fallbackJsDelivrPng;
+      img.onerror = function() {
+        img.src = 'https://cdn.jsdelivr.net/gh/ProjectIgnis/images@master/pics/placeholder.jpg';
+      };
     }
-  } else {
-    // Try .jpg first, then .png
-    img.dataset.src = fallbackJsDelivrJpg;
-    img.onerror = function() {
-      if (img.src !== fallbackJsDelivrPng) {
-        img.src = fallbackJsDelivrPng;
-        img.onerror = function() {
-          img.src = 'https://cdn.jsdelivr.net/gh/ProjectIgnis/images@master/pics/placeholder.jpg';
-        };
-      }
-    };
-    img.style.width = '120px';
-    img.style.height = '175px';
-    img.style.objectFit = 'cover';
-  }
+  };
+  img.style.width = '120px';
+  img.style.height = '175px';
+  img.style.objectFit = 'cover';
   div.appendChild(img);
 
   // Character list badge
