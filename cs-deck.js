@@ -876,7 +876,7 @@ function renderDeck(){
     }
   }
 }
-function removeFromDeckZone(zone, id){ const arr = zone==='extra'? deck.extra : (zone==='side'? deck.side : deck.main); const i=arr.indexOf(id); if (i>=0) arr.splice(i,1); renderDeck(); }
+function removeFromDeckZone(zone, id){ const arr = zone==='extra'? deck.extra : (zone==='side'? deck.side : deck.main); const i=arr.indexOf(id); if (i>=0) arr.splice(i,1); hidePreview(); renderDeck(); }
 function clearDeck(){ deck.main=[]; deck.extra=[]; deck.side=[]; renderDeck(); }
 
 function countStaples(){
