@@ -40,7 +40,7 @@ let allCards = [];
 let currentResults = [];
 let renderedCount = 0;
 let isRenderingResults = false; // guard to prevent duplicate appends during infinite scroll
-const SEARCH_CHUNK_SIZE = 20;
+const SEARCH_CHUNK_SIZE = 10;
 // Lazy name resolution cache and inflight tracker
 const nameCache = new Map(); // id -> name
 const nameFetchInFlight = new Map(); // id -> Promise<string|null>
@@ -282,7 +282,7 @@ function renderNextChunk(){
   if (!currentResults || renderedCount >= currentResults.length) return;
   isRenderingResults = true;
   const end = Math.min(renderedCount + SEARCH_CHUNK_SIZE, currentResults.length);
-  // Simple image load queue
+  // Optimized image load queue
   let queue = [];
   for (let i = renderedCount; i < end; i++) {
     const card = currentResults[i];
@@ -295,13 +295,13 @@ function renderNextChunk(){
     const img = el.querySelector('img');
     if (img) queue.push(img);
   }
-  // Limit concurrent loads to 8
+  // Limit concurrent loads to 4
   let activeLoads = 0;
   function loadNext() {
     if (queue.length === 0) return;
-    while (activeLoads < 8 && queue.length > 0) {
+    while (activeLoads < 4 && queue.length > 0) {
       const img = queue.shift();
-      if (img.dataset.src) {
+      if (img.dataset.src && !img.src) {
         img.src = img.dataset.src;
       }
       activeLoads++;
