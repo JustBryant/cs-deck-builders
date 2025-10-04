@@ -269,30 +269,52 @@ function handleSearch(e) {
 
 function refreshSearchResults(){ handleSearch({ target: { value: searchBar.value } }); }
 
-function loadImagesSequentially(queue) {
-    let activeLoads = 0;
-    function loadNext() {
-        if (queue.length === 0) return;
-        while (activeLoads < 4 && queue.length > 0) {
-            const img = queue.shift();
-            if (img.dataset.src && !img.src) {
-                img.src = img.dataset.src;
-            }
-            activeLoads++;
-            let finished = false;
-            const cleanup = () => {
-                if (!finished) {
-                    finished = true;
-                    activeLoads--;
-                    loadNext();
-                }
-            };
-            img.onload = cleanup;
-            img.onerror = cleanup;
-            setTimeout(cleanup, 5000);
+// Unified image loader: KingdomsImages -> character-showdown -> placeholder
+function loadImagesSequentially(queue){
+  let activeLoads = 0; const MAX = 8;
+  function next(){
+    while(activeLoads < MAX && queue.length){
+      const img = queue.shift();
+      if (!img) continue;
+      const cardId = img.closest('.card')?.dataset.cardId;
+      if (!cardId){ attachPlaceholder(img); continue; }
+      activeLoads++;
+      const sources = [
+        `https://cdn.jsdelivr.net/gh/JustBryant/KingdomsImages@main/CS_Images/${cardId}.jpg`,
+        `https://cdn.jsdelivr.net/gh/franluque2/character-showdown@main/pics/${cardId}.jpg`
+      ];
+      let attempt = 0;
+      function trySrc(){
+        if (attempt < sources.length){
+          const url = sources[attempt];
+          console.log(`Search image ${cardId} attempt ${attempt+1}: ${url}`);
+          img.src = url;
+        } else {
+          console.log(`Search image ${cardId} all sources failed`);
+          attachPlaceholder(img);
+          done();
         }
+      }
+      function done(){ if(!img.__done){ img.__done=true; activeLoads--; next(); } }
+      img.onload = ()=> done();
+      img.onerror = ()=> { attempt++; trySrc(); };
+      trySrc();
     }
-    loadNext();
+  }
+  next();
+}
+
+function attachPlaceholder(img){
+  if (!img || img.__placeholder) return;
+  img.__placeholder = true;
+  const w = img.style.width || '120px';
+  const h = img.style.height || '175px';
+  img.style.display='none';
+  const ph = document.createElement('div');
+  ph.style.width = w; ph.style.height = h; ph.style.background='#666'; ph.style.borderRadius='8px';
+  ph.style.display='flex'; ph.style.alignItems='center'; ph.style.justifyContent='center';
+  ph.style.color='#ccc'; ph.style.fontSize='12px'; ph.textContent='No Image';
+  img.parentNode && img.parentNode.appendChild(ph);
 }
 
 function renderSearchPage() {
@@ -389,22 +411,10 @@ function createCardElement(card){
   const img = document.createElement('img');
   img.alt = card.name;
   img.loading = 'lazy';
-  // If custom card (from anime_cards.js) and no small image, use main image and scale down
-  // Always use user's GitHub repo for images (.jpg then .png)
-  const fallbackJsDelivrJpg = `https://cdn.jsdelivr.net/gh/JustBryant/KingdomsImages@main/CS_Images/${card.id}.jpg`;
-  const fallbackJsDelivrPng = `https://cdn.jsdelivr.net/gh/JustBryant/KingdomsImages@main/CS_Images/${card.id}.png`;
-  img.dataset.src = fallbackJsDelivrJpg;
-  img.onerror = function() {
-    if (img.src !== fallbackJsDelivrPng) {
-      img.src = fallbackJsDelivrPng;
-      img.onerror = function() {
-        img.src = 'https://cdn.jsdelivr.net/gh/JustBryant/KingdomsImages@main/CS_Images/cover.png';
-      };
-    }
-  };
   img.style.width = '120px';
   img.style.height = '175px';
   img.style.objectFit = 'cover';
+  
   div.appendChild(img);
 
   // Character list badge
@@ -819,16 +829,33 @@ function renderDeck(){
       const el = document.createElement('div'); el.className='card'; el.dataset.cardId=id;
       el.draggable = true; el.addEventListener('dragstart', (e)=> onDragStartFromDeck(e,id)); el.addEventListener('dragend', onDragEndGlobal);
       const img = document.createElement('img'); img.alt=c.name; img.loading='lazy'; el.appendChild(img);
-      // Always use user's GitHub repo for images (.jpg then .png), scale down
+      // Always use user's GitHub repo for images (.jpg), scale down
       const fallbackJsDelivrJpg = `https://cdn.jsdelivr.net/gh/JustBryant/KingdomsImages@main/CS_Images/${c.id}.jpg`;
-      const fallbackJsDelivrPng = `https://cdn.jsdelivr.net/gh/JustBryant/KingdomsImages@main/CS_Images/${c.id}.png`;
+      
       img.src = fallbackJsDelivrJpg;
       img.onerror = function() {
-        if (img.src !== fallbackJsDelivrPng) {
-          img.src = fallbackJsDelivrPng;
-          img.onerror = function() {
-            img.src = 'https://cdn.jsdelivr.net/gh/JustBryant/KingdomsImages@main/CS_Images/cover.png';
-          };
+        console.log('Deck failed to load:', img.src);
+        if (img.src.includes('JustBryant/KingdomsImages')) {
+          console.log('Deck trying character-showdown repo via jsDelivr');
+          const charShowdownUrl = `https://cdn.jsdelivr.net/gh/franluque2/character-showdown@main/pics/${c.id}.jpg`;
+          img.src = charShowdownUrl;
+        } else {
+          console.log('Deck all fallbacks failed for card:', c.id);
+          // Hide image and show placeholder
+          img.style.display = 'none';
+          const placeholder = document.createElement('div');
+          placeholder.style.width = '100%';
+          placeholder.style.height = '100%';
+          placeholder.style.backgroundColor = '#666';
+          placeholder.style.borderRadius = '8px';
+          placeholder.style.display = 'flex';
+          placeholder.style.alignItems = 'center';
+          placeholder.style.justifyContent = 'center';
+          placeholder.style.color = '#ccc';
+          placeholder.style.fontSize = '10px';
+          placeholder.style.textAlign = 'center';
+          placeholder.textContent = 'No Image';
+          img.parentNode.appendChild(placeholder);
         }
       };
       // Always scale deck grid images to fit properly in grid
@@ -974,17 +1001,34 @@ function showPreview(url, evt, card = null){
 
   previewEl.innerHTML = '';
   previewEl.appendChild(content);
-  // Always use user's GitHub repo for images (.jpg then .png)
+  // Always use user's GitHub repo for images (.jpg)
   if (card && card.id) {
     const fallbackJsDelivrJpg = `https://cdn.jsdelivr.net/gh/JustBryant/KingdomsImages@main/CS_Images/${card.id}.jpg`;
-    const fallbackJsDelivrPng = `https://cdn.jsdelivr.net/gh/JustBryant/KingdomsImages@main/CS_Images/${card.id}.png`;
+    
     img.src = fallbackJsDelivrJpg;
     img.onerror = function() {
-      if (img.src !== fallbackJsDelivrPng) {
-        img.src = fallbackJsDelivrPng;
-        img.onerror = function() {
-          img.src = 'https://cdn.jsdelivr.net/gh/JustBryant/KingdomsImages@main/CS_Images/cover.png';
-        };
+      console.log('Preview failed to load:', img.src);
+      if (img.src.includes('JustBryant/KingdomsImages')) {
+        console.log('Preview trying character-showdown repo via jsDelivr');
+        const charShowdownUrl = `https://cdn.jsdelivr.net/gh/franluque2/character-showdown@main/pics/${card.id}.jpg`;
+        img.src = charShowdownUrl;
+      } else {
+        console.log('Preview all fallbacks failed for card:', card.id);
+        // Hide image and show placeholder
+        img.style.display = 'none';
+        const placeholder = document.createElement('div');
+        placeholder.style.width = '200px';
+        placeholder.style.height = '290px';
+        placeholder.style.backgroundColor = '#666';
+        placeholder.style.borderRadius = '8px';
+        placeholder.style.display = 'flex';
+        placeholder.style.alignItems = 'center';
+        placeholder.style.justifyContent = 'center';
+        placeholder.style.color = '#ccc';
+        placeholder.style.fontSize = '14px';
+        placeholder.style.textAlign = 'center';
+        placeholder.textContent = 'No Image';
+        img.parentNode.appendChild(placeholder);
       }
     };
   }
