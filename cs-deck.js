@@ -309,15 +309,14 @@ function createCardElement(card){
   if (card?.card_images?.[0]) {
     imgSrc = card.card_images[0].image_url_small || card.card_images[0].image_url || null;
   }
-  // Fallback repo URL
-  const fallbackRepoUrl = `https://raw.githubusercontent.com/JustBryant/KingdomsImages/main/CS_Images/${card.id}.jpg`;
+  // Fallback jsDelivr URL for custom images
+  const fallbackJsDelivrUrl = `https://cdn.jsdelivr.net/gh/JustBryant/KingdomsImages@main/CS_Images/${card.id}.jpg`;
   if (imgSrc) {
     img.src = imgSrc;
     img.onerror = function() {
-      // Only fallback if not already tried fallback
-      if (img.src !== fallbackRepoUrl) {
-        img.src = fallbackRepoUrl;
-        // If fallback also fails, use a placeholder
+      // Only fallback if not already tried jsDelivr
+      if (img.src !== fallbackJsDelivrUrl) {
+        img.src = fallbackJsDelivrUrl;
         img.onerror = function() {
           img.src = 'https://cdn.jsdelivr.net/gh/ProjectIgnis/images@master/pics/placeholder.jpg';
         };
@@ -330,8 +329,8 @@ function createCardElement(card){
       img.style.objectFit = 'cover';
     }
   } else {
-    // If no image at all, try fallback directly
-    img.src = fallbackRepoUrl;
+    // If no image at all, try jsDelivr directly
+    img.src = fallbackJsDelivrUrl;
     img.onerror = function() {
       img.src = 'https://cdn.jsdelivr.net/gh/ProjectIgnis/images@master/pics/placeholder.jpg';
     };
