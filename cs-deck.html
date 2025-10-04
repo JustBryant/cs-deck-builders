@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Character Showdown Deck Builder</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Character Showdown Deck Builder</h1>
+    <a href="index.html" class="theme-toggle" style="left:12px; right:auto; position:absolute;">← Back</a>
+    <button id="theme-toggle" class="theme-toggle" type="button" title="Toggle dark mode">Dark Mode</button>
+  </header>
+  <div id="loading-overlay">
+    <div class="spinner"></div>
+    <p>Loading Card Database...</p>
+  </div>
+  <main>
+    <div class="container">
+      <div class="search-section">
+        <h2>Card Search</h2>
+        <div id="filters" style="margin-bottom:0.5rem;">
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:0.5rem; align-items:end;">
+            <label style="display:flex; flex-direction:column; gap:4px;">
+              <span>Category</span>
+              <select id="f-category">
+                <option value="all" selected>All</option>
+                <option value="monster">Monster</option>
+                <option value="spell">Spell</option>
+                <option value="trap">Trap</option>
+              </select>
+            </label>
+            <label style="display:flex; flex-direction:column; gap:4px;">
+              <span>Attribute</span>
+              <select id="f-attribute">
+                <option value="all" selected>All</option>
+              </select>
+            </label>
+            <label style="display:flex; flex-direction:column; gap:4px;">
+              <span>Card Type</span>
+              <select id="f-type">
+                <option value="all" selected>All</option>
+              </select>
+            </label>
+            <label style="display:flex; flex-direction:column; gap:4px;">
+              <span>Type</span>
+              <select id="f-race">
+                <option value="all" selected>All</option>
+              </select>
+            </label>
+            <div id="monster-tags">
+              <label>
+                <input type="checkbox" class="f-monster-tag" id="f-tag-pendulum" value="pendulum" disabled>
+                <span>Pendulum</span>
+              </label>
+              <label>
+                <input type="checkbox" class="f-monster-tag" id="f-tag-tuner" value="tuner" disabled>
+                <span>Tuner</span>
+              </label>
+              <label>
+                <input type="checkbox" class="f-monster-tag" id="f-tag-flip" value="flip" disabled>
+                <span>FLIP</span>
+              </label>
+              <label>
+                <input type="checkbox" class="f-monster-tag" id="f-tag-spirit" value="spirit" disabled>
+                <span>Spirit</span>
+              </label>
+              <label>
+                <input type="checkbox" class="f-monster-tag" id="f-tag-gemini" value="gemini" disabled>
+                <span>Gemini</span>
+              </label>
+              <label>
+                <input type="checkbox" class="f-monster-tag" id="f-tag-union" value="union" disabled>
+                <span>Union</span>
+              </label>
+            </div>
+            <div id="monster-numerics">
+              <label style="display:flex; flex-direction:column; gap:4px;">
+                <span>Lv/Rank</span>
+                <input id="f-level" type="text" placeholder=">=4, <8, 7, etc.">
+              </label>
+              <label style="display:flex; flex-direction:column; gap:4px;">
+                <span>Scale</span>
+                <input id="f-scale" type="number" min="0" placeholder="any">
+              </label>
+              <label style="display:flex; flex-direction:column; gap:4px;">
+                <span>ATK</span>
+                <input id="f-atk" type="text" placeholder=">2000, <=1500, 0, etc.">
+              </label>
+              <label style="display:flex; flex-direction:column; gap:4px;">
+                <span>DEF</span>
+                <input id="f-def" type="text" placeholder=">=2000, <1000, ?, etc.">
+              </label>
+            </div>
+          </div>
+          <div style="margin-top:0.5rem; display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+            <button id="f-clear" type="button">Clear Filters</button>
+          </div>
+        </div>
+        <div style="display:flex; gap:0.5rem; align-items:center;">
+          <input type="text" id="search-bar" placeholder="Search for a card..." style="flex:1 1 auto;">
+          <button id="search-button" type="button" title="Search using filters without typing a name">Search</button>
+        </div>
+        <div id="search-tools" style="margin:0.5rem 0; display:flex; flex-wrap:wrap; gap:0.5rem; align-items:center;">
+          <div style="display:flex; flex-direction:column; gap:4px; font-size:0.9rem;">
+            <span style="font-weight:600;">Character</span>
+            <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+              <select id="character-select">
+                <option value="" selected>Select a character…</option>
+              </select>
+              <span id="charlist-current" class="muted"></span>
+            </div>
+          </div>
+        </div>
+        <div id="search-results"></div>
+      </div>
+      <div class="list-section">
+        <div class="list-header">
+          <h2>Deck</h2>
+          <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+            <button id="clear-deck">Clear Deck</button>
+            <button id="export-ydk">Download .ydk</button>
+            <button id="copy-ydke">Copy YDKE</button>
+            <span id="import-status" class="muted" aria-live="polite"></span>
+          </div>
+        </div>
+        <div id="deck-sections">
+          <div class="deck-zone">
+            <div class="deck-zone-header">Main Deck <span id="main-count" class="muted">(0/60)</span></div>
+            <div id="main-deck" class="deck-grid"></div>
+          </div>
+          <div class="deck-zone">
+            <div class="deck-zone-header">Extra Deck <span id="extra-count" class="muted">(0/15)</span></div>
+            <div id="extra-deck" class="deck-grid"></div>
+          </div>
+          <div class="deck-zone">
+            <div class="deck-zone-header">Side Deck <span id="side-count" class="muted">(0/15)</span></div>
+            <div id="side-deck" class="deck-grid"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <div id="card-preview" aria-hidden="true"></div>
+  <script src="cs-characters.js"></script>
+  <script src="anime_cards.js"></script>
+  <script src="cs-deck.js"></script>
+  <script>
+    // Register Service Worker for image caching (requires HTTPS or localhost)
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        try { navigator.serviceWorker.register('sw.js'); } catch {}
+      });
+    }
+  </script>
+</body>
+</html>

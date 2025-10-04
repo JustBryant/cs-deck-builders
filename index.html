@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Genesys Point List Creator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Genesys Point List Creator</h1>
+        <button id="theme-toggle" class="theme-toggle" type="button" title="Toggle dark mode">Dark Mode</button>
+    </header>
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <p>Loading Card Database...</p>
+    </div>
+    <main>
+        <div class="container">
+            <div class="search-section">
+                <h2>Card Search</h2>
+                <div id="filters" style="margin-bottom:0.5rem;">
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:0.5rem; align-items:end;">
+                        <label style="display:flex; flex-direction:column; gap:4px;">
+                            <span>Category</span>
+                            <select id="f-category">
+                                <option value="all" selected>All</option>
+                                <option value="monster">Monster</option>
+                                <option value="spell">Spell</option>
+                                <option value="trap">Trap</option>
+                            </select>
+                        </label>
+                        <label style="display:flex; flex-direction:column; gap:4px;">
+                            <span>Attribute</span>
+                            <select id="f-attribute">
+                                <option value="all" selected>All</option>
+                            </select>
+                        </label>
+                        <label style="display:flex; flex-direction:column; gap:4px;">
+                            <span>Card Type</span>
+                            <select id="f-type">
+                                <option value="all" selected>All</option>
+                            </select>
+                        </label>
+                        <label style="display:flex; flex-direction:column; gap:4px;">
+                            <span>Type</span>
+                            <select id="f-race">
+                                <option value="all" selected>All</option>
+                            </select>
+                        </label>
+                        <div id="monster-tags">
+                            <label>
+                                <input type="checkbox" class="f-monster-tag" id="f-tag-pendulum" value="pendulum" disabled>
+                                <span>Pendulum</span>
+                            </label>
+                            <label>
+                                <input type="checkbox" class="f-monster-tag" id="f-tag-tuner" value="tuner" disabled>
+                                <span>Tuner</span>
+                            </label>
+                            <label>
+                                <input type="checkbox" class="f-monster-tag" id="f-tag-flip" value="flip" disabled>
+                                <span>FLIP</span>
+                            </label>
+                            <label>
+                                <input type="checkbox" class="f-monster-tag" id="f-tag-spirit" value="spirit" disabled>
+                                <span>Spirit</span>
+                            </label>
+                            <label>
+                                <input type="checkbox" class="f-monster-tag" id="f-tag-gemini" value="gemini" disabled>
+                                <span>Gemini</span>
+                            </label>
+                            <label>
+                                <input type="checkbox" class="f-monster-tag" id="f-tag-union" value="union" disabled>
+                                <span>Union</span>
+                            </label>
+                        </div>
+                        <div id="monster-numerics">
+                            <label style="display:flex; flex-direction:column; gap:4px;">
+                                <span>Lv/Rank</span>
+                                <input id="f-level" type="text" placeholder=">=4, <8, 7, etc.">
+                            </label>
+                            <label style="display:flex; flex-direction:column; gap:4px;">
+                                <span>Scale</span>
+                                <input id="f-scale" type="number" min="0" placeholder="any">
+                            </label>
+                            <label style="display:flex; flex-direction:column; gap:4px;">
+                                <span>ATK</span>
+                                <input id="f-atk" type="text" placeholder=">2000, <=1500, 0, etc.">
+                            </label>
+                            <label style="display:flex; flex-direction:column; gap:4px;">
+                                <span>DEF</span>
+                                <input id="f-def" type="text" placeholder=">=2000, <1000, ?, etc.">
+                            </label>
+                        </div>
+                        <label style="display:flex; flex-direction:column; gap:4px;">
+                            <span>Limit (TCG)</span>
+                            <select id="f-limit">
+                                <option value="all" selected>All</option>
+                                <option value="unlimited">Unlimited</option>
+                                <option value="semi">Semi-Limited</option>
+                                <option value="limited">Limited</option>
+                                <option value="banned">Banned</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div style="margin-top:0.5rem; display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                        <button id="f-clear" type="button">Clear Filters</button>
+                    </div>
+                </div>
+                <div style="display:flex; gap:0.5rem; align-items:center;">
+                    <input type="text" id="search-bar" placeholder="Search for a card..." style="flex:1 1 auto;">
+                    <button id="search-button" type="button" title="Search using filters without typing a name">Search</button>
+                </div>
+                <div id="search-tools" style="margin:0.5rem 0; display:flex; flex-wrap:wrap; gap:0.5rem; align-items:center;">
+                    <button id="toggle-select-mode">Selection: Off</button>
+                    <button id="add-selected-custom" disabled>Add Selected (Custom)</button>
+                    <button id="add-selected-official" disabled title="Hold Shift when clicking a card to add by official points">Add Selected (Official)</button>
+                    <button id="clear-selection" disabled>Clear</button>
+                    <span id="selection-count" style="font-size:0.8rem;">0 selected</span>
+                    <span style="flex:1 1 auto"></span>
+                    <div style="display:flex; flex-direction:column; gap:4px; font-size:0.9rem;">
+                        <span style="font-weight:600;">Sort By</span>
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            <select id="search-sort-key">
+                                <option value="alpha" selected>Alphabetically</option>
+                                <option value="points">Point Cost</option>
+                            </select>
+                            <select id="search-sort-order">
+                                <option value="asc" selected>Ascending</option>
+                                <option value="desc">Descending</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div id="search-results"></div>
+            </div>
+            <div class="list-section">
+                <div class="list-header">
+                    <h2>My Point List <span id="total-points" style="font-size:0.8em;">(0)</span></h2>
+                    <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                        <div style="display:flex; flex-direction:column; gap:4px; font-size:0.9rem;">
+                            <span style="font-weight:600;">Sort By</span>
+                            <div style="display:flex; gap:6px; align-items:center;">
+                                <select id="list-sort-key">
+                                    <option value="alpha" selected>Alphabetically</option>
+                                    <option value="points">Point Cost</option>
+                                </select>
+                                <select id="list-sort-order">
+                                    <option value="asc" selected>Ascending</option>
+                                    <option value="desc">Descending</option>
+                                </select>
+                            </div>
+                        </div>
+                        <label for="max-genesys" style="display:flex; flex-direction:column; gap:4px; font-size:0.9rem; align-items:flex-start;">
+                            <span style="font-weight:600;">Max</span>
+                            <input type="number" id="max-genesys" value="100" min="1" style="width:70px; padding:2px 4px;">
+                        </label>
+                        <button id="import-btn" title="Replace current list with all official Genesys point entries">Import Official List</button>
+                        <button id="download-allowlist" title="Download allowlist JSON in Genesys format">Download Allowlist</button>
+                    </div>
+                </div>
+                <div style="margin:0.5rem 0;">
+                    <input type="text" id="list-search" placeholder="Search in my list..." style="width:100%; max-width:320px; padding:6px 8px;">
+                </div>
+                <div id="point-list"></div>
+            </div>
+        </div>
+    </main>
+    <!-- Hover preview container -->
+    <div id="card-preview" aria-hidden="true"></div>
+    <!-- Points Input Modal -->
+    <div id="points-modal-backdrop" aria-hidden="true">
+        <div class="points-modal" role="dialog" aria-modal="true" aria-labelledby="points-modal-title">
+            <div class="pm-header">
+                <div id="points-modal-title">Set Points</div>
+                <button type="button" class="pm-close" id="points-modal-close" title="Close">×</button>
+            </div>
+            <div class="pm-body">
+                <div class="pm-cardname" id="points-modal-cardname"></div>
+                <div class="pm-hint" id="points-modal-hint"></div>
+                <label class="pm-input-row">
+                    <span>Points</span>
+                    <input type="number" id="points-modal-input" min="0" step="1" inputmode="numeric">
+                </label>
+                <div class="pm-error" id="points-modal-error" role="alert"></div>
+            </div>
+            <div class="pm-actions">
+                <button type="button" id="points-modal-cancel">Cancel</button>
+                <button type="button" id="points-modal-ok" class="primary">Save</button>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+        <script>
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    try { navigator.serviceWorker.register('sw.js'); } catch {}
+                });
+            }
+        </script>
+</body>
+</html>
