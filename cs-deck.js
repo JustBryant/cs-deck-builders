@@ -181,10 +181,11 @@ async function initializeCSBuilder(){
 
     if (searchResults) {
       searchResults.addEventListener('scroll', () => {
-        const nearBottom = searchResults.scrollTop + searchResults.clientHeight >= searchResults.scrollHeight - 120;
-        if (nearBottom) renderNextChunk();
+        renderVirtualScroll();
+        hidePreview();
       });
-      searchResults.addEventListener('scroll', () => hidePreview());
+      // Also rerender on resize
+      window.addEventListener('resize', () => renderVirtualScroll());
     }
 
     clearDeckBtn.addEventListener('click', clearDeck);
@@ -274,7 +275,8 @@ async function handleSearch(e) {
   currentResults = results;
   renderedCount = 0;
   isRenderingResults = false;
-  renderNextChunk();
+  virtualScrollState = { first: 0, last: 0, cardElements: [] };
+  renderVirtualScroll();
 }
 function refreshSearchResults(){ handleSearch({ target: { value: searchBar.value } }); }
 function renderNextChunk(){
@@ -305,10 +307,18 @@ function renderNextChunk(){
         img.src = img.dataset.src;
       }
       activeLoads++;
-      img.onload = img.onerror = function () {
-        activeLoads--;
-        loadNext();
+      let finished = false;
+      const cleanup = () => {
+        if (!finished) {
+          finished = true;
+          activeLoads--;
+          loadNext();
+        }
       };
+      img.onload = cleanup;
+      img.onerror = cleanup;
+      // Timeout fallback (5s)
+      setTimeout(cleanup, 5000);
     }
   }
   loadNext();
@@ -746,6 +756,7 @@ function renderDeck(){
           };
         }
       };
+      // Always scale deck grid images
       img.style.width = '120px';
       img.style.height = '175px';
       img.style.objectFit = 'cover';
@@ -935,3 +946,76 @@ async function loadCsConfig(){ /* removed */ }
 // CardScripts-related removed
 
 // Lazy name resolver removed
+
+// Virtual scroll config
+const VISIBLE_BUFFER = 30; // Number of cards above/below viewport to keep rendered
+let virtualScrollState = { first: 0, last: 0, cardElements: [] };
+
+function renderVirtualScroll() {
+  if (!currentResults) return;
+  const total = currentResults.length;
+  const cardHeight = 185; // px, including margin
+  const viewportHeight = searchResults.clientHeight || 600;
+  const scrollTop = searchResults.scrollTop || 0;
+  const firstVisible = Math.max(0, Math.floor(scrollTop / cardHeight));
+  const lastVisible = Math.min(total - 1, Math.floor((scrollTop + viewportHeight) / cardHeight));
+  const first = Math.max(0, firstVisible - VISIBLE_BUFFER);
+  const last = Math.min(total - 1, lastVisible + VISIBLE_BUFFER);
+
+  // Remove old elements
+  while (searchResults.firstChild) searchResults.removeChild(searchResults.firstChild);
+  virtualScrollState.cardElements = [];
+
+  // Spacer above
+  if (first > 0) {
+    const spacer = document.createElement('div');
+    spacer.style.height = (first * cardHeight) + 'px';
+    searchResults.appendChild(spacer);
+  }
+
+  // Render visible cards
+  for (let i = first; i <= last; i++) {
+    const card = currentResults[i];
+    const el = createCardElement(card);
+    el.title = 'Click: Main | Right-Click: Extra (if Extra type) | Shift+Click: Side | Ctrl+Right-Click: Side';
+    el.addEventListener('click', (evt) => { if (evt.shiftKey) addToDeck(card, 'side'); else addToDeck(card, isExtraDeckCard(card) ? 'extra' : 'main'); });
+    el.addEventListener('contextmenu', (evt) => { evt.preventDefault(); if (evt.ctrlKey || evt.metaKey) addToDeck(card, 'side'); else addToDeck(card, 'extra'); });
+    searchResults.appendChild(el);
+    virtualScrollState.cardElements.push(el);
+  }
+
+  // Spacer below
+  if (last < total - 1) {
+    const spacer = document.createElement('div');
+    spacer.style.height = ((total - last - 1) * cardHeight) + 'px';
+    searchResults.appendChild(spacer);
+  }
+
+  // Lazy load images only for visible cards
+  let queue = [];
+  for (const el of virtualScrollState.cardElements) {
+    const img = el.querySelector('img');
+    if (img && img.dataset.src && !img.src) queue.push(img);
+  }
+  let activeLoads = 0;
+  function loadNext() {
+    if (queue.length === 0) return;
+    while (activeLoads < 4 && queue.length > 0) {
+      const img = queue.shift();
+      img.src = img.dataset.src;
+      activeLoads++;
+      let finished = false;
+      const cleanup = () => {
+        if (!finished) {
+          finished = true;
+          activeLoads--;
+          loadNext();
+        }
+      };
+      img.onload = cleanup;
+      img.onerror = cleanup;
+      setTimeout(cleanup, 5000);
+    }
+  }
+  loadNext();
+}
