@@ -19,7 +19,6 @@
   <main>
     <div class="container">
       <div class="search-section">
-        <h2>Card Search</h2>
         <div id="filters" style="margin-bottom:0.5rem;">
           <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:0.5rem; align-items:end;">
             <label style="display:flex; flex-direction:column; gap:4px;">
@@ -95,7 +94,7 @@
             </div>
           </div>
           <div style="margin-top:0.5rem; display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
-            <button id="f-clear" type="button">Clear Filters</button>
+            <!-- Clear Filters button moved to character section -->
           </div>
         </div>
         <div style="display:flex; gap:0.5rem; align-items:center;">
@@ -103,7 +102,7 @@
           <button id="search-button" type="button" title="Search using filters without typing a name">Search</button>
         </div>
         <div id="search-tools" style="margin:0.5rem 0; display:flex; flex-wrap:wrap; gap:0.5rem; align-items:center;">
-          <div style="display:flex; flex-direction:column; gap:4px; font-size:0.9rem;">
+          <div style="display:flex; flex-direction:column; gap:4px; font-size:0.9rem; flex:1;">
             <span style="font-weight:600;">Character</span>
             <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
               <select id="character-select">
@@ -112,6 +111,7 @@
               <span id="charlist-current" class="muted"></span>
             </div>
           </div>
+          <button id="f-clear" type="button" style="align-self:flex-end;">Clear Filters</button>
         </div>
         <div id="search-results"></div>
       </div>

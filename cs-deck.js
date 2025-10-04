@@ -38,9 +38,9 @@ const idToCard = new Map();
 const nameToId = new Map();
 let allCards = [];
 let currentResults = [];
-let renderedCount = 0;
-let isRenderingResults = false; // guard to prevent duplicate appends during infinite scroll
-const SEARCH_CHUNK_SIZE = 10;
+let currentPage = 0;
+const CARDS_PER_PAGE = 12;
+
 // Lazy name resolution cache and inflight tracker
 const nameCache = new Map(); // id -> name
 const nameFetchInFlight = new Map(); // id -> Promise<string|null>
@@ -179,15 +179,6 @@ async function initializeCSBuilder(){
 
   if (characterSelect) characterSelect.addEventListener('change', onCharacterChange);
 
-    if (searchResults) {
-      searchResults.addEventListener('scroll', () => {
-        renderVirtualScroll();
-        hidePreview();
-      });
-      // Also rerender on resize
-      window.addEventListener('resize', () => renderVirtualScroll());
-    }
-
     clearDeckBtn.addEventListener('click', clearDeck);
     exportYdkBtn.addEventListener('click', exportYdk);
     copyYdkeBtn.addEventListener('click', copyYdke);
@@ -258,10 +249,9 @@ function showLoading(isLoading, message = 'Loading...') {
 }
 
 // Search
-async function handleSearch(e) {
+function handleSearch(e) {
   const query = (e.target?.value || '').toLowerCase().trim();
-  searchResults.innerHTML = '';
-
+  
   let results = allCards.filter(c => matchesQueryAndFilters(c, query));
   // Sort alphabetically by name, then by id
   results = results.slice().sort((a,b)=>{
@@ -273,57 +263,120 @@ async function handleSearch(e) {
   });
 
   currentResults = results;
-  renderedCount = 0;
-  isRenderingResults = false;
-  virtualScrollState = { first: 0, last: 0, cardElements: [] };
-  renderVirtualScroll();
+  currentPage = 0;
+  renderSearchPage();
 }
+
 function refreshSearchResults(){ handleSearch({ target: { value: searchBar.value } }); }
-function renderNextChunk(){
-  if (isRenderingResults) return;
-  if (!currentResults || renderedCount >= currentResults.length) return;
-  isRenderingResults = true;
-  const end = Math.min(renderedCount + SEARCH_CHUNK_SIZE, currentResults.length);
-  // Optimized image load queue
-  let queue = [];
-  for (let i = renderedCount; i < end; i++) {
-    const card = currentResults[i];
-    const el = createCardElement(card);
-    el.title = 'Click: Main | Right-Click: Extra (if Extra type) | Shift+Click: Side | Ctrl+Right-Click: Side';
-    el.addEventListener('click', (evt) => { if (evt.shiftKey) addToDeck(card, 'side'); else addToDeck(card, isExtraDeckCard(card) ? 'extra' : 'main'); });
-    el.addEventListener('contextmenu', (evt) => { evt.preventDefault(); if (evt.ctrlKey || evt.metaKey) addToDeck(card, 'side'); else addToDeck(card, 'extra'); });
-    searchResults.appendChild(el);
-    // Queue image for loading
-    const img = el.querySelector('img');
-    if (img) queue.push(img);
-  }
-  // Limit concurrent loads to 4
-  let activeLoads = 0;
-  function loadNext() {
-    if (queue.length === 0) return;
-    while (activeLoads < 4 && queue.length > 0) {
-      const img = queue.shift();
-      if (img.dataset.src && !img.src) {
-        img.src = img.dataset.src;
-      }
-      activeLoads++;
-      let finished = false;
-      const cleanup = () => {
-        if (!finished) {
-          finished = true;
-          activeLoads--;
-          loadNext();
+
+function loadImagesSequentially(queue) {
+    let activeLoads = 0;
+    function loadNext() {
+        if (queue.length === 0) return;
+        while (activeLoads < 4 && queue.length > 0) {
+            const img = queue.shift();
+            if (img.dataset.src && !img.src) {
+                img.src = img.dataset.src;
+            }
+            activeLoads++;
+            let finished = false;
+            const cleanup = () => {
+                if (!finished) {
+                    finished = true;
+                    activeLoads--;
+                    loadNext();
+                }
+            };
+            img.onload = cleanup;
+            img.onerror = cleanup;
+            setTimeout(cleanup, 5000);
         }
-      };
-      img.onload = cleanup;
-      img.onerror = cleanup;
-      // Timeout fallback (5s)
-      setTimeout(cleanup, 5000);
     }
-  }
-  loadNext();
-  renderedCount = end;
-  isRenderingResults = false;
+    loadNext();
+}
+
+function renderSearchPage() {
+    if (!currentResults) return;
+
+    searchResults.innerHTML = '';
+    
+    const totalPages = Math.ceil(currentResults.length / CARDS_PER_PAGE);
+    const start = currentPage * CARDS_PER_PAGE;
+    const end = Math.min(start + CARDS_PER_PAGE, currentResults.length);
+    const pageResults = currentResults.slice(start, end);
+
+    let queue = [];
+    
+    pageResults.forEach(card => {
+        const el = createCardElement(card);
+        el.title = 'Click: Main | Right-Click: Extra (if Extra type) | Shift+Click: Side | Ctrl+Right-Click: Side';
+        el.addEventListener('click', (evt) => { if (evt.shiftKey) addToDeck(card, 'side'); else addToDeck(card, isExtraDeckCard(card) ? 'extra' : 'main'); });
+        el.addEventListener('contextmenu', (evt) => { evt.preventDefault(); if (evt.ctrlKey || evt.metaKey) addToDeck(card, 'side'); else addToDeck(card, 'extra'); });
+        searchResults.appendChild(el);
+        
+        const img = el.querySelector('img');
+        if (img) {
+            queue.push(img);
+        }
+    });
+
+    loadImagesSequentially(queue);
+
+    // Remove old pagination controls if they exist
+    const oldPagination = document.getElementById('pagination-controls');
+    if (oldPagination) {
+        oldPagination.remove();
+    }
+
+    if (totalPages > 1) {
+        const paginationControls = document.createElement('div');
+        paginationControls.id = 'pagination-controls';
+        paginationControls.style.textAlign = 'center';
+        paginationControls.style.marginTop = '0.5rem';
+        paginationControls.style.marginBottom = '1rem';
+        paginationControls.style.padding = '10px';
+        paginationControls.style.display = 'flex';
+        paginationControls.style.justifyContent = 'center';
+        paginationControls.style.alignItems = 'center';
+        paginationControls.style.gap = '10px';
+
+        const prevButton = document.createElement('button');
+        prevButton.textContent = '◀';
+        prevButton.disabled = currentPage === 0;
+        prevButton.style.padding = '8px 12px';
+        prevButton.style.fontSize = '14px';
+        prevButton.style.minWidth = '40px';
+        prevButton.addEventListener('click', () => {
+            if (currentPage > 0) {
+                currentPage--;
+                renderSearchPage();
+            }
+        });
+
+        const pageInfo = document.createElement('span');
+        pageInfo.textContent = `Page ${currentPage + 1} of ${totalPages}`;
+        pageInfo.style.margin = '0 1rem';
+        pageInfo.style.fontSize = '14px';
+        pageInfo.style.fontWeight = 'bold';
+
+        const nextButton = document.createElement('button');
+        nextButton.textContent = '▶';
+        nextButton.disabled = currentPage >= totalPages - 1;
+        nextButton.style.padding = '8px 12px';
+        nextButton.style.fontSize = '14px';
+        nextButton.style.minWidth = '40px';
+        nextButton.addEventListener('click', () => {
+            if (currentPage < totalPages - 1) {
+                currentPage++;
+                renderSearchPage();
+            }
+        });
+
+        paginationControls.appendChild(prevButton);
+        paginationControls.appendChild(pageInfo);
+        paginationControls.appendChild(nextButton);
+        searchResults.parentNode.insertBefore(paginationControls, searchResults.nextSibling);
+    }
 }
 
 function createCardElement(card){
@@ -345,7 +398,7 @@ function createCardElement(card){
     if (img.src !== fallbackJsDelivrPng) {
       img.src = fallbackJsDelivrPng;
       img.onerror = function() {
-        img.src = 'https://cdn.jsdelivr.net/gh/ProjectIgnis/images@master/pics/placeholder.jpg';
+        img.src = 'https://cdn.jsdelivr.net/gh/JustBryant/KingdomsImages@main/CS_Images/cover.png';
       };
     }
   };
@@ -431,11 +484,26 @@ function matchesQueryAndFilters(card, query){
 }
 
 function clearFilters(){
+  // Reset all filter dropdowns to default state
   if (fCategory) fCategory.value = 'all';
   [fAttribute,fRace,fCardType,fLevel,fScale,fAtk,fDef].forEach(el=>{ if (el) el.value=''; });
   if (fAttribute) fAttribute.value = 'all';
   if (fRace) fRace.value = 'all';
   if (fCardType) fCardType.value = 'all';
+  
+  // Reset search bar
+  const searchBar = document.getElementById('search-bar');
+  if (searchBar) searchBar.value = '';
+  
+  // Reset character dropdown
+  const characterSelect = document.getElementById('character-select');
+  if (characterSelect) characterSelect.value = '';
+  
+  // Reset all monster tag checkboxes
+  document.querySelectorAll('.f-monster-tag').forEach(checkbox => {
+    checkbox.checked = false;
+  });
+  
   updateCardTypeOptions(); updateFilterEnablement(); refreshSearchResults();
 }
 
@@ -525,8 +593,15 @@ function normalizeCardType(card, category){ const typeStr=(card.type||'').toLowe
 function isTokenOrSkill(card){
   const t = (card.type || '').toLowerCase();
   const f = (card.frameType || '').toLowerCase();
-  // Filter out tokens always
-  if (t.includes('token') || f.includes('token')) return true;
+  const n = (card.name || '').toLowerCase();
+  
+  // Filter out tokens ALWAYS - check type, frameType, and name
+  if (t.includes('token') || f.includes('token') || n.includes('token')) return true;
+  
+  // Additional token detection patterns
+  if (t.includes('counter') && n.includes('counter')) return true;
+  if (n.includes('token') || n.includes('counter')) return true;
+  
   // Filter out skills unless they are from anime_cards.js
   const isSkill = t.includes('skill') || f.includes('skill');
   if (isSkill) {
@@ -752,13 +827,13 @@ function renderDeck(){
         if (img.src !== fallbackJsDelivrPng) {
           img.src = fallbackJsDelivrPng;
           img.onerror = function() {
-            img.src = 'https://cdn.jsdelivr.net/gh/ProjectIgnis/images@master/pics/placeholder.jpg';
+            img.src = 'https://cdn.jsdelivr.net/gh/JustBryant/KingdomsImages@main/CS_Images/cover.png';
           };
         }
       };
-      // Always scale deck grid images
-      img.style.width = '120px';
-      img.style.height = '175px';
+      // Always scale deck grid images to fit properly in grid
+      img.style.width = '100%';
+      img.style.height = '100%';
       img.style.objectFit = 'cover';
 
       // Character list badges on deck cards too
@@ -908,7 +983,7 @@ function showPreview(url, evt, card = null){
       if (img.src !== fallbackJsDelivrPng) {
         img.src = fallbackJsDelivrPng;
         img.onerror = function() {
-          img.src = 'https://cdn.jsdelivr.net/gh/ProjectIgnis/images@master/pics/placeholder.jpg';
+          img.src = 'https://cdn.jsdelivr.net/gh/JustBryant/KingdomsImages@main/CS_Images/cover.png';
         };
       }
     };
@@ -946,76 +1021,3 @@ async function loadCsConfig(){ /* removed */ }
 // CardScripts-related removed
 
 // Lazy name resolver removed
-
-// Virtual scroll config
-const VISIBLE_BUFFER = 30; // Number of cards above/below viewport to keep rendered
-let virtualScrollState = { first: 0, last: 0, cardElements: [] };
-
-function renderVirtualScroll() {
-  if (!currentResults) return;
-  const total = currentResults.length;
-  const cardHeight = 185; // px, including margin
-  const viewportHeight = searchResults.clientHeight || 600;
-  const scrollTop = searchResults.scrollTop || 0;
-  const firstVisible = Math.max(0, Math.floor(scrollTop / cardHeight));
-  const lastVisible = Math.min(total - 1, Math.floor((scrollTop + viewportHeight) / cardHeight));
-  const first = Math.max(0, firstVisible - VISIBLE_BUFFER);
-  const last = Math.min(total - 1, lastVisible + VISIBLE_BUFFER);
-
-  // Remove old elements
-  while (searchResults.firstChild) searchResults.removeChild(searchResults.firstChild);
-  virtualScrollState.cardElements = [];
-
-  // Spacer above
-  if (first > 0) {
-    const spacer = document.createElement('div');
-    spacer.style.height = (first * cardHeight) + 'px';
-    searchResults.appendChild(spacer);
-  }
-
-  // Render visible cards
-  for (let i = first; i <= last; i++) {
-    const card = currentResults[i];
-    const el = createCardElement(card);
-    el.title = 'Click: Main | Right-Click: Extra (if Extra type) | Shift+Click: Side | Ctrl+Right-Click: Side';
-    el.addEventListener('click', (evt) => { if (evt.shiftKey) addToDeck(card, 'side'); else addToDeck(card, isExtraDeckCard(card) ? 'extra' : 'main'); });
-    el.addEventListener('contextmenu', (evt) => { evt.preventDefault(); if (evt.ctrlKey || evt.metaKey) addToDeck(card, 'side'); else addToDeck(card, 'extra'); });
-    searchResults.appendChild(el);
-    virtualScrollState.cardElements.push(el);
-  }
-
-  // Spacer below
-  if (last < total - 1) {
-    const spacer = document.createElement('div');
-    spacer.style.height = ((total - last - 1) * cardHeight) + 'px';
-    searchResults.appendChild(spacer);
-  }
-
-  // Lazy load images only for visible cards
-  let queue = [];
-  for (const el of virtualScrollState.cardElements) {
-    const img = el.querySelector('img');
-    if (img && img.dataset.src && !img.src) queue.push(img);
-  }
-  let activeLoads = 0;
-  function loadNext() {
-    if (queue.length === 0) return;
-    while (activeLoads < 4 && queue.length > 0) {
-      const img = queue.shift();
-      img.src = img.dataset.src;
-      activeLoads++;
-      let finished = false;
-      const cleanup = () => {
-        if (!finished) {
-          finished = true;
-          activeLoads--;
-          loadNext();
-        }
-      };
-      img.onload = cleanup;
-      img.onerror = cleanup;
-      setTimeout(cleanup, 5000);
-    }
-  }
-  loadNext();
-}
