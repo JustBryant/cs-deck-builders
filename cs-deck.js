@@ -70,9 +70,10 @@ const MONSTER_TYPES = [
 
 // Character pools
 let characters = [];
-let activeChar = null; // { name, pool, banned, limited, semi }
+let activeChar = null; // { name, pool, banned, limited, semi, specialUnlimited? }
 let poolSet = null; // Set of ids allowed
-let limitsMap = null; // Map id->0/1/2/3
+let limitsMap = null; // Map id->0/1/2/3 (3 = default unlimited normal cap)
+let unlimitedSpecialSet = null; // Set of ids with special unlimited (infinite copies) rules for active character
 let staplesSet = null; // Set of staple ids for this character (optional)
 let staplesMax = null; // Max number of staples allowed (optional)
 // Optional runtime-configurable image mirror bases
@@ -100,28 +101,94 @@ async function initializeCSBuilder(){
     // Load official cards
     await loadApiCards();
 
-    // Merge anime cards from anime_cards.js if present
-    if (typeof allAnimeCardsData !== 'undefined') {
-      console.log(`[CS] Merging ${Object.keys(allAnimeCardsData).length} anime cards from anime_cards.js`);
-      // Build a set of official card names for fast lookup
-      const officialNames = new Set(allCards.map(c => (c.name||'').trim().toLowerCase()));
-      let skipped = 0, added = 0;
-      for (const id in allAnimeCardsData) {
-        const card = allAnimeCardsData[id];
-        if (!card) continue;
-        const animeName = (card.name||'').trim().toLowerCase();
-        // Skip if name matches any official card or contains '(anime)' or '(manga)'
-        if (officialNames.has(animeName) || animeName.includes('(anime)') || animeName.includes('(manga)')) {
-          skipped++;
-          continue;
+    // Supplemental merge (anime/manga/VG) now resilient to late loading of anime_cards.js
+    let supplementalMerged = false;
+    function mergeSupplementalCards(trigger='initial'){
+      if (supplementalMerged) return;
+      if (typeof allAnimeCardsData === 'undefined') return; // wait until available
+      try {
+        const animeKeys = Object.keys(allAnimeCardsData);
+        console.log(`[CS] (${trigger}) Merging ${animeKeys.length} supplemental (anime/manga/VG/custom) cards from anime_cards.js`);
+        
+        // Helper function to normalize card names for comparison (remove variant suffixes)
+        const normalizeCardName = (name) => {
+          if (!name) return '';
+          return name.trim().toLowerCase()
+            .replace(/\s*\(anime\)\s*$/i, '')
+            .replace(/\s*\(manga\)\s*$/i, '')
+            .replace(/\s*\(vg\)\s*$/i, '')
+            .trim();
+        };
+        
+        // Create a map of normalized names to official cards for deduplication
+        const officialCardsByName = new Map();
+        allCards.forEach(card => {
+          const normalizedName = normalizeCardName(card.name);
+          if (normalizedName) {
+            officialCardsByName.set(normalizedName, card);
+          }
+        });
+        
+        let skipped = 0, added = 0, replaced = 0;
+        for (const id of animeKeys) {
+          const card = allAnimeCardsData[id];
+          if (!card) continue;
+          
+          const nmRaw = (card.name||'').trim();
+          const lowerName = nmRaw.toLowerCase();
+          const normalizedName = normalizeCardName(nmRaw);
+          
+          const isAnimeOrManga = lowerName.includes('(anime)') || lowerName.includes('(manga)');
+          const isVG = lowerName.includes('(vg)') || (Array.isArray(card.misc_info) && card.misc_info.some(m=>m && m.video_game_variant));
+          const isVariant = isAnimeOrManga || isVG;
+          
+          // Skip if this is a variant and an official card with the same normalized name exists
+          if (isVariant && officialCardsByName.has(normalizedName)) {
+            skipped++;
+            console.log(`[CS] Skipping variant "${nmRaw}" - official version exists`);
+            continue;
+          }
+          
+          if (!idToCard.has(card.id)) {
+            // Check if we're adding a variant card - if so, verify no official version exists
+            if (isVariant && officialCardsByName.has(normalizedName)) {
+              skipped++;
+              continue;
+            }
+            
+            allCards.push(card);
+            idToCard.set(card.id, card);
+            const nm = (card.name||'').trim(); 
+            if (nm && !nameToId.has(nm)) nameToId.set(nm, card.id);
+            added++;
+          } else if (isVG) {
+            const existing = idToCard.get(card.id);
+            if (existing && !/(\(vg\))/i.test(existing.name||'')) {
+              idToCard.set(card.id, card);
+              const idx = allCards.findIndex(c => c && c.id === card.id);
+              if (idx >= 0) allCards[idx] = card;
+              const nm = (card.name||'').trim(); 
+              if (nm && !nameToId.has(nm)) nameToId.set(nm, card.id);
+              replaced++;
+            }
+          } else {
+            skipped++;
+          }
         }
-        if (!idToCard.has(card.id)) {
-          allCards.push(card);
-          added++;
-        }
-      }
-      console.log(`[CS] Skipped ${skipped} anime cards due to official duplicates, added ${added} unique anime cards.`);
+        supplementalMerged = true;
+        console.log(`[CS] Supplemental merge complete: added=${added}, replacedWithVG=${replaced}, skipped=${skipped}`);
+        // If a character already selected, refresh search so newly merged cards appear
+        if (activeChar) refreshSearchResults();
+      } catch(e){ console.warn('[CS] Supplemental merge failed', e); }
     }
+    // Attempt immediate merge (if file loaded before us)
+    mergeSupplementalCards('initial');
+    // Listen for readiness event dispatched by anime_cards.js (added in patch)
+    window.addEventListener('animeCardsDataReady', () => mergeSupplementalCards('event'));
+    // Fallback polling (in case event missed) for up to 3 seconds
+  // Extend polling window (was 3s ~30*100ms). Increase to ~8s to accommodate slower loads.
+  let pollCount = 0; const poll = () => { if (!supplementalMerged && pollCount < 80){ pollCount++; mergeSupplementalCards('poll'); if(!supplementalMerged) setTimeout(poll,100);} }; poll();
+    // Removed previous hardcoded safety injection: now fully data-driven via JSON + supplemental dataset
 
     // Create lookup maps
     allCards.forEach(c => {
@@ -134,7 +201,19 @@ async function initializeCSBuilder(){
     async function loadCharactersData(){
       // Try JSON first
       try {
-        const res = await fetch('cs-characters.json', { cache: 'no-store' });
+        if (location.protocol === 'file:') {
+          console.warn('[CS] Running under file://; direct fetch may be blocked by browser CORS. Will attempt anyway, then fallbacks. Consider starting a local server (e.g., python -m http.server) to avoid this.');
+        }
+        // Force cache bypass with timestamp
+        const timestamp = Date.now();
+        const res = await fetch(`cs-characters.json?v=${timestamp}`, { 
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        });
         if (res.ok) {
           const j = await res.json();
           return j;
@@ -142,8 +221,18 @@ async function initializeCSBuilder(){
       } catch (e) {
         // ignore; we'll fallback below
       }
+      // Inline <script type="application/json" id="cs-characters-inline"> fallback (user can embed raw JSON to avoid fetch issues)
+      try {
+        const inline = document.getElementById('cs-characters-inline');
+        if (inline && inline.textContent.trim()) {
+          const parsed = JSON.parse(inline.textContent);
+          console.log('[CS] Loaded characters from inline JSON script tag.');
+          return parsed;
+        }
+      } catch (e) { console.warn('[CS] Inline JSON parse failed', e); }
       // Fallback: if a global is present (from cs-characters.js), use it
       if (window.CS_CHARACTERS && window.CS_CHARACTERS.characters) {
+        console.warn('[CS] Using global CS_CHARACTERS fallback (ensure it is up to date).');
         return window.CS_CHARACTERS;
       }
       // Try to dynamically load cs-characters.js then read global
@@ -156,6 +245,7 @@ async function initializeCSBuilder(){
         document.head.appendChild(s);
       });
       if (window.CS_CHARACTERS && window.CS_CHARACTERS.characters) {
+        console.warn('[CS] Loaded cs-characters.js via dynamic script fallback.');
         return window.CS_CHARACTERS;
       }
       return { characters: [] };
@@ -164,10 +254,14 @@ async function initializeCSBuilder(){
   const charData = await loadCharactersData();
   characters = (charData.characters || []).map(resolveCharacterIds);
   console.log('[CS] Loaded characters:', characters.length);
-    characters.forEach(ch => {
-      const opt = document.createElement('option');
-      opt.value = ch.name; opt.textContent = ch.name; characterSelect.appendChild(opt);
-    });
+  
+  // Sort characters alphabetically by name before adding to dropdown
+  const sortedCharacters = characters.slice().sort((a, b) => a.name.localeCompare(b.name));
+  
+  sortedCharacters.forEach(ch => {
+    const opt = document.createElement('option');
+    opt.value = ch.name; opt.textContent = ch.name; characterSelect.appendChild(opt);
+  });
 
   // Wire events
     searchBar.addEventListener('input', handleSearch);
@@ -246,6 +340,186 @@ function showLoading(isLoading, message = 'Loading...') {
   } else {
     loadingOverlay.style.display = 'none';
   }
+}
+
+// Notification system
+function showNotification(message, type = 'warning', duration = 4000) {
+  // Create notification element if it doesn't exist
+  let notification = document.getElementById('notification');
+  if (!notification) {
+    notification = document.createElement('div');
+    notification.id = 'notification';
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #fff;
+      border: 2px solid #ffa500;
+      border-radius: 8px;
+      padding: 15px 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 10000;
+      max-width: 400px;
+      font-size: 14px;
+      font-weight: 500;
+      display: none;
+      transform: translateX(100%);
+      transition: transform 0.3s ease-in-out;
+    `;
+    document.body.appendChild(notification);
+  }
+  
+  // Set notification style based on type
+  const colors = {
+    warning: { border: '#ffa500', bg: '#fff8e1', text: '#e65100' },
+    error: { border: '#f44336', bg: '#ffebee', text: '#c62828' },
+    success: { border: '#4caf50', bg: '#e8f5e9', text: '#2e7d32' },
+    info: { border: '#2196f3', bg: '#e3f2fd', text: '#1565c0' }
+  };
+  
+  const color = colors[type] || colors.warning;
+  notification.style.borderColor = color.border;
+  notification.style.backgroundColor = color.bg;
+  notification.style.color = color.text;
+  notification.textContent = message;
+  
+  // Show notification
+  notification.style.display = 'block';
+  setTimeout(() => {
+    notification.style.transform = 'translateX(0)';
+  }, 10);
+  
+  // Hide notification after duration
+  setTimeout(() => {
+    notification.style.transform = 'translateX(100%)';
+    setTimeout(() => {
+      notification.style.display = 'none';
+    }, 300);
+  }, duration);
+}
+
+// Custom confirmation dialog
+function showCustomConfirm(title, message, onConfirm, onCancel) {
+  return new Promise((resolve) => {
+    // Create modal overlay
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 20000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(2px);
+    `;
+    
+    // Create dialog
+    const dialog = document.createElement('div');
+    dialog.style.cssText = `
+      background: var(--bg-primary, #ffffff);
+      border: 2px solid var(--border-color, #e0e0e0);
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 400px;
+      min-width: 320px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      color: var(--text-primary, #333);
+      font-family: inherit;
+    `;
+    
+    // Create content
+    dialog.innerHTML = `
+      <div style="margin-bottom: 16px;">
+        <h3 style="margin: 0 0 12px 0; font-size: 18px; font-weight: 600; color: var(--text-primary, #333);">${title}</h3>
+        <p style="margin: 0; font-size: 14px; line-height: 1.4; color: var(--text-secondary, #666);">${message}</p>
+      </div>
+      <div style="display: flex; gap: 12px; justify-content: flex-end;">
+        <button id="custom-cancel" style="
+          background: var(--bg-secondary, #f5f5f5);
+          border: 1px solid var(--border-color, #ddd);
+          border-radius: 6px;
+          padding: 8px 16px;
+          font-size: 14px;
+          cursor: pointer;
+          color: var(--text-primary, #333);
+          transition: all 0.2s;
+        ">Cancel</button>
+        <button id="custom-confirm" style="
+          background: #dc3545;
+          border: 1px solid #dc3545;
+          border-radius: 6px;
+          padding: 8px 16px;
+          font-size: 14px;
+          cursor: pointer;
+          color: white;
+          font-weight: 500;
+          transition: all 0.2s;
+        ">Remove Anyway</button>
+      </div>
+    `;
+    
+    overlay.appendChild(dialog);
+    document.body.appendChild(overlay);
+    
+    // Add hover effects
+    const cancelBtn = dialog.querySelector('#custom-cancel');
+    const confirmBtn = dialog.querySelector('#custom-confirm');
+    
+    cancelBtn.addEventListener('mouseenter', () => {
+      cancelBtn.style.background = 'var(--bg-hover, #e9e9e9)';
+    });
+    cancelBtn.addEventListener('mouseleave', () => {
+      cancelBtn.style.background = 'var(--bg-secondary, #f5f5f5)';
+    });
+    
+    confirmBtn.addEventListener('mouseenter', () => {
+      confirmBtn.style.background = '#c82333';
+    });
+    confirmBtn.addEventListener('mouseleave', () => {
+      confirmBtn.style.background = '#dc3545';
+    });
+    
+    // Handle clicks
+    const cleanup = () => {
+      document.body.removeChild(overlay);
+    };
+    
+    cancelBtn.addEventListener('click', () => {
+      cleanup();
+      if (onCancel) onCancel();
+      resolve(false);
+    });
+    
+    confirmBtn.addEventListener('click', () => {
+      cleanup();
+      if (onConfirm) onConfirm();
+      resolve(true);
+    });
+    
+    // Close on overlay click
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        cleanup();
+        if (onCancel) onCancel();
+        resolve(false);
+      }
+    });
+    
+    // Close on Escape key
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        cleanup();
+        document.removeEventListener('keydown', handleEscape);
+        if (onCancel) onCancel();
+        resolve(false);
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+  });
 }
 
 // Search
@@ -430,6 +704,13 @@ function createCardElement(card){
         div.appendChild(b);
       }
     }
+    if (unlimitedSpecialSet && unlimitedSpecialSet.has(card.id)){
+      const ub = document.createElement('span');
+      ub.className = 'banlist-badge unlimited-special';
+      ub.textContent = '∞';
+      ub.title = `Unlimited Special (${activeChar.name})`;
+      div.appendChild(ub);
+    }
   }
 
   // No visual badge for non-official cards to avoid visual noise
@@ -464,6 +745,7 @@ function loadSingleCardImage(img, cardId){
 
 function matchesQueryAndFilters(card, query){
   if (isTokenOrSkill(card)) return false;
+  
   // When a character is selected, restrict to their pool
   if (activeChar && poolSet && !poolSet.has(card.id)) return false;
   if (query) {
@@ -797,33 +1079,146 @@ function updateFilterEnablement(){
 
 function onCharacterChange(){
   const name = characterSelect.value;
+  
+  // Save current character's deck before switching
+  if (currentCharacterName) {
+    saveCurrentCharacterDeck();
+  }
+  
   activeChar = characters.find(c => c.name === name) || null;
-  if (!activeChar){ poolSet = null; limitsMap = null; staplesSet=null; staplesMax=null; charlistCurrent.textContent = ''; refreshSearchResults(); renderDeck(); return; }
-  // Combine base/themed pool with staples into the allowed pool
-  const combinedPool = new Set([...
-    (activeChar.pool || []),
-    ...(activeChar.staples || [])
-  ].filter(Number.isFinite));
-  poolSet = new Set(combinedPool);
+  currentCharacterName = name || null;
+  
+  if (!activeChar) {
+    poolSet = null;
+    limitsMap = null;
+    staplesSet = null;
+    staplesMax = null;
+    unlimitedSpecialSet = null;
+    requiredSet = null;
+    
+    // Clear deck when no character selected
+    deck.main = [];
+    deck.extra = [];
+    deck.side = [];
+    
+    if (charlistCurrent) charlistCurrent.textContent = '';
+    refreshSearchResults();
+    renderDeck();
+    return;
+  }
+
+  // Set up character restrictions
+  poolSet = new Set([...activeChar.pool, ...activeChar.staples]);
+  requiredSet = new Set(activeChar.required || []);
+  
   limitsMap = new Map();
-  // Default limit 3 for all allowed cards
-  poolSet.forEach(id => limitsMap.set(id, 3));
-  (activeChar.banned || []).forEach(id => limitsMap.set(id, 0));
-  (activeChar.limited || []).forEach(id => limitsMap.set(id, 1));
-  (activeChar.semi || []).forEach(id => limitsMap.set(id, 2));
-  staplesSet = new Set((activeChar.staples || []).filter(Number.isFinite));
-  staplesMax = Number.isFinite(activeChar.staplesMax) ? activeChar.staplesMax : null;
-  charlistCurrent.textContent = `(${activeChar.name})`;
+  unlimitedSpecialSet = new Set(activeChar.special_unlimited);
+  staplesSet = new Set(activeChar.staples);
+  staplesMax = activeChar.staplesMax;
+  
+  // Apply ban/limit rules
+  activeChar.banned.forEach(id => limitsMap.set(id, 0));
+  activeChar.limited.forEach(id => limitsMap.set(id, 1));
+  activeChar.semi.forEach(id => limitsMap.set(id, 2));
+  
+  // Try to load saved deck for this character
+  const deckLoaded = loadCharacterDeck(name);
+  
+  if (!deckLoaded) {
+    // No saved deck, start fresh and add required cards
+    deck.main = [];
+    deck.extra = [];
+    deck.side = [];
+    
+    // Add required cards to deck automatically for new decks
+    activeChar.required.forEach(id => {
+      const card = idToCard.get(id);
+      if (card) {
+        if (isExtraDeckCard(card)) {
+          addToDeck(card, 'extra');
+        } else {
+          addToDeck(card, 'main');
+        }
+      }
+    });
+  } else {
+    // Deck was loaded, but ensure required cards are still present
+    ensureRequiredCards();
+  }
+  
+  if (charlistCurrent) charlistCurrent.textContent = activeChar.name;
+  
   refreshSearchResults();
   renderDeck();
+  
+  // Check for missing required cards after a short delay to let deck render
+  setTimeout(checkMissingRequiredCards, 100);
 }
 
 // Deck mechanics
 const deck = { main: [], extra: [], side: [] };
+let requiredSet = null; // required cards for active character
+
+// Character-specific deck memory
+let characterDecks = new Map(); // character name -> saved deck state
+let currentCharacterName = null;
+
+// Save current deck for the active character
+function saveCurrentCharacterDeck() {
+  if (!currentCharacterName) return;
+  
+  const deckCopy = {
+    main: [...deck.main],
+    extra: [...deck.extra],
+    side: [...deck.side]
+  };
+  
+  characterDecks.set(currentCharacterName, deckCopy);
+  
+  // Also save to localStorage for persistence across page refreshes
+  try {
+    const savedDecks = {};
+    characterDecks.forEach((deckData, charName) => {
+      savedDecks[charName] = deckData;
+    });
+    localStorage.setItem('genesys-character-decks', JSON.stringify(savedDecks));
+  } catch (e) {
+    console.warn('Failed to save character decks to localStorage:', e);
+  }
+}
+
+// Load saved deck for a character
+function loadCharacterDeck(characterName) {
+  if (!characterName) return false;
+  
+  const savedDeck = characterDecks.get(characterName);
+  if (savedDeck) {
+    deck.main = [...savedDeck.main];
+    deck.extra = [...savedDeck.extra];
+    deck.side = [...savedDeck.side];
+    return true;
+  }
+  return false;
+}
+
+// Initialize character decks from localStorage
+function initializeCharacterDecks() {
+  try {
+    const saved = localStorage.getItem('genesys-character-decks');
+    if (saved) {
+      const savedDecks = JSON.parse(saved);
+      characterDecks = new Map(Object.entries(savedDecks));
+    }
+  } catch (e) {
+    console.warn('Failed to load character decks from localStorage:', e);
+    characterDecks = new Map();
+  }
+}
 function addToDeck(card, zone){
   if (activeChar && poolSet && !poolSet.has(card.id)) return; // out of pool
   // enforce per-card limits
-  const limit = limitsMap && limitsMap.has(card.id) ? limitsMap.get(card.id) : 3;
+  let limit = limitsMap && limitsMap.has(card.id) ? limitsMap.get(card.id) : 3;
+  if (unlimitedSpecialSet && unlimitedSpecialSet.has(card.id)) limit = Infinity;
   if (limit === 0) return; // forbidden
   // enforce staples cap if provided
   if (staplesSet && staplesMax != null && staplesSet.has(card.id)){
@@ -837,6 +1232,10 @@ function addToDeck(card, zone){
   if (totalCopies >= limit) return;
   const tgt = zone==='extra'? deck.extra : (zone==='side'? deck.side : deck.main);
   if (zone==='extra' && !isExtraDeckCard(card)) deck.main.push(card.id); else tgt.push(card.id);
+  
+  // Auto-save the deck for current character
+  saveCurrentCharacterDeck();
+  
   renderDeck();
 }
 function countCopies(id){ return deck.main.filter(x=>x===id).length + deck.extra.filter(x=>x===id).length + deck.side.filter(x=>x===id).length; }
@@ -893,6 +1292,13 @@ function renderDeck(){
           el.appendChild(b);
         }
       }
+      if (unlimitedSpecialSet && unlimitedSpecialSet.has(c.id)){
+        const ub = document.createElement('span');
+        ub.className = 'banlist-badge unlimited-special';
+        ub.textContent = '∞';
+        ub.title = `Unlimited Special (${activeChar?.name||''})`;
+        el.appendChild(ub);
+      }
 
       el.title = 'Left/Right: remove  |  Ctrl+Right-Click: add copy';
       el.addEventListener('click', ()=> removeFromDeckZone(zone, id));
@@ -920,11 +1326,96 @@ function renderDeck(){
       importStatus.textContent = '';
       importStatus.style.color = 'var(--text-muted)';
     }
+    checkMissingRequiredCards();
   }
 }
-function removeFromDeckZone(zone, id){ const arr = zone==='extra'? deck.extra : (zone==='side'? deck.side : deck.main); const i=arr.indexOf(id); if (i>=0) arr.splice(i,1); hidePreview(); renderDeck(); }
-function clearDeck(){ deck.main=[]; deck.extra=[]; deck.side=[]; renderDeck(); }
+function removeFromDeckZone(zone, id){
+  if (requiredSet && requiredSet.has(id)){
+    const cardName = idToCard.get(id)?.name || 'This card';
+    
+    // Use custom confirmation dialog
+    showCustomConfirm(
+      'Remove Required Card?',
+      `"${cardName}" is REQUIRED for this character. Removing it may make your deck invalid for this character.`,
+      () => {
+        // User confirmed removal
+        const arr = zone==='extra'? deck.extra : (zone==='side'? deck.side : deck.main);
+        const i=arr.indexOf(id); if (i>=0) arr.splice(i,1);
+        saveCurrentCharacterDeck(); // Save after removal
+        hidePreview(); renderDeck();
+      }
+    );
+    return;
+  }
+  
+  const arr = zone==='extra'? deck.extra : (zone==='side'? deck.side : deck.main);
+  const i=arr.indexOf(id); if (i>=0) arr.splice(i,1);
+  saveCurrentCharacterDeck(); // Save after removal
+  hidePreview(); renderDeck();
+}
 
+function checkMissingRequiredCards() {
+  const warningElement = document.getElementById('missing-required-warning');
+  if (!warningElement) return;
+  
+  if (!requiredSet || requiredSet.size === 0) {
+    warningElement.style.display = 'none';
+    return;
+  }
+  
+  const missingCards = [];
+  requiredSet.forEach(id => {
+    if (countCopies(id) === 0) {
+      const card = idToCard.get(id);
+      if (card) {
+        missingCards.push(card.name);
+      }
+    }
+  });
+  
+  if (missingCards.length > 0) {
+    const cardList = missingCards.length === 1 
+      ? `"${missingCards[0]}"` 
+      : missingCards.slice(0, -1).map(name => `"${name}"`).join(', ') + ` and "${missingCards[missingCards.length - 1]}"`;
+    
+    warningElement.textContent = `⚠️ Missing required ${missingCards.length === 1 ? 'card' : 'cards'}: ${cardList}`;
+    warningElement.style.display = 'block';
+  } else {
+    warningElement.style.display = 'none';
+  }
+}
+function clearDeck(){ 
+  const hasRequiredCards = requiredSet && requiredSet.size > 0;
+  
+  deck.main=[]; deck.extra=[]; deck.side=[]; 
+  
+  if (hasRequiredCards) {
+    showNotification(
+      '✨ Deck cleared! Required cards have been automatically re-added.',
+      'info',
+      3000
+    );
+  }
+  
+  ensureRequiredCards();
+  
+  // Auto-save the cleared deck
+  saveCurrentCharacterDeck();
+  
+  renderDeck(); 
+}
+
+function ensureRequiredCards(){
+  if (!requiredSet || !requiredSet.size) return;
+  requiredSet.forEach(id => {
+    if (countCopies(id)===0){
+      const obj = idToCard.get(id); if (!obj) return;
+      const zone = isExtraDeckCard(obj)? 'extra':'main';
+      const tgt = zone==='extra'? deck.extra : deck.main;
+      tgt.push(id);
+    }
+  });
+}
 function countStaples(){
   if (!staplesSet) return 0;
   const all = [...deck.main, ...deck.extra, ...deck.side];
@@ -946,7 +1437,10 @@ function exportYdk(){
 function copyYdke(){
   const enc = (arr)=> btoa(arr.join(','));
   const code = `ydke://${enc(deck.main)};${enc(deck.extra)};${enc(deck.side)};`;
-  navigator.clipboard.writeText(code).then(()=> alert('YDKE code copied to clipboard'), ()=> alert('Failed to copy YDKE code'));
+  navigator.clipboard.writeText(code).then(
+    () => showNotification('📋 YDKE code copied to clipboard!', 'success', 2500), 
+    () => showNotification('❌ Failed to copy YDKE code', 'error', 3000)
+  );
 }
 
 // Drag & Drop (subset from main)
@@ -962,7 +1456,7 @@ function canDropToZone(card, zone){ if (zone==='extra') return isExtraDeckCard(c
 function onZoneDragOver(e, zone){ const data=parseDragData(e); if(!data||!data.id) return; const card=idToCard.get(data.id); if(!card) return; const valid=canDropToZone(card,zone); if(!valid){ e.dataTransfer.dropEffect='none'; return; } e.preventDefault(); e.dataTransfer.dropEffect=data.src==='deck'?'move':'copy'; }
 function onZoneDragEnter(e, zone){ const data=parseDragData(e); const card=data&&data.id? idToCard.get(data.id):null; const valid=card? canDropToZone(card,zone):false; const el=(zone==='main'?mainDeckGrid:zone==='extra'?extraDeckGrid:sideDeckGrid); if (!el) return; if(valid){ el.classList.add('drag-over'); el.classList.remove('drag-over-invalid'); } else { el.classList.add('drag-over-invalid'); el.classList.remove('drag-over'); } }
 function onZoneDragLeave(e, zone){ const el=(zone==='main'?mainDeckGrid:zone==='extra'?extraDeckGrid:sideDeckGrid); if(!el) return; if(!el.contains(e.relatedTarget)){ el.classList.remove('drag-over'); el.classList.remove('drag-over-invalid'); } }
-function onZoneDrop(e, zone){ e.preventDefault(); const data=parseDragData(e); if(!data||!data.id) return; const card=idToCard.get(data.id); if(!card) return; const el=(zone==='main'?mainDeckGrid:zone==='extra'?extraDeckGrid:sideDeckGrid); if(el){ el.classList.remove('drag-over'); el.classList.remove('drag-over-invalid'); } if(!canDropToZone(card,zone)) return; if (data.src==='search'){ const copies=countCopies(card.id); const limit=limitsMap&&limitsMap.has(card.id)? limitsMap.get(card.id):3; if (activeChar && poolSet && !poolSet.has(card.id)) return; if (limit===0) return; if (copies>=limit) return; const target=zone==='extra'? deck.extra : (zone==='side'? deck.side : deck.main); target.push(card.id); renderDeck(); } else if (data.src==='deck'){ let fromArr=deck.main, toArr=deck.main; if(data.srcZone==='extra') fromArr=deck.extra; else if(data.srcZone==='side') fromArr=deck.side; if(zone==='extra') toArr=deck.extra; else if(zone==='side') toArr=deck.side; if(fromArr===toArr) return; if(!canDropToZone(card,zone)) return; const idx=fromArr.indexOf(card.id); if(idx>=0) fromArr.splice(idx,1); toArr.push(card.id); renderDeck(); } }
+function onZoneDrop(e, zone){ e.preventDefault(); const data=parseDragData(e); if(!data||!data.id) return; const card=idToCard.get(data.id); if(!card) return; const el=(zone==='main'?mainDeckGrid:zone==='extra'?extraDeckGrid:sideDeckGrid); if(el){ el.classList.remove('drag-over'); el.classList.remove('drag-over-invalid'); } if(!canDropToZone(card,zone)) return; if (data.src==='search'){ const copies=countCopies(card.id); const limit=limitsMap&&limitsMap.has(card.id)? limitsMap.get(card.id):3; if (activeChar && poolSet && !poolSet.has(card.id)) return; if (limit===0) return; if (copies>=limit) return; const target=zone==='extra'? deck.extra : (zone==='side'? deck.side : deck.main); target.push(card.id); saveCurrentCharacterDeck(); renderDeck(); } else if (data.src==='deck'){ let fromArr=deck.main, toArr=deck.main; if(data.srcZone==='extra') fromArr=deck.extra; else if(data.srcZone==='side') fromArr=deck.side; if(zone==='extra') toArr=deck.extra; else if(zone==='side') toArr=deck.side; if(fromArr===toArr) return; if(!canDropToZone(card,zone)) return; const idx=fromArr.indexOf(card.id); if(idx>=0) fromArr.splice(idx,1); toArr.push(card.id); saveCurrentCharacterDeck(); renderDeck(); } }
 
 // Preview (subset)
 function showPreview(url, evt, card = null){
@@ -997,7 +1491,8 @@ function showPreview(url, evt, card = null){
       const lim = limitsMap.get(card.id);
       const limitDiv = document.createElement('div');
       limitDiv.className = 'pm-limit';
-      const limText = lim===0?'Forbidden':lim===1?'Limited':lim===2?'Semi-Limited':'Up to 3 copies';
+      let limText = lim===0?'Forbidden':lim===1?'Limited':lim===2?'Semi-Limited':'Up to 3 copies';
+      if (unlimitedSpecialSet && unlimitedSpecialSet.has(card.id)) limText = 'Unlimited (Special Rule)';
       limitDiv.textContent = `${limText}${activeChar?` (${activeChar.name})`:''}`;
       info.appendChild(limitDiv);
     }
@@ -1058,24 +1553,31 @@ function hidePreview(){ if(!previewEl) return; previewEl.style.display='none'; }
 
 // Convert character fields that may be names to ids; support poolNames, staplesNames, bannedNames, limitedNames, semiNames
 function resolveCharacterIds(ch){
-  const mapNamesOrIds = (arrIds, arrNames) => {
-    const out = [];
-    if (Array.isArray(arrIds)){
-      for (const v of arrIds){ if (Number.isFinite(v)) out.push(v); else if (typeof v==='string' && nameToId.has(v)) out.push(nameToId.get(v)); }
-    }
-    if (Array.isArray(arrNames)){
-      for (const n of arrNames){ if (typeof n==='string' && nameToId.has(n)) out.push(nameToId.get(n)); }
-    }
-    return Array.from(new Set(out));
+  const mapToIds = (arr) => {
+    if (!Array.isArray(arr)) return [];
+    return arr.map(val => {
+      const num = Number(val);
+      
+      if (!isNaN(num) && Number.isFinite(num)) {
+        return num;
+      }
+      if (typeof val === 'string' && nameToId.has(val)) {
+        return nameToId.get(val);
+      }
+      return null;
+    }).filter(id => id !== null);
   };
+
   return {
     name: ch.name,
-    pool: mapNamesOrIds(ch.pool, ch.poolNames),
-    staples: mapNamesOrIds(ch.staples, ch.staplesNames),
-    banned: mapNamesOrIds(ch.banned, ch.bannedNames),
-    limited: mapNamesOrIds(ch.limited, ch.limitedNames),
-    semi: mapNamesOrIds(ch.semi, ch.semiNames),
+    pool: [...new Set([...mapToIds(ch.pool), ...mapToIds(ch.poolNames)])],
+    staples: [...new Set([...mapToIds(ch.staples), ...mapToIds(ch.staplesNames)])],
+    banned: [...new Set([...mapToIds(ch.banned), ...mapToIds(ch.bannedNames)])],
+    limited: [...new Set([...mapToIds(ch.limited), ...mapToIds(ch.limitedNames)])],
+    semi: [...new Set([...mapToIds(ch.semi), ...mapToIds(ch.semiNames)])],
     staplesMax: ch.staplesMax,
+    required: mapToIds(ch.required || []),
+    special_unlimited: mapToIds(ch.special_unlimited || ch.specialUnlimited || [])
   };
 }
 
