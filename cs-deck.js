@@ -1435,12 +1435,61 @@ function exportYdk(){
   const a = document.createElement('a'); a.href=url; a.download='cs-deck.ydk'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
 }
 function copyYdke(){
-  const enc = (arr)=> btoa(arr.join(','));
-  const code = `ydke://${enc(deck.main)};${enc(deck.extra)};${enc(deck.side)};`;
-  navigator.clipboard.writeText(code).then(
-    () => showNotification('📋 YDKE code copied to clipboard!', 'success', 2500), 
-    () => showNotification('❌ Failed to copy YDKE code', 'error', 3000)
-  );
+  const enc = (arr) => {
+    // Proper YDKE encoding: convert card IDs to little-endian 32-bit integers
+    const buffer = new ArrayBuffer(arr.length * 4);
+    const view = new DataView(buffer);
+    
+    for (let i = 0; i < arr.length; i++) {
+      view.setUint32(i * 4, parseInt(arr[i]), true); // true = little-endian
+    }
+    
+    // Convert ArrayBuffer to base64
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+  };
+  
+  const code = `ydke://${enc(deck.main)}!${enc(deck.extra)}!${enc(deck.side)}!`;
+  
+  // Try modern clipboard API first
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(code).then(
+      () => showNotification('📋 YDKE code copied to clipboard!', 'success', 2500), 
+      () => fallbackCopyYdke(code)
+    );
+  } else {
+    fallbackCopyYdke(code);
+  }
+}
+
+function fallbackCopyYdke(code) {
+  try {
+    // Fallback method using temporary textarea
+    const textarea = document.createElement('textarea');
+    textarea.value = code;
+    textarea.style.position = 'fixed';
+    textarea.style.left = '-9999px';
+    textarea.style.top = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    
+    const successful = document.execCommand('copy');
+    document.body.removeChild(textarea);
+    
+    if (successful) {
+      showNotification('📋 YDKE code copied to clipboard!', 'success', 2500);
+    } else {
+      showNotification('❌ Failed to copy YDKE code', 'error', 3000);
+    }
+  } catch (err) {
+    console.error('Failed to copy YDKE code:', err);
+    showNotification('❌ Failed to copy YDKE code', 'error', 3000);
+  }
 }
 
 // Drag & Drop (subset from main)
