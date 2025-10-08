@@ -790,31 +790,29 @@ body[data-theme="dark"] .slot-placeholder {
     }
 
     #filters > div:first-child {
-        display: flex;
-        flex-direction: column;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
         gap: 0.25rem;
     }
 
     /* Hide advanced filters on mobile initially, show key ones */
     #filters label {
         display: flex;
-        flex-direction: row;
-        align-items: center;
-        gap: 0.25rem;
+        flex-direction: column;
+        gap: 0.15rem;
         font-size: 0.75rem;
     }
 
     #filters label span {
-        min-width: 60px;
+        font-weight: 600;
         flex-shrink: 0;
     }
 
     #filters select,
     #filters input {
-        flex: 1;
-        padding: 2px 4px;
+        padding: 4px 6px;
         font-size: 0.75rem;
-        min-height: 28px;
+        min-height: 32px;
     }
 
     /* Hide less important filters on mobile */
@@ -920,14 +918,26 @@ body[data-theme="dark"] .slot-placeholder {
         line-height: 1;
     }
 
-    /* Mobile deck grids - very compact */
+    /* Mobile deck grids - more visible grid layout */
     :root {
-        --deck-main-w: 32px;
-        --deck-main-w-min: 28px;
+        --deck-main-w: 28px;
+        --deck-main-w-min: 24px;
         --deck-mini-w: 24px;
         --deck-mini-w-min: 20px;
         --deck-gap-main: 2px;
         --deck-gap-mini: 1px;
+    }
+
+    /* Override grid layouts for mobile - fewer columns, more rows */
+    #main-deck.deck-grid {
+        grid-template-columns: repeat(8, clamp(var(--deck-main-w-min), calc((100% - (7 * var(--deck-gap-main))) / 8), var(--deck-main-w)));
+        gap: var(--deck-gap-main);
+    }
+
+    #extra-deck.deck-grid,
+    #side-deck.deck-grid {
+        grid-template-columns: repeat(5, clamp(var(--deck-mini-w-min), calc((100% - (4 * var(--deck-gap-mini))) / 5), var(--deck-mini-w)));
+        gap: var(--deck-gap-mini);
     }
 
     /* Adjust deck zone headers */
@@ -1014,10 +1024,20 @@ body[data-theme="dark"] .slot-placeholder {
         }
         
         :root {
-            --deck-main-w: 28px;
-            --deck-main-w-min: 24px;
+            --deck-main-w: 24px;
+            --deck-main-w-min: 20px;
             --deck-mini-w: 20px;
-            --deck-mini-w-min: 18px;
+            --deck-mini-w-min: 16px;
+        }
+        
+        /* Even more compact grids for very small screens */
+        #main-deck.deck-grid {
+            grid-template-columns: repeat(6, clamp(var(--deck-main-w-min), calc((100% - (5 * var(--deck-gap-main))) / 6), var(--deck-main-w)));
+        }
+
+        #extra-deck.deck-grid,
+        #side-deck.deck-grid {
+            grid-template-columns: repeat(5, clamp(var(--deck-mini-w-min), calc((100% - (4 * var(--deck-gap-mini))) / 5), var(--deck-mini-w)));
         }
     }
 }
