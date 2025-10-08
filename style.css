@@ -701,3 +701,263 @@ body[data-theme="dark"] .slot-placeholder {
     color: #fff;
     border-color: transparent;
 }
+
+/* === MOBILE RESPONSIVE STYLES === */
+@media screen and (max-width: 768px) {
+    /* Reset body overflow for mobile */
+    body {
+        height: auto;
+        min-height: 100vh;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    main {
+        padding: 0.5rem;
+        overflow: visible;
+        height: auto;
+        flex: none;
+    }
+
+    /* Stack container vertically on mobile */
+    .container {
+        flex-direction: column;
+        height: auto;
+        gap: 0.5rem;
+    }
+
+    /* Mobile search section */
+    .search-section {
+        min-width: unset;
+        max-width: unset;
+        height: auto;
+        order: 1;
+        padding: 0.6rem;
+    }
+
+    /* Mobile list section */
+    .list-section {
+        height: auto;
+        order: 2;
+        padding: 0.6rem;
+        max-width: unset;
+    }
+
+    .list-section > #deck-sections {
+        overflow: visible;
+        padding-right: 0;
+        padding-left: 0;
+    }
+
+    /* Mobile header adjustments */
+    .list-header {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: stretch;
+    }
+
+    .list-header h2 {
+        margin: 0;
+        text-align: center;
+    }
+
+    .list-header > div {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.3rem;
+        justify-content: center;
+    }
+
+    .list-header button {
+        flex: 1 1 auto;
+        min-width: 80px;
+        font-size: 0.85rem;
+        padding: 8px 6px;
+    }
+
+    /* Mobile filters layout */
+    #filters > div:first-child {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.4rem;
+    }
+
+    #monster-tags {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.3rem;
+        font-size: 0.85rem;
+    }
+
+    #monster-numerics {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.4rem;
+    }
+
+    /* Mobile search tools */
+    #search-tools {
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+
+    #search-tools > div:first-child {
+        order: 1;
+    }
+
+    #f-clear {
+        order: 2;
+        align-self: stretch !important;
+    }
+
+    #character-select {
+        width: 100%;
+    }
+
+    /* Mobile search bar */
+    #search-bar {
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+
+    /* Mobile search results - 2 columns */
+    #search-results {
+        --sr-cols: 2;
+        --sr-card-w: 120px;
+        --sr-card-h: 175px;
+        gap: 0.4rem;
+    }
+
+    /* Mobile deck grids - smaller cards */
+    :root {
+        --deck-main-w: 45px;
+        --deck-main-w-min: 35px;
+        --deck-mini-w: 32px;
+        --deck-mini-w-min: 28px;
+        --deck-gap-main: 3px;
+        --deck-gap-mini: 2px;
+    }
+
+    /* Adjust deck zone headers */
+    .deck-zone-header {
+        font-size: 0.95rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .deck-zone {
+        margin-bottom: 0.5rem;
+    }
+
+    /* Mobile card preview positioning */
+    #card-preview {
+        padding: 8px;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        max-width: 95vw;
+        max-height: 95vh;
+        overflow: auto;
+    }
+
+    #card-preview .preview-content {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    #card-preview .preview-image {
+        max-width: 200px;
+        width: 60vw;
+    }
+
+    #card-preview .preview-info {
+        min-width: unset;
+        max-width: unset;
+        width: 100%;
+        max-height: 40vh;
+    }
+
+    /* Mobile modal adjustments */
+    .points-modal {
+        width: min(400px, 90vw);
+        margin: 0.5rem;
+    }
+
+    .import-modal-backdrop,
+    #import-ydke-backdrop {
+        padding: 0.5rem;
+    }
+
+    /* Touch-friendly buttons */
+    button {
+        min-height: 44px;
+        padding: 8px 12px;
+        font-size: 0.9rem;
+    }
+
+    input, select, textarea {
+        min-height: 44px;
+        padding: 8px 12px;
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+
+    /* Mobile loading overlay */
+    #loading-overlay {
+        padding: 1rem;
+    }
+
+    #loading-overlay .spinner {
+        width: 40px;
+        height: 40px;
+        border-width: 3px;
+    }
+
+    /* Hide deck count text on very small screens */
+    @media screen and (max-width: 480px) {
+        .deck-zone-header .muted {
+            display: none;
+        }
+        
+        #search-results {
+            --sr-cols: 2;
+            --sr-card-w: 100px;
+            --sr-card-h: 145px;
+        }
+        
+        :root {
+            --deck-main-w: 40px;
+            --deck-main-w-min: 32px;
+            --deck-mini-w: 28px;
+            --deck-mini-w-min: 24px;
+        }
+        
+        .list-header button {
+            font-size: 0.8rem;
+            padding: 6px 4px;
+        }
+    }
+}
+
+/* Landscape phone optimizations */
+@media screen and (max-width: 768px) and (orientation: landscape) {
+    .container {
+        flex-direction: row;
+    }
+    
+    .search-section {
+        flex: 1;
+        max-width: 50%;
+        order: 1;
+    }
+    
+    .list-section {
+        flex: 1;
+        order: 2;
+    }
+    
+    #search-results {
+        --sr-cols: 2;
+        --sr-card-w: 90px;
+        --sr-card-h: 130px;
+    }
+}
