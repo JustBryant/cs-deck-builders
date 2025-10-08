@@ -706,258 +706,347 @@ body[data-theme="dark"] .slot-placeholder {
 @media screen and (max-width: 768px) {
     /* Reset body overflow for mobile */
     body {
-        height: auto;
-        min-height: 100vh;
-        overflow-x: hidden;
-        overflow-y: auto;
+        height: 100vh;
+        overflow: hidden;
     }
 
     main {
-        padding: 0.5rem;
-        overflow: visible;
-        height: auto;
-        flex: none;
+        padding: 0.25rem;
+        overflow: hidden;
+        height: 100%;
+        flex: 1;
     }
 
-    /* Stack container vertically on mobile */
+    /* Split-screen layout: search on left, deck on right */
     .container {
-        flex-direction: column;
-        height: auto;
-        gap: 0.5rem;
+        flex-direction: row;
+        height: 100%;
+        gap: 0.25rem;
     }
 
-    /* Mobile search section */
+    /* Mobile search section - left half */
     .search-section {
-        min-width: unset;
-        max-width: unset;
-        height: auto;
-        order: 1;
-        padding: 0.6rem;
+        flex: 1;
+        min-width: 0;
+        max-width: none;
+        height: 100%;
+        padding: 0.4rem;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
     }
 
-    /* Mobile list section */
+    /* Mobile list section - right half */
     .list-section {
-        height: auto;
-        order: 2;
-        padding: 0.6rem;
-        max-width: unset;
+        flex: 1;
+        min-width: 0;
+        height: 100%;
+        padding: 0.4rem;
+        max-width: none;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
     }
 
     .list-section > #deck-sections {
-        overflow: visible;
-        padding-right: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-right: 4px;
         padding-left: 0;
+        flex: 1;
     }
 
-    /* Mobile header adjustments */
+    /* Compact mobile header */
     .list-header {
         flex-direction: column;
-        gap: 0.5rem;
+        gap: 0.25rem;
         align-items: stretch;
+        margin-bottom: 0.25rem;
+        flex-shrink: 0;
     }
 
     .list-header h2 {
         margin: 0;
         text-align: center;
+        font-size: 1rem;
     }
 
     .list-header > div {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.3rem;
-        justify-content: center;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.2rem;
     }
 
     .list-header button {
-        flex: 1 1 auto;
-        min-width: 80px;
-        font-size: 0.85rem;
-        padding: 8px 6px;
+        font-size: 0.7rem;
+        padding: 4px 2px;
+        min-height: 32px;
     }
 
-    /* Mobile filters layout */
+    /* Compact filters for mobile */
+    #filters {
+        margin-bottom: 0.25rem;
+        flex-shrink: 0;
+    }
+
     #filters > div:first-child {
-        grid-template-columns: 1fr 1fr;
-        gap: 0.4rem;
-    }
-
-    #monster-tags {
-        grid-column: 1 / -1;
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 0.3rem;
-        font-size: 0.85rem;
-    }
-
-    #monster-numerics {
-        grid-column: 1 / -1;
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.4rem;
-    }
-
-    /* Mobile search tools */
-    #search-tools {
+        display: flex;
         flex-direction: column;
-        gap: 0.4rem;
+        gap: 0.25rem;
+    }
+
+    /* Hide advanced filters on mobile initially, show key ones */
+    #filters label {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.75rem;
+    }
+
+    #filters label span {
+        min-width: 60px;
+        flex-shrink: 0;
+    }
+
+    #filters select,
+    #filters input {
+        flex: 1;
+        padding: 2px 4px;
+        font-size: 0.75rem;
+        min-height: 28px;
+    }
+
+    /* Hide less important filters on mobile */
+    #monster-tags,
+    #monster-numerics {
+        display: none;
+    }
+
+    /* Compact search tools */
+    #search-tools {
+        flex-direction: row;
+        gap: 0.25rem;
+        margin: 0.25rem 0;
+        flex-shrink: 0;
+        align-items: center;
     }
 
     #search-tools > div:first-child {
-        order: 1;
-    }
-
-    #f-clear {
-        order: 2;
-        align-self: stretch !important;
+        flex: 1;
+        font-size: 0.75rem;
     }
 
     #character-select {
-        width: 100%;
+        font-size: 0.75rem;
+        padding: 2px 4px;
+        min-height: 28px;
     }
 
-    /* Mobile search bar */
+    #f-clear {
+        flex-shrink: 0;
+        font-size: 0.7rem;
+        padding: 4px 6px;
+        min-height: 28px;
+    }
+
+    /* Compact search bar */
+    div:has(#search-bar) {
+        flex-shrink: 0;
+        margin-bottom: 0.25rem;
+    }
+
     #search-bar {
-        font-size: 16px; /* Prevent zoom on iOS */
+        font-size: 14px;
+        padding: 4px 6px;
+        min-height: 32px;
     }
 
-    /* Mobile search results - 2 columns */
+    #search-button {
+        font-size: 0.7rem;
+        padding: 4px 6px;
+        min-height: 32px;
+    }
+
+    /* Mobile search results - single column, compact */
     #search-results {
-        --sr-cols: 2;
-        --sr-card-w: 120px;
-        --sr-card-h: 175px;
-        gap: 0.4rem;
+        --sr-cols: 1;
+        --sr-card-w: 100%;
+        --sr-card-h: 120px;
+        gap: 0.2rem;
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
     }
 
-    /* Mobile deck grids - smaller cards */
+    /* Make search result cards more compact */
+    #search-results .card {
+        display: flex;
+        align-items: center;
+        background: var(--panel-bg);
+        border: 1px solid var(--input-border);
+        border-radius: 4px;
+        padding: 0.2rem;
+        height: auto;
+    }
+
+    #search-results .card img {
+        width: 60px;
+        height: 87px;
+        object-fit: cover;
+        border-radius: 3px;
+        margin-right: 0.3rem;
+        flex-shrink: 0;
+    }
+
+    #search-results .card-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.1rem;
+        min-width: 0;
+    }
+
+    #search-results .card-name {
+        font-weight: 600;
+        font-size: 0.75rem;
+        line-height: 1.1;
+        word-wrap: break-word;
+    }
+
+    #search-results .card-type {
+        font-size: 0.65rem;
+        color: var(--text-muted);
+        line-height: 1;
+    }
+
+    /* Mobile deck grids - very compact */
     :root {
-        --deck-main-w: 45px;
-        --deck-main-w-min: 35px;
-        --deck-mini-w: 32px;
-        --deck-mini-w-min: 28px;
-        --deck-gap-main: 3px;
-        --deck-gap-mini: 2px;
+        --deck-main-w: 32px;
+        --deck-main-w-min: 28px;
+        --deck-mini-w: 24px;
+        --deck-mini-w-min: 20px;
+        --deck-gap-main: 2px;
+        --deck-gap-mini: 1px;
     }
 
     /* Adjust deck zone headers */
     .deck-zone-header {
-        font-size: 0.95rem;
-        margin-bottom: 0.3rem;
+        font-size: 0.8rem;
+        margin-bottom: 0.2rem;
+        font-weight: 600;
     }
 
     .deck-zone {
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.3rem;
     }
 
-    /* Mobile card preview positioning */
+    /* Mobile card preview - overlay style */
     #card-preview {
-        padding: 8px;
+        position: fixed;
         left: 50%;
         top: 50%;
         transform: translate(-50%, -50%);
-        max-width: 95vw;
-        max-height: 95vh;
-        overflow: auto;
+        max-width: 90vw;
+        max-height: 80vh;
+        z-index: 10000;
+        background: var(--panel-bg);
+        border: 2px solid var(--input-border);
+        border-radius: 8px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        padding: 0.5rem;
     }
 
     #card-preview .preview-content {
         flex-direction: column;
         align-items: center;
         gap: 0.5rem;
+        max-height: 70vh;
+        overflow-y: auto;
     }
 
     #card-preview .preview-image {
         max-width: 200px;
-        width: 60vw;
+        width: 50vw;
     }
 
     #card-preview .preview-info {
         min-width: unset;
         max-width: unset;
         width: 100%;
-        max-height: 40vh;
+        font-size: 0.8rem;
     }
 
     /* Mobile modal adjustments */
     .points-modal {
-        width: min(400px, 90vw);
-        margin: 0.5rem;
+        width: min(350px, 85vw);
     }
 
-    .import-modal-backdrop,
-    #import-ydke-backdrop {
-        padding: 0.5rem;
+    /* Warning styling */
+    #missing-required-warning {
+        font-size: 0.7rem;
+        padding: 4px 6px;
+        margin-bottom: 4px;
     }
 
-    /* Touch-friendly buttons */
-    button {
-        min-height: 44px;
-        padding: 8px 12px;
-        font-size: 0.9rem;
-    }
-
-    input, select, textarea {
-        min-height: 44px;
-        padding: 8px 12px;
-        font-size: 16px; /* Prevent zoom on iOS */
-    }
-
-    /* Mobile loading overlay */
-    #loading-overlay {
-        padding: 1rem;
-    }
-
-    #loading-overlay .spinner {
-        width: 40px;
-        height: 40px;
-        border-width: 3px;
-    }
-
-    /* Hide deck count text on very small screens */
+    /* Very small screen optimizations */
     @media screen and (max-width: 480px) {
-        .deck-zone-header .muted {
-            display: none;
-        }
-        
-        #search-results {
-            --sr-cols: 2;
-            --sr-card-w: 100px;
-            --sr-card-h: 145px;
-        }
-        
-        :root {
-            --deck-main-w: 40px;
-            --deck-main-w-min: 32px;
-            --deck-mini-w: 28px;
-            --deck-mini-w-min: 24px;
+        .list-header > div {
+            grid-template-columns: 1fr 1fr;
         }
         
         .list-header button {
-            font-size: 0.8rem;
-            padding: 6px 4px;
+            font-size: 0.6rem;
+            padding: 2px 1px;
+        }
+        
+        #search-results .card img {
+            width: 50px;
+            height: 72px;
+        }
+        
+        #search-results .card-name {
+            font-size: 0.7rem;
+        }
+        
+        #search-results .card-type {
+            font-size: 0.6rem;
+        }
+        
+        :root {
+            --deck-main-w: 28px;
+            --deck-main-w-min: 24px;
+            --deck-mini-w: 20px;
+            --deck-mini-w-min: 18px;
         }
     }
 }
 
-/* Landscape phone optimizations */
-@media screen and (max-width: 768px) and (orientation: landscape) {
+/* Landscape phone optimizations - keep split screen but adjust proportions */
+@media screen and (max-width: 768px) and (orientation: landscape) and (max-height: 500px) {
     .container {
-        flex-direction: row;
+        gap: 0.2rem;
     }
     
     .search-section {
-        flex: 1;
-        max-width: 50%;
-        order: 1;
+        flex: 0.6;
     }
     
     .list-section {
-        flex: 1;
-        order: 2;
+        flex: 0.4;
     }
     
     #search-results {
-        --sr-cols: 2;
-        --sr-card-w: 90px;
-        --sr-card-h: 130px;
+        --sr-cols: 1;
+    }
+    
+    .list-header h2 {
+        font-size: 0.9rem;
+    }
+    
+    .list-header button {
+        font-size: 0.6rem;
+        padding: 2px 1px;
+        min-height: 28px;
     }
 }

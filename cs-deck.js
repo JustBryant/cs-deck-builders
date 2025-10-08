@@ -604,8 +604,49 @@ function renderSearchPage() {
     pageResults.forEach(card => {
         const el = createCardElement(card);
         el.title = 'Click: Main | Right-Click: Extra (if Extra type) | Shift+Click: Side | Ctrl+Right-Click: Side';
-        el.addEventListener('click', (evt) => { if (evt.shiftKey) addToDeck(card, 'side'); else addToDeck(card, isExtraDeckCard(card) ? 'extra' : 'main'); });
-        el.addEventListener('contextmenu', (evt) => { evt.preventDefault(); if (evt.ctrlKey || evt.metaKey) addToDeck(card, 'side'); else addToDeck(card, 'extra'); });
+        
+        // Mobile-aware event handling
+        if (window.innerWidth <= 768) {
+            // Mobile: Use double-tap instead of single click
+            let tapCount = 0;
+            let tapTimer = null;
+            
+            el.addEventListener('touchstart', (evt) => {
+                tapCount++;
+                if (tapCount === 1) {
+                    tapTimer = setTimeout(() => {
+                        tapCount = 0; // Reset tap count after delay
+                    }, 300);
+                } else if (tapCount === 2) {
+                    clearTimeout(tapTimer);
+                    tapCount = 0;
+                    evt.preventDefault();
+                    
+                    // Double-tap: add to appropriate deck
+                    if (evt.shiftKey) addToDeck(card, 'side'); 
+                    else addToDeck(card, isExtraDeckCard(card) ? 'extra' : 'main');
+                }
+            });
+            
+            // Still handle right-click/long-press for extra deck
+            el.addEventListener('contextmenu', (evt) => { 
+                evt.preventDefault(); 
+                if (evt.ctrlKey || evt.metaKey) addToDeck(card, 'side'); 
+                else addToDeck(card, 'extra'); 
+            });
+        } else {
+            // Desktop: Use single click as before
+            el.addEventListener('click', (evt) => { 
+                if (evt.shiftKey) addToDeck(card, 'side'); 
+                else addToDeck(card, isExtraDeckCard(card) ? 'extra' : 'main'); 
+            });
+            el.addEventListener('contextmenu', (evt) => { 
+                evt.preventDefault(); 
+                if (evt.ctrlKey || evt.metaKey) addToDeck(card, 'side'); 
+                else addToDeck(card, 'extra'); 
+            });
+        }
+        
         searchResults.appendChild(el);
     // Image now loads immediately with internal fallback logic (no queue)
     });
@@ -676,17 +717,63 @@ function createCardElement(card){
   div.draggable = true;
   div.addEventListener('dragstart', (e)=> onDragStartFromSearch(e, card));
   div.addEventListener('dragend', onDragEndGlobal);
-  const img = document.createElement('img');
-  img.alt = card.name;
-  img.loading = 'lazy';
-  img.style.width = '120px';
-  img.style.height = '175px';
-  img.style.objectFit = 'cover';
   
-  div.appendChild(img);
-
-  // Start loading immediately (independent of batch queue)
-  loadSingleCardImage(img, card.id);
+  // Check if mobile layout
+  const isMobile = window.innerWidth <= 768;
+  
+  if (isMobile) {
+    // Mobile layout: horizontal card with image + info
+    const img = document.createElement('img');
+    img.alt = card.name;
+    img.loading = 'lazy';
+    
+    const cardInfo = document.createElement('div');
+    cardInfo.className = 'card-info';
+    
+    const cardName = document.createElement('div');
+    cardName.className = 'card-name';
+    cardName.textContent = card.name;
+    
+    const cardType = document.createElement('div');
+    cardType.className = 'card-type';
+    
+    // Build type line
+    let typeLine = '';
+    if (card.type) {
+      if (card.type.includes('Monster')) {
+        typeLine = `${card.race || 'Unknown'} / ${card.type}`;
+        if (card.attribute) typeLine = `[${card.attribute}] ${typeLine}`;
+        if (card.level !== undefined) typeLine += ` / Level ${card.level}`;
+        if (card.atk !== undefined) typeLine += ` / ATK: ${card.atk}`;
+        if (card.def !== undefined) typeLine += ` / DEF: ${card.def}`;
+      } else {
+        typeLine = card.type;
+        if (card.race && card.race !== 'Normal') typeLine += ` / ${card.race}`;
+      }
+    }
+    cardType.textContent = typeLine;
+    
+    cardInfo.appendChild(cardName);
+    cardInfo.appendChild(cardType);
+    div.appendChild(img);
+    div.appendChild(cardInfo);
+    
+    // Start loading immediately
+    loadSingleCardImage(img, card.id);
+  } else {
+    // Desktop layout: original image-only layout
+    const img = document.createElement('img');
+    img.alt = card.name;
+    img.loading = 'lazy';
+    img.style.width = '120px';
+    img.style.height = '175px';
+    img.style.objectFit = 'cover';
+    
+    div.appendChild(img);
+    
+    // Start loading immediately (independent of batch queue)
+    loadSingleCardImage(img, card.id);
+  }
 
   // Character list badge
   if (activeChar){
