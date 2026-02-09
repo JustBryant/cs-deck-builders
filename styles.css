@@ -28,6 +28,9 @@ html, body { height: 100%; }
     --disabled-bg: #f1f3f5;
     --disabled-text: #8a8f98;
     --disabled-border: #d9dde3;
+    /* slot/grid divider colors */
+    --slot-divider: rgba(0,0,0,0.06);
+    --slot-inner: var(--panel-bg);
 }
 
 [data-theme="dark"] {
@@ -56,6 +59,8 @@ html, body { height: 100%; }
     --disabled-bg: #141922;
     --disabled-text: #778195;
     --disabled-border: #2a3242;
+    --slot-divider: rgba(255,255,255,0.04);
+    --slot-inner: var(--panel-bg);
 }
 
 body {
@@ -69,6 +74,9 @@ body {
     flex-direction: column;
     overflow: hidden; /* prevent page scroll */
 }
+
+/* Reduce h1 spacing so content sits higher on the page */
+h1 { margin: 0.25rem 0 0.25rem; font-size: 1.15rem; padding: 0; }
 
 header {
     background-color: var(--header-bg);
@@ -164,7 +172,7 @@ input:focus, select:focus, textarea:focus {
 body[data-theme="dark"] .theme-toggle { border-color: rgba(255,255,255,0.35); }
 
 main {
-    padding: 1rem;
+    padding: 0.25rem 0.25rem 0.5rem 0.25rem; /* move content up slightly */
     flex: 1 1 auto;
     overflow: hidden; /* contain inner scrolling */
     min-height: 0; /* allow flex shrinking */
@@ -172,9 +180,10 @@ main {
 
 .container {
     display: flex;
-    gap: 1rem;
+    gap: 1rem; /* more space between main panels */
     height: 100%;
     min-height: 0; /* allow flex content to size naturally */
+    align-items: flex-start; /* top-align children so preview lines up with decks */
 }
 
 .search-section, .list-section {
@@ -190,23 +199,47 @@ main {
 
 .search-section {
     flex: 1; /* make search area smaller relative to deck */
-    min-width: 430px; /* ensure 3 columns fit with current card size, gaps, padding, scrollbar */
-    max-width: 520px; /* cap width so search area doesn't dominate on large screens */
+    min-width: 360px; /* allow the panel to be tighter */
+    max-width: 480px; /* cap width so search area doesn't dominate on large screens */
+    padding: 0.25rem; /* reduced padding to lift grid upward */
 }
 
 .list-section {
     flex: 2; /* give deck more horizontal space */
     max-width: none; /* expand to full available width */
+    padding: 0.25rem;
+    display: flex; /* allow preview pane to sit beside deck */
+    flex-direction: column;
 }
+
+.right-preview {
+    flex: 0 0 360px; /* fixed width on the far right */
+    padding: 12px;
+    box-sizing: border-box;
+    background: var(--panel-bg); /* match other panels */
+    box-shadow: var(--panel-shadow);
+    border-radius: 3px;
+    border: 1px solid var(--input-border);
+}
+.preview-inner { display:flex; flex-direction:column; gap:8px; height:100%; }
+.preview-image-wrap { display:flex; justify-content:center; align-items:flex-start; }
+.preview-img { max-width:320px; width:100%; height:auto; border-radius:6px; box-shadow:0 6px 18px rgba(0,0,0,0.35); }
+.preview-info { display:flex; flex-direction:column; gap:6px; }
+.preview-desc { border:1px solid var(--input-border); background: var(--panel-bg); padding:8px; border-radius:4px; max-height:340px; overflow:auto; }
+.preview-name { margin:0; }
+.preview-empty { padding-top:6px; }
+
+/* Spacing and layout for effect blocks in the preview description */
+.preview-desc .effect-heading { margin-top: 8px; margin-bottom: 6px; font-weight: 700; }
+.preview-desc .effect-text { white-space: pre-wrap; margin-bottom: 8px; }
 
 /* Make deck content scroll within the panel; zones keep compact height */
 .list-section > #deck-sections {
-    flex: 1 1 auto;
+    flex: 0 0 auto;
     min-height: 0;
     overflow-y: auto; /* vertical scroll only */
     overflow-x: hidden;
-    padding-right: 8px; /* avoid scrollbar overlay */
-    padding-left: 14px; /* keep room for glows/shadows on leftmost cards */
+    padding: 12px; /* uniform padding on all sides */
 }
 
 /* Allow search panel to shrink; cards will scale to keep 3 columns */
@@ -251,29 +284,75 @@ main {
 
 /* Variables for search result card sizing */
 :root {
-    --sr-card-w: 100px;
-    --sr-card-h: 145px; /* approx 100 / 0.69 for YGO aspect */
-    --sr-gap: 32px; /* much larger gap like deck area */
+    --sr-card-w: 116px; /* slightly larger for readability */
+    --sr-card-h: 168px; /* maintain aspect ratio */
+    --sr-gap: 8px; /* compact gap for snug fit */
 }
 
 /* Search results: always 3 columns with proper grid spacing like deck area */
+/* Search results grid: fixed 4 columns x 5 rows so 20 cards visible */
 #search-results {
+    /* Grid fills the container tightly: 4 columns x 5 rows */
     display: grid;
-    grid-template-columns: repeat(3, var(--sr-card-w)); /* exactly 3 cards in a row */
-    grid-auto-rows: var(--sr-card-h);
-    gap: var(--sr-gap); /* use proper gap variable like deck area */
-    overflow-y: auto;
+    grid-template-columns: repeat(4, calc((100% - (3 * var(--sr-gap))) / 4));
+    grid-template-rows: repeat(5, var(--sr-card-h));
+    gap: var(--sr-gap);
+    overflow: hidden; /* avoid scrollbars inside panel */
     flex: 1 1 auto;
     min-height: 0;
     width: 100%;
-    scrollbar-gutter: stable both-edges;
-    padding-right: 14px; /* ensure scrollbar never overlays the 3rd card */
-    padding-bottom: 16px; /* increased bottom padding */
+    /* slightly reduce the computed height so the last row doesn't get clipped */
+    height: calc((var(--sr-card-h) * 5) + (var(--sr-gap) * 4) - 12px);
+    padding: 4px; /* fit cards within panel bounds */
     align-content: start;
     align-items: start;
-    justify-content: start; /* avoid stretched columns and excessive gaps */
-    justify-items: center; /* center cards in their grid cells */
+    justify-content: stretch;
+    justify-items: start; /* left-align cards so they sit within the panel */
+    box-sizing: border-box;
 }
+
+/* Make the grid visually separated: visible slot lines and inset cards */
+/* Container background acts as the slot-divider color; gaps show this color */
+    #search-results { background: var(--slot-divider); }
+#search-results .card {
+        background: var(--slot-inner); /* inner slot background */
+        border: 2px solid var(--slot-divider); /* framed look that matches divider */
+    box-shadow: none;
+    border-radius: 6px;
+    overflow: hidden;
+    padding: 6px; /* inset the image so the slot frame is visible */
+    box-sizing: border-box;
+}
+
+#search-pagination { width: 100%; justify-content: center; margin-bottom: 4px; }
+#search-pagination button { padding: 6px 10px; }
+
+/* Ensure grid cells are separated and visible on dark theme as well */
+body[data-theme="dark"] #search-results { background: var(--slot-divider); }
+body[data-theme="dark"] #search-results .card {
+       background: var(--slot-inner);
+       border-color: var(--slot-divider);
+}
+
+/* Hide textual labels in the compact search grid */
+#search-results .card .card-name,
+#search-results .card .card-type { display: none; }
+
+/* Empty placeholder styling for unused slots */
+#search-results .card.empty {
+    border: 1px dashed var(--input-border);
+    border-radius: 6px;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Ensure images never get cropped: center them and scale to fit inside the cell. */
+/* Cards fill their grid cells snugly and keep a slight inner margin */
+#search-results .card { overflow: hidden; display: flex; align-items: center; justify-content: center; padding: 2px; box-sizing: border-box; }
+#search-results .card .card-image { width: 100%; height: 100%; display:flex; align-items:center; justify-content:center; }
+#search-results .card .card-image img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 6px; }
 
 /* -------- Responsive scaling -------- */
 /* Wide screens: scale up to use free space */
@@ -323,15 +402,15 @@ main {
 /* Deck grids: fixed slots and rows so zones stay compact and uniform */
 :root {
     /* Main deck slot size */
-    --deck-main-w: 66px;      /* max per-column width */
-    --deck-main-w-min: 52px;  /* min per-column width */
-    --deck-main-h: 96px; /* legacy reference; actual height follows aspect-ratio */
-    --deck-gap: 6px;
+    --deck-main-w: 96px;      /* increased width for larger slot images */
+    --deck-main-w-min: 72px;  /* min per-column width */
+    --deck-main-h: 140px; /* legacy reference; actual height follows aspect-ratio */
+    --deck-gap: 8px;
     /* Extra/Side smaller slot size */
-    --deck-mini-w: 44px;      /* max per-column width */
-    --deck-mini-w-min: 32px;  /* min per-column width */
-    --deck-mini-h: 64px;
-    --deck-gap-mini: 4px;
+    --deck-mini-w: 72px;      /* increased mini width */
+    --deck-mini-w-min: 52px;  /* min per-column width */
+    --deck-mini-h: 104px;
+    --deck-gap-mini: 6px;
 }
 .deck-grid {
     display: grid;
@@ -352,6 +431,83 @@ main {
     grid-template-columns: repeat(15, clamp(var(--deck-mini-w-min), calc((100% - (14 * var(--deck-gap-mini))) / 15), var(--deck-mini-w)));
     gap: var(--deck-gap-mini);
 }
+/* Deck slot visuals: container shows slot-divider between cells like a board */
+.deck-grid { background: var(--slot-divider); padding: 6px; border-radius: 6px; }
+
+/* Individual slot element used by JS when building decks */
+.deck-grid .deck-slot,
+.deck-grid .slot {
+    background: var(--slot-inner);
+    border: 2px solid var(--slot-divider);
+    border-radius: 6px;
+    box-sizing: border-box;
+    width: 100%;
+    aspect-ratio: 59 / 86;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.deck-slot.drag-over, .deck-slot.drag-over * { outline: none; }
+.deck-slot.invalid { outline: 3px dashed #e53935 !important; animation: invalidFlash 0.6s ease; }
+@keyframes invalidFlash { 0% { opacity: 1 } 100% { opacity: 1 } }
+
+.deck-grid .deck-slot img,
+.deck-grid .slot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    border-radius: 4px;
+}
+
+/* Smaller variant for Extra/Side slots when using the mini sizing */
+#extra-deck.deck-grid .deck-slot,
+#side-deck.deck-grid .deck-slot,
+#extra-deck.deck-grid .slot,
+#side-deck.deck-grid .slot {
+    aspect-ratio: 59 / 86; /* keep same card proportion, visually smaller due to column width */
+}
+
+/* Empty placeholder styling fits the slot look */
+.deck-grid .deck-slot.empty,
+.deck-grid .slot.empty {
+    background: transparent;
+    border-style: dashed;
+    border-color: var(--input-border);
+}
+
+/* Force Extra/Side decks to flow horizontally (single-row behavior) and allow horizontal scrolling if needed */
+#extra-deck.deck-grid,
+#side-deck.deck-grid {
+    /* Use flexible columns so the 15 mini slots shrink to fit the container
+       instead of forcing a horizontal scrollbar. This keeps a single row
+       when space allows, and will allow slots to shrink proportionally. */
+    grid-template-columns: repeat(15, minmax(0, 1fr));
+    gap: var(--deck-gap-mini);
+    overflow-x: hidden; /* remove horizontal scrollbar */
+}
+
+/* Limit the deck area so it doesn't grow too wide when a large portion of the page is free */
+.deck-area-limited {
+    max-width: 820px; /* increased to fit 10 larger columns comfortably */
+}
+
+/* Preview panel styling (the aside inserted in HTML) */
+#card-preview-panel {
+    background: transparent;
+    color: var(--text);
+    min-height: 120px;
+}
+#card-preview-panel img { border-radius: 6px; }
+#card-preview-panel #preview-info { padding: 6px 2px; }
+#card-preview-panel #preview-empty { padding: 8px; }
+
+/* Main deck: keep normal row flow (10 columns) — JS should populate 60 `.deck-slot` elements to ensure 6 rows of 10 */
+#main-deck.deck-grid {
+    grid-auto-flow: row;
+}
 /* Ensure deck card images fill slot */
 .deck-grid .card { width: 100%; aspect-ratio: 59 / 86; box-sizing: border-box; }
 .deck-grid .card img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -370,12 +526,10 @@ body[data-theme="dark"] .slot-placeholder {
     background: rgba(255,255,255,0.02);
 }
 .deck-grid.drag-over {
-    outline: 2px dashed #4caf50;
-    outline-offset: 4px;
+    outline: none;
 }
 .deck-grid.drag-over-invalid {
-    outline: 2px dashed #e53935;
-    outline-offset: 4px;
+    outline: none;
 }
 .deck-zone { margin-bottom: 0.75rem; }
 .deck-zone-header { font-weight: 600; margin-bottom: 0.4rem; }
@@ -394,6 +548,23 @@ body[data-theme="dark"] .slot-placeholder {
     width: 100%;
     border-radius: 5px;
 }
+
+/* Banlist badge overlay on cards/slots */
+.ban-badge {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    background: rgba(0,0,0,0.7);
+    color: #fff;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    pointer-events: none;
+    z-index: 5;
+}
+.ban-badge.forbidden { background: #b71c1c; }
+.ban-badge.limited { background: #ff9800; }
+.ban-badge.unlimited { background: rgba(0,128,0,0.85); }
 
 /* Maintain card aspect ratio without forcing fixed height */
 #search-results .card img {

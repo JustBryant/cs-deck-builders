@@ -1,1038 +1,974 @@
-document.addEventListener('DOMContentLoaded', initializeApp);
-
-// DOM references
-const searchBar = document.getElementById('search-bar');
-const searchResults = document.getElementById('search-results');
-const pointList = document.getElementById('point-list');
-const importBtn = document.getElementById('import-btn');
-const downloadBtn = document.getElementById('download-allowlist');
-const loadingOverlay = document.getElementById('loading-overlay');
-const listSearchInput = document.getElementById('list-search');
-const themeToggleBtn = document.getElementById('theme-toggle');
-const previewEl = document.getElementById('card-preview');
-// Sorting controls
-const searchSortKey = document.getElementById('search-sort-key');
-const searchSortOrder = document.getElementById('search-sort-order');
-const listSortKey = document.getElementById('list-sort-key');
-const listSortOrder = document.getElementById('list-sort-order');
-// Points modal refs
-const pmBackdrop = document.getElementById('points-modal-backdrop');
-const pmTitle = document.getElementById('points-modal-title');
-const pmCardname = document.getElementById('points-modal-cardname');
-const pmHint = document.getElementById('points-modal-hint');
-const pmInput = document.getElementById('points-modal-input');
-const pmError = document.getElementById('points-modal-error');
-const pmOk = document.getElementById('points-modal-ok');
-const pmCancel = document.getElementById('points-modal-cancel');
-const pmClose = document.getElementById('points-modal-close');
-
-// Data stores
-const cardDatabase = new Map(); // name(lower) -> card
-const idToCard = new Map();     // id -> card
-const pointListCards = new Map(); // id -> { card, points }
-const officialGenesysList = {}; // name -> points (rebuilt dynamically)
-let allCards = []; // raw array for convenience
-// Search render state
-let currentResults = [];
-let renderedCount = 0;
-const SEARCH_CHUNK_SIZE = 60; // render in chunks to keep UI responsive
-
-// Canonical Monster Types (API "race" values for monsters)
-const MONSTER_TYPES = [
-    'Aqua', 'Beast', 'Beast-Warrior', 'Cyberse', 'Dinosaur', 'Divine-Beast',
-    'Dragon', 'Fairy', 'Fiend', 'Fish', 'Insect', 'Machine', 'Plant', 'Psychic',
-    'Pyro', 'Reptile', 'Rock', 'Sea Serpent', 'Spellcaster', 'Thunder', 'Warrior',
-    'Winged Beast', 'Wyrm', 'Zombie', 'Creator God', 'Illusion'
-];
-
-// Selection state
-let selectionMode = false;
-const selectedSearchCardIds = new Set(); // id numbers
-
-// Filter DOM refs
-const fCategory = document.getElementById('f-category');
-const fAttribute = document.getElementById('f-attribute');
-const fRace = document.getElementById('f-race');
-const fCardType = document.getElementById('f-type');
-const fLevel = document.getElementById('f-level');
-const fScale = document.getElementById('f-scale');
-const fLimit = document.getElementById('f-limit');
-const fAtk = document.getElementById('f-atk');
-const fDef = document.getElementById('f-def');
-const fClearBtn = document.getElementById('f-clear');
-const monsterTagCheckboxes = Array.from(document.querySelectorAll('.f-monster-tag'));
-
-// --- Initialization & Data Load ---
-async function initializeApp() {
-    // Theme bootstrap
-    initTheme();
-    showLoading(true, 'Loading Card Database...');
-    // Set initial disabled states before loading data
-    try { updateCardTypeOptions(); } catch {}
-    try { updateFilterEnablement(); } catch {}
-        // Ensure Type list is populated immediately (independent of API load)
-        if (fRace) {
-            const opts = ['<option value="all" selected>All</option>'].concat(MONSTER_TYPES.map(t => `<option value="${t}">${t}</option>`));
-            fRace.innerHTML = opts.join('');
-            fRace.value = 'all';
-        }
-    try {
-        const response = await fetch('https://db.ygoprodeck.com/api/v7/cardinfo.php?format=genesys&misc=yes');
-        if (!response.ok) throw new Error(`Network response was not ok: ${response.status} ${response.statusText}`);
-        const payload = await response.json();
-        allCards = payload.data || [];
-
-        // clear any placeholder data
-        for (const k in officialGenesysList) delete officialGenesysList[k];
-
-        allCards.forEach(card => {
-            cardDatabase.set(card.name.toLowerCase(), card);
-            idToCard.set(card.id, card);
-            const pts = card?.misc_info?.[0]?.genesys_points;
-            if (typeof pts === 'number' && pts > 0) {
-                officialGenesysList[card.name] = pts;
-            }
-        });
-        console.log(`Loaded ${allCards.length} cards. Official Genesys entries: ${Object.keys(officialGenesysList).length}`);
-
-        // Wire events
-        searchBar.addEventListener('input', handleSearch);
-        searchBar.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                refreshSearchResults();
-            }
-        });
-        // Infinite scroll for search results
-        if (searchResults) {
-            searchResults.addEventListener('scroll', () => {
-                const nearBottom = searchResults.scrollTop + searchResults.clientHeight >= searchResults.scrollHeight - 120;
-                if (nearBottom) renderNextChunk();
-            });
-            // Hide preview while scrolling the results
-            searchResults.addEventListener('scroll', () => hidePreview());
-        }
-        if (pointList) {
-            // Hide preview while scrolling the point list
-            pointList.addEventListener('scroll', () => hidePreview());
-        }
-        const searchButton = document.getElementById('search-button');
-        if (searchButton) searchButton.addEventListener('click', () => {
-            refreshSearchResults();
-        });
-        if (searchSortKey) searchSortKey.addEventListener('change', refreshSearchResults);
-        if (searchSortOrder) searchSortOrder.addEventListener('change', refreshSearchResults);
-        importBtn.addEventListener('click', handleImport);
-    downloadBtn.addEventListener('click', handleDownloadAllowlist);
-        document.getElementById('toggle-select-mode').addEventListener('click', toggleSelectionMode);
-        document.getElementById('add-selected-official').addEventListener('click', addSelectedOfficial);
-        document.getElementById('add-selected-custom').addEventListener('click', addSelectedCustom);
-    document.getElementById('clear-selection').addEventListener('click', clearSelection);
-    if (listSearchInput) listSearchInput.addEventListener('input', renderPointList);
-    if (listSortKey) listSortKey.addEventListener('change', renderPointList);
-    if (listSortOrder) listSortOrder.addEventListener('change', renderPointList);
-    // Filters listen
-    [fCategory,fAttribute,fRace,fCardType,fLevel,fScale,fLimit,fAtk,fDef].forEach(el => el && el.addEventListener('input', refreshSearchResults));
-    monsterTagCheckboxes.forEach(cb => cb.addEventListener('change', () => { updateFilterEnablement(); refreshSearchResults(); }));
-    if (fCategory) {
-        fCategory.addEventListener('change', () => {
-            updateFilterEnablement();
-            updateCardTypeOptions();
-            refreshSearchResults();
-        });
+let allCards = [];
+let filteredCards = [];
+// Deck as arrays: ordered list of card IDs (allows duplicates and preserves insertion order)
+let deck = { main: [], extra: [], side: [] };
+// Banlist mapping: cardId (string) -> allowedCopies (number). If absent, defaultAllowed applies.
+let banlist = {};
+const DEFAULT_ALLOWED = 3;
+function parseLflist(text) {
+    const map = {};
+    if (!text) return map;
+    const lines = String(text).split(/\r?\n/);
+    for (let raw of lines) {
+        let line = raw.trim();
+        if (!line || line.startsWith('#') || line.startsWith('//')) continue;
+        // Common patterns: "12345678 1", "12345678=1", "12345678:1"
+        let m = line.match(/^(\d+)\s*[=:\s]\s*(\d+)$/);
+        if (m) { map[String(m[1])] = Number(m[2]); continue; }
+        // Some lflist lines may be like "12345678" meaning forbidden? skip
+        m = line.match(/^(\d+)$/);
+        if (m) { map[String(m[1])] = 0; continue; }
+        // Try to find two numbers in the line
+        m = line.match(/(\d+).*?(\d+)/);
+        if (m) { map[String(m[1])] = Number(m[2]); continue; }
     }
-    if (fClearBtn) fClearBtn.addEventListener('click', clearFilters);
-
-    if (themeToggleBtn) themeToggleBtn.addEventListener('click', toggleTheme);
-
-    populateFilterOptions();
-    updateCardTypeOptions();
-    updateFilterEnablement();
-    // Global mousemove to reposition preview if visible
-    window.addEventListener('mousemove', (e) => positionPreview(e));
-    window.addEventListener('mousedown', hidePreview);
-
-    // Modal wiring
-    if (pmCancel) pmCancel.addEventListener('click', closePointsModal);
-    if (pmClose) pmClose.addEventListener('click', closePointsModal);
-    if (pmBackdrop) pmBackdrop.addEventListener('click', (e) => { if (e.target === pmBackdrop) closePointsModal(); });
-    if (pmInput) pmInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') { e.preventDefault(); confirmPointsModal(); }
-        if (e.key === 'Escape') { e.preventDefault(); closePointsModal(); }
-    });
-    if (pmOk) pmOk.addEventListener('click', confirmPointsModal);
-
-        updateSelectionToolbarState();
-    } catch (err) {
-        console.error(err);
-        showLoading(true, `Error loading database. Refresh page. (${err.message})`);
-        return;
-    } finally {
-        showLoading(false);
-    }
+    return map;
 }
 
-// --- Theme ---
-function initTheme() {
-    const saved = localStorage.getItem('genesys-theme');
-    let theme = saved;
-    if (!theme) {
-        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        theme = prefersDark ? 'dark' : 'light';
-    }
-    applyTheme(theme);
+function loadBanlistFromText(text, sourceName) {
+    banlist = parseLflist(text);
+    const status = document.getElementById('banlist-status');
+    const count = Object.keys(banlist).length;
+    if (status) status.textContent = `Loaded ${count} entries`;
+    updateAllBanBadges();
+    updateDeckDisplay();
 }
 
-function applyTheme(theme) {
-    const t = theme === 'dark' ? 'dark' : 'light';
-    document.body.setAttribute('data-theme', t);
-    if (themeToggleBtn) themeToggleBtn.textContent = t === 'dark' ? 'Light Mode' : 'Dark Mode';
+function clearBanlist() {
+    banlist = {};
+    const status = document.getElementById('banlist-status'); if (status) status.textContent = 'Cleared';
+    updateAllBanBadges();
+    updateDeckDisplay();
 }
 
-function toggleTheme() {
-    const current = document.body.getAttribute('data-theme') || 'light';
-    const next = current === 'dark' ? 'light' : 'dark';
-    applyTheme(next);
-    try { localStorage.setItem('genesys-theme', next); } catch {}
+function allowedCopiesFor(cardId) {
+    if (!cardId) return DEFAULT_ALLOWED;
+    const id = String(cardId);
+    if (banlist.hasOwnProperty(id)) return Number(banlist[id]);
+    return DEFAULT_ALLOWED;
 }
 
-function showLoading(isLoading, message = 'Loading...') {
-    if (isLoading) {
-        loadingOverlay.querySelector('p').textContent = message;
-        loadingOverlay.style.display = 'flex';
-    } else {
-        loadingOverlay.style.display = 'none';
-    }
-}
+// Deck slot counts
+const MAIN_SLOTS = 60;
+const EXTRA_SLOTS = 15;
+const SIDE_SLOTS = 15;
 
-// --- Search ---
-function handleSearch(e) {
-    const query = e.target.value.toLowerCase().trim();
-    searchResults.innerHTML = '';
+/**
+ * Ensure persistent empty slots exist in each deck grid so slots
+ * are always visible even when no cards have been added.
+ */
+function ensureDeckSlots() {
+    const main = document.getElementById('main-deck');
+    const extra = document.getElementById('extra-deck');
+    const side = document.getElementById('side-deck');
 
-    const renderedIds = new Set();
-
-    // Always show currently selected cards first (pinned) regardless of query
-    if (selectedSearchCardIds.size > 0) {
-        const group = document.createElement('div');
-        group.style.display = 'contents'; // so cards flow naturally in grid
-        selectedSearchCardIds.forEach(id => {
-            const card = idToCard.get(id);
-            if (!card) return;
-            const cardEl = createCardElement(card, false);
-            cardEl.classList.add('selected');
-            cardEl.title = 'Selected - click to unselect';
-            // selection click handler (selectionMode not required here to allow deselect anytime while still selected)
-            cardEl.addEventListener('click', () => {
-                toggleSearchCardSelection(card.id, cardEl);
-            });
-            // prevent context menu actions while pinned (still allow right-click remove from list if already added?) we keep consistent with below
-            cardEl.addEventListener('contextmenu', (evt) => {
-                evt.preventDefault();
-                if (pointListCards.has(card.id)) {
-                    removeCardFromPointList(card.id);
-                } else {
-                    addCardToPointList(card, 'prompt');
-                }
-            });
-            searchResults.appendChild(cardEl);
-            renderedIds.add(card.id);
-        });
-    }
-
-    // Allow empty query so filters alone can drive results
-
-    // Compute full result set once; exclude already-pinned selected cards to avoid duplicates
-    let allFiltered = allCards.filter(c => matchesQueryAndFilters(c, query));
-    // Apply sorting for search results
-    if (searchSortKey && searchSortOrder) {
-        const key = searchSortKey.value || 'alpha';
-        const order = (searchSortOrder.value || 'asc').toLowerCase();
-        const dir = order === 'desc' ? -1 : 1;
-        const cmp = (a, b) => {
-            if (key === 'points') {
-                const pa = a?.misc_info?.[0]?.genesys_points ?? officialGenesysList[a.name] ?? 0;
-                const pb = b?.misc_info?.[0]?.genesys_points ?? officialGenesysList[b.name] ?? 0;
-                if (pa === pb) return a.name.localeCompare(b.name);
-                return (pa - pb) * dir;
-            }
-            return a.name.localeCompare(b.name) * dir;
-        };
-        allFiltered = allFiltered.slice().sort(cmp);
-    }
-    currentResults = allFiltered.filter(c => !renderedIds.has(c.id));
-    renderedCount = 0;
-    renderNextChunk();
-}
-
-function matchesQueryAndFilters(card, query) {
-    // Always exclude Tokens and Skill cards from search
-    const typeLower = (card.type || '').toLowerCase();
-    const frameLower = (card.frameType || '').toLowerCase();
-    if (typeLower.includes('token') || frameLower.includes('token')) return false;
-    if (typeLower.includes('skill') || frameLower.includes('skill')) return false;
-
-    if (query && !card.name.toLowerCase().includes(query)) return false;
-    // Category normalization and filter
-    let selectedCategory = null;
-    if (fCategory && fCategory.value !== 'all') {
-        selectedCategory = fCategory.value;
-        const cardCat = detectCardCategory(card);
-        if (cardCat.toLowerCase() !== selectedCategory.toLowerCase()) return false;
-    }
-    // Attribute (Monsters only)
-    if (fAttribute && !fAttribute.disabled && fAttribute.value && fAttribute.value !== 'all') {
-        if ((card.attribute || '').toLowerCase() !== fAttribute.value.toLowerCase()) return false;
-    }
-    // Card Type (per-category normalized)
-    if (fCardType && !fCardType.disabled && fCardType.value && fCardType.value !== 'all') {
-        const cat = (selectedCategory || detectCardCategory(card));
-        const normalized = normalizeCardType(card, cat);
-        if (!normalized) return false; // don't guess; exclude unknowns
-        if (normalized.toLowerCase() !== fCardType.value.toLowerCase()) return false;
-    }
-    // Race/Type (Monster species like Warrior/Dragon) - apply only when enabled
-    if (fRace && !fRace.disabled && fRace.value && fRace.value !== 'all') {
-        if ((card.race || '').toLowerCase() !== fRace.value.toLowerCase()) return false;
-    }
-    // Monster tags (Pendulum, Tuner, FLIP, Spirit, Gemini, Union) - apply only when enabled
-    if (monsterTagCheckboxes.length && monsterTagCheckboxes.some(cb => !cb.disabled && cb.checked)) {
-        const typeStr = (card.type || '').toLowerCase();
-        const frameStr = (card.frameType || '').toLowerCase();
-        for (const cb of monsterTagCheckboxes) {
-            if (cb.disabled || !cb.checked) continue;
-            const tag = cb.value.toLowerCase();
-            if (tag === 'pendulum') {
-                const hasScale = card.scale != null || card.pend_scale != null;
-                const isPendulum = hasScale || typeStr.includes('pendulum') || frameStr.includes('pendulum');
-                if (!isPendulum) return false;
-            } else {
-                if (!typeStr.includes(tag)) return false;
+    if (main) {
+        if (main.querySelectorAll('.deck-slot').length !== MAIN_SLOTS) {
+            main.innerHTML = '';
+            for (let i = 0; i < MAIN_SLOTS; i++) {
+                const s = document.createElement('div');
+                s.className = 'deck-slot empty';
+                s.dataset.index = i;
+                s.dataset.section = 'main';
+                // drag handlers
+                s.addEventListener('dragover', slotDragOver);
+                s.addEventListener('dragenter', slotDragEnter);
+                s.addEventListener('dragleave', slotDragLeave);
+                s.addEventListener('drop', slotDrop);
+                main.appendChild(s);
             }
         }
     }
-    // Level/Rank (single comparator input)
-    const level = card.level ?? card.linkval ?? 0;
-    if (fLevel && !fLevel.disabled && fLevel.value && !compareWithOperator(level, fLevel.value)) return false;
-    // Pendulum Scale (only applies when enabled, i.e., Monster + Pendulum tag)
-    if (fScale && !fScale.disabled && fScale.value) {
-        const scale = card.scale ?? card.pend_scale ?? null;
-        if (scale === null || scale !== parseInt(fScale.value, 10)) return false;
+
+    if (extra) {
+        if (extra.querySelectorAll('.deck-slot').length !== EXTRA_SLOTS) {
+            extra.innerHTML = '';
+            for (let i = 0; i < EXTRA_SLOTS; i++) {
+                const s = document.createElement('div');
+                s.className = 'deck-slot empty';
+                s.dataset.index = i;
+                s.dataset.section = 'extra';
+                s.addEventListener('dragover', slotDragOver);
+                s.addEventListener('dragenter', slotDragEnter);
+                s.addEventListener('dragleave', slotDragLeave);
+                s.addEventListener('drop', slotDrop);
+                extra.appendChild(s);
+            }
+        }
     }
-    // ATK/DEF (single comparator inputs)
-    const atk = card.atk ?? -1;
-    const def = card.def ?? -1;
-    if (fAtk && !fAtk.disabled && fAtk.value && !compareWithOperator(atk, fAtk.value)) return false;
-    if (fDef && !fDef.disabled && fDef.value && !compareWithOperator(def, fDef.value)) return false;
-    // TCG Limit filtering using YGOPRODeck banlist_info.ban_tcg
-    if (fLimit && fLimit.value && fLimit.value !== 'all') {
-        const raw = (card?.banlist_info?.ban_tcg || '').toLowerCase();
-        let status = 'unlimited';
+
+    if (side) {
+        if (side.querySelectorAll('.deck-slot').length !== SIDE_SLOTS) {
+            side.innerHTML = '';
+            for (let i = 0; i < SIDE_SLOTS; i++) {
+                const s = document.createElement('div');
+                s.className = 'deck-slot empty';
+                s.dataset.index = i;
+                s.dataset.section = 'side';
+                s.addEventListener('dragover', slotDragOver);
+                s.addEventListener('dragenter', slotDragEnter);
+                s.addEventListener('dragleave', slotDragLeave);
+                s.addEventListener('drop', slotDrop);
+                side.appendChild(s);
+            }
+        }
+
+    // Attach container-level drop handlers so dropping anywhere in the grid works
+    if (main) attachContainerDropHandlers(main, 'main');
+    if (extra) attachContainerDropHandlers(extra, 'extra');
+    if (side) attachContainerDropHandlers(side, 'side');
+    }
+
+function attachContainerDropHandlers(container, section) {
+    // Avoid adding multiple listeners
+    if (container._hasDnD) return;
+    container._hasDnD = true;
+    container.addEventListener('dragover', function(e) { e.preventDefault(); container.classList.add('drag-over'); });
+    container.addEventListener('dragleave', function(e) { container.classList.remove('drag-over'); });
+    container.addEventListener('drop', function(e) { e.preventDefault(); container.classList.remove('drag-over');
+        // if the data is from-deck (moving/removing), try to parse payload
+        let raw = e.dataTransfer.getData('application/x-deck');
+        if (!raw) {
+            // fallback: some browsers only preserve text/plain; we prefix deck drags with 'deck:'
+            const plain = e.dataTransfer.getData('text/plain');
+            if (plain && plain.startsWith('deck:')) raw = plain.slice(5);
+        }
         if (raw) {
-            if (raw.includes('ban') || raw.includes('forbid')) status = 'banned';
-            else if (raw.includes('semi')) status = 'semi';
-            else if (raw.includes('limit')) status = 'limited';
+            try {
+                const payload = JSON.parse(raw);
+                // dropping from a slot onto a container should be treated as move to that section
+                    if (payload && payload.action === 'from-deck') {
+                    // validate that target accepts the card before removing from source
+                    const card = allCards.find(c => String(c.id) === String(payload.cardId));
+                    const type = (card && card.type) ? String(card.type) : '';
+                    const isExtraType = /fusion|synchro|xyz|link/i.test(type);
+                    const isMonster = /monster/i.test(type);
+                    const acceptForTarget = (section === 'extra') ? (isMonster && isExtraType) : (section === 'main' ? !(isMonster && isExtraType) : true);
+                    if (!acceptForTarget) {
+                        // flash invalid
+                        container.classList.add('invalid');
+                        setTimeout(()=>container.classList.remove('invalid'),700);
+                        return;
+                    }
+                    // perform move
+                    if (payload.section && payload.cardId) {
+                        removeFromDeck(payload.cardId, payload.section);
+                    }
+                    tryAddCardToSection(payload.cardId, section);
+                    // clear global payload marker so dragend doesn't double-remove
+                    try { window._kp_drag_payload = null; } catch (ex) {}
+                    return;
+                }
+            } catch (e) {}
         }
-        if (status !== fLimit.value.toLowerCase()) return false;
+        const id = e.dataTransfer.getData('text/plain'); if (!id) return; tryAddCardToSection(id, section);
+    });
+}
+
+function slotDragOver(e) { e.preventDefault(); /* allow drop */ }
+function slotDragEnter(e) { e.preventDefault(); this.classList.add('drag-over'); }
+function slotDragLeave(e) { this.classList.remove('drag-over'); }
+function slotDrop(e) {
+    e.preventDefault(); e.stopPropagation(); this.classList.remove('drag-over');
+    const section = this.dataset.section || (this.closest('.deck-grid') ? this.closest('.deck-grid').id.replace('-deck','') : null);
+    // try to read deck payload (move) first
+    let raw = e.dataTransfer.getData('application/x-deck');
+    if (!raw) {
+        const plain = e.dataTransfer.getData('text/plain');
+        if (plain && plain.startsWith('deck:')) raw = plain.slice(5);
     }
+    if (raw) {
+        try {
+            const payload = JSON.parse(raw);
+            if (payload && payload.action === 'from-deck') {
+                // perform move to this section
+                if (payload.section && payload.cardId) removeFromDeck(payload.cardId, payload.section);
+                tryAddCardToSection(payload.cardId, section);
+                try { window._kp_drag_payload = null; } catch (ex) {}
+                return;
+            }
+        } catch (err) {}
+    }
+    // fallback: plain card id from search
+    const id = e.dataTransfer.getData('text/plain'); if (!id) return; tryAddCardToSection(id, section);
+}
+
+function slotDragStart(e) {
+    // dragging a card out of the deck to remove or move
+    const cardId = this.dataset.cardId;
+    const section = this.dataset.section || (this.closest('.deck-grid') ? this.closest('.deck-grid').id.replace('-deck','') : null);
+    if (!cardId) { e.preventDefault(); return; }
+    try {
+        const payload = JSON.stringify({ action: 'from-deck', cardId: String(cardId), section: String(section) });
+        e.dataTransfer.setData('application/x-deck', payload);
+        // also set plain text for compatibility
+        e.dataTransfer.setData('text/plain', String(cardId));
+        e.dataTransfer.effectAllowed = 'move';
+    } catch (ex) {}
+}
+
+function tryAddCardToSection(cardId, section) {
+    const card = allCards.find(c => String(c.id) === String(cardId));
+    if (!card) return;
+    const type = (card.type||'').toLowerCase();
+    const isExtraType = /fusion|synchro|xyz|link/i.test(type);
+    const isMonster = /monster/i.test(type);
+    const target = section;
+    const containerEl = document.getElementById(`${target}-deck`);
+    const invalidFlash = (el) => { if (!el) return; el.classList.add('invalid'); setTimeout(()=>el.classList.remove('invalid'), 700); };
+
+    if (target === 'extra') {
+        if (isMonster && isExtraType) { const ok = addToDeck(cardId, 'extra'); if (!ok) { invalidFlash(containerEl); } updateDeckDisplay(); return; }
+        invalidFlash(containerEl);
+        return;
+    }
+    if (target === 'main') {
+        if (isMonster && isExtraType) { invalidFlash(containerEl); return; }
+        const okMain = addToDeck(cardId, 'main'); if (!okMain) { invalidFlash(containerEl); } updateDeckDisplay(); return;
+    }
+    if (target === 'side') {
+        const okSide = addToDeck(cardId, 'side'); if (!okSide) { invalidFlash(containerEl); } updateDeckDisplay(); return;
+    }
+}
+
+// Allow dropping a deck card onto the search panel to remove it from its section
+const searchPanel = document.querySelector('.search-section');
+if (searchPanel) {
+    searchPanel.addEventListener('dragover', (e) => { e.preventDefault(); });
+    searchPanel.addEventListener('drop', (e) => {
+        e.preventDefault();
+        // try application/x-deck first, then fallback to text/plain 'deck:' prefix
+        let raw = e.dataTransfer.getData('application/x-deck');
+        if (!raw) {
+            const plain = e.dataTransfer.getData('text/plain');
+            if (plain && plain.startsWith('deck:')) raw = plain.slice(5);
+        }
+        if (!raw) return;
+        try {
+            const payload = JSON.parse(raw);
+            console.log('searchPanel drop payload:', payload);
+            if (payload && payload.action === 'from-deck') {
+                removeFromDeck(payload.cardId, payload.section);
+                try { window._kp_drag_payload = null; } catch (ex) {}
+                updateDeckDisplay();
+            }
+        } catch (err) {}
+    });
+}
+}
+
+// Pagination state (5 rows x 4 cols => 20 per page)
+let currentPage = 1;
+const pageSize = 20;
+
+// Replace with your GitHub repo URL for images
+const imageBaseUrl = 'https://raw.githubusercontent.com/JustBryant/KDR-Revamped-Images/main/small_tcg/';
+
+// Hardcoded end date for Kingdoms Purists format - change this to your cutoff date
+const HARDCODED_END_DATE = '2015-08-06';
+
+// Filter option lists
+const monsterMainTypes = ['Any','Normal','Effect','Ritual','Fusion','Synchro','Xyz','Link','Pendulum'];
+const monsterSubTypes = ['Any','Flip','Gemini','Spirit','Toon','Tuner','Union'];
+const races = ['Any','Aqua','Beast','Beast-Warrior','Cyberse','Dinosaur','Dragon','Fairy','Fiend','Fish','Insect','Machine','Plant','Psychic','Pyro','Reptile','Rock','Sea Serpent','Spellcaster','Thunder','Warrior','Winged Beast','Wyrm','Zombie'];
+const spellTypes = ['Any','Normal','Continuous','Equip','Quick-Play','Field','Ritual'];
+const trapTypes = ['Any','Normal','Continuous','Counter'];
+const attributes = ['Any','EARTH','WATER','FIRE','WIND','LIGHT','DARK','DIVINE'];
+
+
+function populateFilterOptions() {
+    // Populate cs-style filter selects
+    const attrSel = document.getElementById('f-attribute');
+    const raceSel = document.getElementById('f-race');
+    const typeSel = document.getElementById('f-type');
+    // Clear existing options to avoid duplicates (HTML may include a placeholder option)
+    attrSel.innerHTML = '';
+    raceSel.innerHTML = '';
+    typeSel.innerHTML = '';
+    // Attributes
+    attributes.forEach(a => { const o = document.createElement('option'); o.value = a === 'Any' ? 'all' : a; o.textContent = a === 'Any' ? 'All' : a; attrSel.appendChild(o); });
+    // Races
+    races.forEach(r => { const o = document.createElement('option'); o.value = r === 'Any' ? 'all' : r; o.textContent = r === 'Any' ? 'All' : r; raceSel.appendChild(o); });
+    // Default type options (all)
+    const defaultType = document.createElement('option'); defaultType.value = 'all'; defaultType.textContent = 'All'; typeSel.appendChild(defaultType);
+}
+
+function updateFilterVisibility() {
+    const catRaw = document.getElementById('f-category').value || 'all';
+    const cat = String(catRaw).toLowerCase();
+    const typeSel = document.getElementById('f-type');
+    const raceSel = document.getElementById('f-race');
+    const attrSel = document.getElementById('f-attribute');
+    const tags = document.querySelectorAll('.f-monster-tag');
+    const levelIn = document.getElementById('f-level');
+    const scaleIn = document.getElementById('f-scale');
+    const atkIn = document.getElementById('f-atk');
+    const defIn = document.getElementById('f-def');
+
+    // Reset type/race lists
+    typeSel.innerHTML = '';
+    raceSel.innerHTML = '';
+
+    if (cat === 'monster') {
+        // Monster: enable all filters
+        attrSel.disabled = false;
+        typeSel.disabled = false;
+        raceSel.disabled = false;
+        levelIn.disabled = false;
+        scaleIn.disabled = false;
+        atkIn.disabled = false;
+        defIn.disabled = false;
+        tags.forEach(t => t.disabled = false);
+
+        monsterMainTypes.forEach(t => { const o = document.createElement('option'); o.value = t === 'Any' ? 'all' : t; o.textContent = t === 'Any' ? 'All' : t; typeSel.appendChild(o); });
+        races.forEach(r => { const o = document.createElement('option'); o.value = r === 'Any' ? 'all' : r; o.textContent = r === 'Any' ? 'All' : r; raceSel.appendChild(o); });
+    } else if (cat === 'spell') {
+        // Spell: only type dropdown usable (spell subtypes)
+        attrSel.disabled = true;
+        typeSel.disabled = false;
+        raceSel.disabled = true;
+        levelIn.disabled = true;
+        scaleIn.disabled = true;
+        atkIn.disabled = true;
+        defIn.disabled = true;
+        tags.forEach(t => t.disabled = true);
+
+        spellTypes.forEach(t => { const o = document.createElement('option'); o.value = t === 'Any' ? 'all' : t; o.textContent = t === 'Any' ? 'All' : t; typeSel.appendChild(o); });
+    } else if (cat === 'trap') {
+        // Trap: only type dropdown usable (trap subtypes)
+        attrSel.disabled = true;
+        typeSel.disabled = false;
+        raceSel.disabled = true;
+        levelIn.disabled = true;
+        scaleIn.disabled = true;
+        atkIn.disabled = true;
+        defIn.disabled = true;
+        tags.forEach(t => t.disabled = true);
+
+        trapTypes.forEach(t => { const o = document.createElement('option'); o.value = t === 'Any' ? 'all' : t; o.textContent = t === 'Any' ? 'All' : t; typeSel.appendChild(o); });
+    } else {
+        // All: disable everything except the search bar
+        attrSel.disabled = true;
+        typeSel.disabled = true;
+        raceSel.disabled = true;
+        levelIn.disabled = true;
+        scaleIn.disabled = true;
+        atkIn.disabled = true;
+        defIn.disabled = true;
+        tags.forEach(t => t.disabled = true);
+
+        // populate selects minimally with 'All'
+        const o = document.createElement('option'); o.value = 'all'; o.textContent = 'All'; typeSel.appendChild(o);
+        races.forEach(r => { const o2 = document.createElement('option'); o2.value = r === 'Any' ? 'all' : r; o2.textContent = r === 'Any' ? 'All' : r; raceSel.appendChild(o2); });
+    }
+}
+
+async function loadCards() {
+    // Initially empty, user must apply date filter to load cards
+    displayCards([]);
+}
+
+function displayCards(cardList) {
+    const results = document.getElementById('search-results');
+    results.innerHTML = '';
+    const total = (cardList && cardList.length) ? cardList.length : 0;
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    if (currentPage > totalPages) currentPage = totalPages;
+    const start = (currentPage - 1) * pageSize;
+    const pageCards = (cardList || []).slice(start, start + pageSize);
+
+    // Render exactly pageSize slots (placeholders for empty slots)
+    for (let i = 0; i < pageSize; i++) {
+        const div = document.createElement('div');
+        div.className = 'card';
+        if (i < pageCards.length) {
+            const card = pageCards[i];
+            const imgSrc = `${imageBaseUrl}${card.id}.jpg`;
+            div.dataset.cardId = card.id;
+            div.draggable = true;
+            div.addEventListener('dragstart', (ev) => {
+                try { ev.dataTransfer.setData('text/plain', String(card.id)); ev.dataTransfer.effectAllowed = 'copy'; } catch (e) {}
+            });
+            const allowed = allowedCopiesFor(card.id);
+            let badge = '';
+            if (allowed === 0) badge = '<span class="ban-badge forbidden">F</span>';
+            else if (allowed === 1) badge = '<span class="ban-badge limited">1</span>';
+            else if (allowed === 2) badge = '<span class="ban-badge limited">2</span>';
+            else badge = `<span class="ban-badge unlimited">${allowed}</span>`;
+            div.innerHTML = `
+                <div class="card-image">${badge}<img src="${imgSrc}" alt="${card.name}" onerror="this.style.display='none'"></div>
+                <div class="card-info"><div class="card-name">${card.name}</div><div class="card-type">${card.type || ''} ${card.race ? '- ' + card.race : ''}</div></div>
+            `;
+            // click to preview
+            div.addEventListener('click', () => showCardPreviewById(card.id));
+        } else {
+            // empty placeholder
+            div.innerHTML = `
+                <div class="card-image empty"></div>
+                <div class="card-info"><div class="card-name muted">Empty</div></div>
+            `;
+            div.classList.add('empty');
+        }
+        results.appendChild(div);
+    }
+
+    updatePaginationControls(total, totalPages);
+}
+
+function updateAllBanBadges() {
+    // Update badges in search results and visible slots
+    const cards = document.querySelectorAll('#search-results .card');
+    cards.forEach(div => {
+        const id = div.dataset.cardId;
+        const imgWrap = div.querySelector('.card-image');
+        if (!imgWrap) return;
+        const existing = imgWrap.querySelector('.ban-badge');
+        if (existing) existing.remove();
+        if (!id) return;
+        const allowed = allowedCopiesFor(id);
+        let badgeEl = document.createElement('span'); badgeEl.className = 'ban-badge';
+        if (allowed === 0) { badgeEl.classList.add('forbidden'); badgeEl.textContent = 'F'; }
+        else if (allowed === 1) { badgeEl.classList.add('limited'); badgeEl.textContent = '1'; }
+        else if (allowed === 2) { badgeEl.classList.add('limited'); badgeEl.textContent = '2'; }
+        else { badgeEl.classList.add('unlimited'); badgeEl.textContent = String(allowed); }
+        imgWrap.prepend(badgeEl);
+    });
+}
+
+function showCardPreviewById(cardId) {
+    const card = allCards.find(c => c.id == cardId);
+    if (!card) return clearCardPreview();
+    const img = document.getElementById('preview-image');
+    const wrap = document.getElementById('preview-image-wrap');
+    const info = document.getElementById('preview-info');
+    const empty = document.getElementById('preview-empty');
+    const nameEl = document.getElementById('preview-name');
+    const typeEl = document.getElementById('preview-typeline');
+    const statsEl = document.getElementById('preview-stats');
+    const descEl = document.getElementById('preview-desc');
+    img.src = `${imageBaseUrl}${card.id}.jpg`;
+    img.alt = card.name;
+    img.style.display = '';
+    nameEl.textContent = card.name || '';
+    typeEl.textContent = `${card.type || ''}${card.race ? ' — ' + card.race : ''}`;
+    const parts = [];
+    if (card.level) parts.push('Lvl ' + card.level);
+    if (card.atk !== null && card.atk !== undefined) parts.push('ATK ' + card.atk);
+    if (card.def !== null && card.def !== undefined) parts.push('DEF ' + card.def);
+    statsEl.textContent = parts.join(' | ');
+    // Render description with Pendulum / Monster effect sections if present
+    const raw = card.desc || '';
+    // Helper to safely create text nodes with preserved line breaks
+    function appendPreText(parent, text) {
+        const el = document.createElement('div');
+        el.className = 'effect-text';
+        el.textContent = text;
+        parent.appendChild(el);
+    }
+
+    // Normalize bracketed labels like "[ Pendulum Effect ]" or "[ Monster Effect ]"
+    const normalized = raw.replace(/\[\s*(Pendulum Effect|Pendulum|Monster Effect|Monster)[^\]]*\]/ig, '$1');
+    // Try to extract Pendulum Effect and Monster Effect blocks (case-insensitive)
+    const pendulumMatch = normalized.match(/Pendulum Effect\s*[:\-–]?\s*([\s\S]*?)(?=(?:\n?\s*Monster Effect\s*[:\-–]?\s*)|$)/i);
+    const monsterMatch = normalized.match(/Monster Effect\s*[:\-–]?\s*([\s\S]*)/i);
+    descEl.innerHTML = '';
+    function cleanEffectText(s) {
+        if (!s) return '';
+        // trim and remove any stray bracket characters or leading punctuation
+        s = String(s).trim();
+        // remove a leading closing bracket that can appear when descriptions use '[ Pendulum Effect ] ...'
+        s = s.replace(/^[\]\)\}\:\-\–\s]+/, '');
+        // remove any leading opening bracket and optional label remnants
+        s = s.replace(/^\[+\s*/, '');
+        // remove trailing closing bracket(s)
+        s = s.replace(/\s*\]+$/, '');
+        return s.trim();
+    }
+
+    if (pendulumMatch && pendulumMatch[1] && pendulumMatch[1].trim()) {
+        const heading = document.createElement('div');
+        heading.className = 'effect-heading';
+        const strong = document.createElement('strong'); strong.textContent = 'Pendulum Effect';
+        heading.appendChild(strong);
+        descEl.appendChild(heading);
+        appendPreText(descEl, cleanEffectText(pendulumMatch[1]));
+    }
+    if (monsterMatch && monsterMatch[1] && monsterMatch[1].trim()) {
+        const heading = document.createElement('div');
+        heading.className = 'effect-heading';
+        const strong = document.createElement('strong'); strong.textContent = 'Monster Effect';
+        heading.appendChild(strong);
+        descEl.appendChild(heading);
+        appendPreText(descEl, cleanEffectText(monsterMatch[1]));
+    }
+    // Fallback: show entire description if no specific pendulum/monster blocks found
+    if (!pendulumMatch && !monsterMatch) {
+        // If the raw description starts with a bracketed label like '[ Pendulum Effect ]' or '[ Monster Effect ]',
+        // strip that outer label so we don't show the square brackets.
+        let fallback = raw;
+        fallback = fallback.replace(/^\s*\[[^\]]*(Pendulum|Monster)[^\]]*\]\s*/i, '');
+        appendPreText(descEl, fallback);
+    }
+    info.style.display = '';
+    if (empty) empty.style.display = 'none';
+}
+
+function clearCardPreview() {
+    const img = document.getElementById('preview-image');
+    const info = document.getElementById('preview-info');
+    const empty = document.getElementById('preview-empty');
+    if (img) { img.src = ''; img.style.display = 'none'; }
+    if (info) info.style.display = 'none';
+    if (empty) empty.style.display = '';
+}
+
+function addToDeck(cardId, section) {
+    const card = allCards.find(c => String(c.id) === String(cardId));
+    if (!card) return false;
+    // enforce copies per card according to banlist across entire deck (main+extra+side)
+    const combined = (Array.isArray(deck.main) ? deck.main : Object.entries(deck.main||{}).flatMap(([id,count])=>Array(count).fill(id)))
+                   .concat(Array.isArray(deck.extra) ? deck.extra : Object.entries(deck.extra||{}).flatMap(([id,count])=>Array(count).fill(id)))
+                   .concat(Array.isArray(deck.side) ? deck.side : Object.entries(deck.side||{}).flatMap(([id,count])=>Array(count).fill(id)));
+    const totalCount = combined.filter(id=>String(id)===String(cardId)).length;
+    const allowed = allowedCopiesFor(cardId);
+    if (totalCount >= allowed) return false;
+    deck[section].push(String(cardId));
+    console.log('addToDeck:', section, cardId, 'now', deck[section].slice(0,10));
+    updateDeckDisplay();
     return true;
 }
 
-function populateFilterOptions() {
-    // Attributes
-    const attributes = new Set();
-    allCards.forEach(c => {
-        if (c.attribute) attributes.add(c.attribute.toLowerCase());
-    });
-    const fill = (select, values) => {
-        if (!select) return;
-        const current = select.value;
-        const arr = Array.isArray(values) ? values.slice() : Array.from(values);
-        select.innerHTML = '<option value="all" selected>All</option>' + arr.sort().map(v => `<option value="${v}">${capitalize(v)}</option>`).join('');
-        if (arr.includes(current)) {
-            select.value = current;
-        } else {
-            select.value = 'all';
-        }
-    };
-    fill(fAttribute, attributes);
-    // Type (race) -> use canonical monster types list
-    if (fRace) {
-        const current = fRace.value;
-        const opts = ['<option value="all" selected>All</option>'].concat(MONSTER_TYPES.map(t => `<option value="${t}">${t}</option>`));
-        fRace.innerHTML = opts.join('');
-        if (MONSTER_TYPES.includes(current)) fRace.value = current; else fRace.value = 'all';
+// Pagination helpers
+function updatePaginationControls(totalCount, totalPages) {
+    const info = document.getElementById('page-info');
+    const prev = document.getElementById('page-prev');
+    const next = document.getElementById('page-next');
+    if (info) info.textContent = `Page ${currentPage} of ${totalPages} (${totalCount} results)`;
+    if (prev) prev.disabled = currentPage <= 1;
+    if (next) next.disabled = currentPage >= totalPages;
+}
+
+function prevPage() {
+    if (currentPage > 1) {
+        currentPage--;
+        displayCards(filteredCards);
     }
 }
 
-function clearFilters() {
-    if (fCategory) fCategory.value = 'all';
-    [fAttribute,fRace,fCardType,fLevel,fScale,fLimit,fAtk,fDef].forEach(el => { if (el) el.value = ''; });
-    if (fAttribute) fAttribute.value = 'all';
-    if (fRace) fRace.value = 'all';
-    if (fCardType) fCardType.value = 'all';
-    updateCardTypeOptions();
-    updateFilterEnablement();
-    refreshSearchResults();
-}
-
-function capitalize(s){ return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
-
-// Parse comparator input like '>2000', '>=1500', '<1000', '<=7', '=0', or raw number (equals). Also supports comma-separated multi-conditions.
-function compareWithOperator(value, input) {
-    const str = String(input).trim();
-    if (!str) return true;
-    const parts = str.split(',').map(s => s.trim()).filter(Boolean);
-    const test = (token) => {
-        const m = token.match(/^(>=|<=|>|<|=)?\s*(\?|\d+)$/);
-        if (!m) return true; // ignore invalid token
-        const op = m[1] || '=';
-        if (m[2] === '?') {
-            // '?' means unknown/any; always passes
-            return true;
-        }
-        const num = parseInt(m[2], 10);
-        if (Number.isNaN(num)) return true;
-        switch (op) {
-            case '>': return value > num;
-            case '>=': return value >= num;
-            case '<': return value < num;
-            case '<=': return value <= num;
-            case '=': default: return value === num;
-        }
-    };
-    // All tokens must pass
-    return parts.every(test);
-}
-
-// Determine top-level category for a card
-function detectCardCategory(card) {
-    const t = (card.type || '').toLowerCase();
-    if (t.includes('spell')) return 'Spell';
-    if (t.includes('trap')) return 'Trap';
-    return 'Monster';
-}
-
-// Normalize card type based on selected category for filtering
-// Monster -> one of: Normal, Effect, Fusion, Synchro, Xyz, Link, Ritual
-//   Note: Subtypes like Spirit, Tuner, FLIP, Gemini, Union are considered Effect for filtering purposes
-// Spell -> one of: Normal, Quick-Play, Continuous, Equip, Field, Ritual
-// Trap -> one of: Normal, Continuous, Counter
-function normalizeCardType(card, category) {
-    const typeStr = (card.type || '').toLowerCase();
-    const raceStr = (card.race || '').toLowerCase();
-    const catLower = (category || detectCardCategory(card) || '').toLowerCase();
-    if (catLower === 'monster') {
-        if (typeStr.includes('link')) return 'Link';
-        if (typeStr.includes('xyz')) return 'Xyz';
-        if (typeStr.includes('synchro')) return 'Synchro';
-        if (typeStr.includes('fusion')) return 'Fusion';
-        if (typeStr.includes('ritual')) return 'Ritual';
-        // Treat subtype-only monsters as Effect (Spirit, Tuner, FLIP, Gemini, Union)
-        const isEffectLike = (
-            typeStr.includes('effect') ||
-            typeStr.includes('spirit') ||
-            typeStr.includes('tuner') ||
-            typeStr.includes('flip') ||
-            typeStr.includes('gemini') ||
-            typeStr.includes('union')
-        );
-        if (isEffectLike) return 'Effect';
-        if (typeStr.includes('normal')) return 'Normal';
-        return null; // unknown (e.g., 'tuner'); do not force to Normal
-    } else if (catLower === 'spell') {
-        if (raceStr.includes('quick')) return 'Quick-Play';
-        if (raceStr.includes('continuous')) return 'Continuous';
-        if (raceStr.includes('equip')) return 'Equip';
-        if (raceStr.includes('field')) return 'Field';
-        if (raceStr.includes('ritual')) return 'Ritual';
-        if (raceStr.includes('normal')) return 'Normal';
-        return null;
-    } else if (catLower === 'trap') {
-        if (raceStr.includes('continuous')) return 'Continuous';
-        if (raceStr.includes('counter')) return 'Counter';
-        if (raceStr.includes('normal')) return 'Normal';
-        return null;
+function nextPage() {
+    const total = (filteredCards && filteredCards.length) ? filteredCards.length : 0;
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    if (currentPage < totalPages) {
+        currentPage++;
+        displayCards(filteredCards);
     }
-    return null;
 }
 
-function updateCardTypeOptions() {
-    if (!fCardType) return;
-    const category = fCategory ? fCategory.value : 'all';
-    const prev = fCardType.value;
-    fCardType.innerHTML = '';
-    const addOption = (val, label) => {
-        const opt = document.createElement('option');
-        opt.value = val;
-        opt.textContent = label;
-        fCardType.appendChild(opt);
-    };
-    addOption('all', 'All');
-    let options = [];
-    const cat = (category || 'all').toLowerCase();
-    if (cat === 'monster') {
-        options = ['Normal','Effect','Fusion','Synchro','Xyz','Link','Ritual'];
-    } else if (cat === 'spell') {
-        options = ['Normal','Quick-Play','Continuous','Ritual','Equip','Field'];
-    } else if (cat === 'trap') {
-        options = ['Normal','Continuous','Counter'];
+function removeFromDeck(cardId, section) {
+    if (!deck[section] || deck[section].length === 0) return;
+    const idx = deck[section].findIndex(id => String(id) === String(cardId));
+    if (idx === -1) return;
+    deck[section].splice(idx, 1);
+    console.log('removeFromDeck:', section, cardId, 'now', deck[section].slice(0,10));
+    updateDeckDisplay();
+}
+
+function updateDeckDisplay() {
+    updateSection('main', 'main-deck', 'main-count');
+    updateSection('extra', 'extra-deck', 'extra-count');
+    updateSection('side', 'side-deck', 'side-count');
+}
+
+function updateSection(section, divId, countId) {
+    const div = document.getElementById(divId);
+    if (!div) return;
+    // ensure persistent slots exist
+    ensureDeckSlots();
+    // collect an ordered array of card ids expanded by count
+    let expanded = [];
+    if (Array.isArray(deck[section])) {
+        expanded = deck[section].slice();
     } else {
-        // No category selected
-        fCardType.value = 'all';
-        return;
-    }
-    for (const o of options) addOption(o, o);
-    // reset selection to 'all' or previous if still valid
-    if (options.includes(prev)) fCardType.value = prev; else fCardType.value = 'all';
-}
-
-function updateFilterEnablement() {
-    const category = fCategory ? fCategory.value : 'all';
-    const setDis = (el, flag) => {
-        if (!el) return;
-        el.disabled = flag;
-        const isSelect = el.tagName === 'SELECT';
-        if (flag) {
-            // On disable: selects go to 'all' if available; inputs cleared
-            if (isSelect) {
-                if ([...el.options].some(o => o.value === 'all')) el.value = 'all';
-            } else {
-                el.value = '';
-            }
-        } else {
-            // On enable: ensure selects default to 'all' if empty or invalid
-            if (isSelect) {
-                const values = new Set([...el.options].map(o => o.value));
-                if (!el.value || !values.has(el.value)) {
-                    if (values.has('all')) el.value = 'all';
-                }
-            }
+        // backward compatibility if deck uses object mapping
+        for (const [id, count] of Object.entries(deck[section] || {})) {
+            for (let i = 0; i < count; i++) expanded.push(id);
         }
-    };
-    // Limit is always enabled
-    if (fLimit) fLimit.disabled = false;
-    // Default: disable all (except category and limit) when no category selected
-    const none = (!category || category === 'all');
-    if (none) {
-        setDis(fCardType, true);
-        setDis(fAttribute, true);
-        setDis(fRace, true);
-        setDis(fLevel, true);
-        setDis(fScale, true);
-        setDis(fAtk, true);
-        setDis(fDef, true);
-        monsterTagCheckboxes.forEach(cb => { cb.checked = false; cb.disabled = true; });
-        return;
     }
-    // Card Type enabled for any category selection
-    setDis(fCardType, false);
-    const cat = (category || '').toLowerCase();
-    const isMonster = cat === 'monster';
-    // Only Monster enables Attribute, Type(race), Lv/Rank, ATK, DEF
-    setDis(fAttribute, !isMonster);
-    setDis(fRace, !isMonster);
-    setDis(fLevel, !isMonster);
-    // Scale is enabled only when Pendulum tag is checked
-    const pendulumChecked = monsterTagCheckboxes.some(cb => !cb.disabled && cb.value.toLowerCase() === 'pendulum' && cb.checked);
-    setDis(fScale, !(isMonster && pendulumChecked));
-    setDis(fAtk, !isMonster);
-    setDis(fDef, !isMonster);
-    monsterTagCheckboxes.forEach(cb => { cb.disabled = !isMonster; if (!isMonster) cb.checked = false; });
-}
 
-// --- Import Official List ---
-async function handleImport() {
-    showLoading(true, 'Importing Official Genesys List...');
-    try {
-        pointListCards.clear();
-        for (const [name, pts] of Object.entries(officialGenesysList)) {
-            const card = cardDatabase.get(name.toLowerCase());
+    // get slots for this section
+    const slots = Array.from(div.querySelectorAll('.deck-slot'));
+    let total = 0;
+    for (let i = 0; i < slots.length; i++) {
+        const slot = slots[i];
+        slot.innerHTML = '';
+        slot.classList.remove('has-card');
+        slot.classList.remove('empty');
+        const cardId = expanded[i];
+        if (cardId) {
+            const card = allCards.find(c => c.id == cardId);
             if (card) {
-                pointListCards.set(card.id, { card, points: pts });
-            }
-        }
-        renderPointList();
-        refreshVisibleSearchBadges();
-    } finally {
-        showLoading(false);
-    }
-}
-
-// --- Element Creation ---
-function createCardElement(card, showPoints = true, points = 0) {
-    const div = document.createElement('div');
-    div.className = 'card';
-    div.dataset.cardId = card.id;
-
-    const img = document.createElement('img');
-    img.src = card.card_images[0].image_url_small;
-    img.alt = card.name;
-    img.loading = 'lazy';
-    div.appendChild(img);
-
-    // Hover preview handlers (use high-res image on hover)
-    const hiResUrl = card.card_images[0]?.image_url || img.src;
-    div.addEventListener('mouseenter', (e) => showPreview(hiResUrl, e, card));
-    div.addEventListener('mousemove', (e) => positionPreview(e));
-    div.addEventListener('mouseleave', hidePreview);
-
-    if (showPoints) {
-        const span = document.createElement('span');
-        span.className = 'points';
-        span.textContent = points;
-        span.title = 'Click to edit points';
-        span.addEventListener('click', (e) => {
-            e.stopPropagation();
-            openPointEditor(card.id);
-        });
-        div.appendChild(span);
-    } else {
-        // Genesys official badge for search results
-        const official = card?.misc_info?.[0]?.genesys_points ?? officialGenesysList[card.name] ?? 0;
-        const assigned = pointListCards.get(card.id)?.points;
-        const display = (assigned != null ? assigned : official);
-        const badge = document.createElement('span');
-        badge.className = 'genesys-badge';
-        badge.textContent = display;
-        badge.title = (assigned != null)
-            ? `Assigned Points: ${assigned}`
-            : `Official Genesys Points: ${official}`;
-        badge.classList.add(assigned != null ? 'assigned' : 'official');
-        div.appendChild(badge);
-        div.classList.add('selectable');
-        if (selectedSearchCardIds.has(card.id)) div.classList.add('selected');
-    }
-    return div;
-}
-
-function renderNextChunk() {
-    if (!currentResults || renderedCount >= currentResults.length) return;
-    const end = Math.min(renderedCount + SEARCH_CHUNK_SIZE, currentResults.length);
-    for (let i = renderedCount; i < end; i++) {
-        const card = currentResults[i];
-    const cardEl = createCardElement(card, false);
-        cardEl.title = 'Click: add (custom points) | Shift+Click: add official points';
-        cardEl.addEventListener('click', (evt) => {
-            if (selectionMode) {
-                toggleSearchCardSelection(card.id, cardEl);
-                return;
-            }
-            if (evt.shiftKey) {
-                addCardToPointList(card, 'official');
+                const img = document.createElement('img');
+                img.src = `${imageBaseUrl}${card.id}.jpg`;
+                img.alt = card.name;
+                img.onerror = function() { this.style.display = 'none'; };
+                slot.appendChild(img);
+                slot.classList.add('has-card');
+                slot.dataset.cardId = card.id;
+                // clicking a slot shows preview
+                slot.onclick = () => showCardPreviewById(card.id);
+                // make slot draggable so user can drag card out to remove/move
+                slot.draggable = true;
+                slot.dataset.section = section;
+                slot.ondragstart = null; // clear any previous handler
+                // inline dragstart handler to avoid potential scope issues
+                slot.addEventListener('dragstart', function(e) {
+                    const cardId = this.dataset.cardId;
+                    const section = this.dataset.section || (this.closest('.deck-grid') ? this.closest('.deck-grid').id.replace('-deck','') : null);
+                    if (!cardId) { e.preventDefault(); return; }
+                    try {
+                        const payloadObj = { action: 'from-deck', cardId: String(cardId), section: String(section) };
+                        const payload = JSON.stringify(payloadObj);
+                        // set both a custom mime and a text/plain fallback that many browsers preserve
+                        e.dataTransfer.setData('application/x-deck', payload);
+                        e.dataTransfer.setData('text/plain', 'deck:' + payload);
+                        e.dataTransfer.effectAllowed = 'move';
+                        // mark global dragging payload so dragend can detect drops outside handlers
+                        try { window._kp_drag_payload = payloadObj; } catch (ex) {}
+                    } catch (ex) {}
+                });
+                // when drag ends, if no drop handler cleared the payload, treat as discard (remove single copy)
+                slot.addEventListener('dragend', function(e) {
+                    try {
+                        const p = window._kp_drag_payload;
+                        if (p && p.action === 'from-deck') {
+                            // no handler cleared the payload => user dropped outside valid targets
+                            removeFromDeck(p.cardId, p.section);
+                            updateDeckDisplay();
+                        }
+                    } catch (err) {}
+                    try { window._kp_drag_payload = null; } catch (ex) {}
+                });
+                total += 1;
             } else {
-                addCardToPointList(card, 'prompt');
+                // unknown card id - leave as empty placeholder
+                slot.classList.add('empty');
             }
-        });
-        cardEl.addEventListener('contextmenu', (evt) => {
-            evt.preventDefault();
-            if (selectionMode) return;
-            if (pointListCards.has(card.id)) {
-                removeCardFromPointList(card.id);
-            } else {
-                addCardToPointList(card, 'prompt');
-            }
-        });
-        searchResults.appendChild(cardEl);
+        } else {
+            // empty slot
+            slot.classList.add('empty');
+            slot.removeAttribute('data-card-id');
+            slot.onclick = () => clearCardPreview();
+            slot.draggable = false;
+            slot.ondragstart = null;
+        }
     }
-    renderedCount = end;
+
+    // update textual count
+    const el = document.getElementById(countId);
+    if (el) el.textContent = `(${total}/${section==='main'?MAIN_SLOTS:(section==='extra'?EXTRA_SLOTS:SIDE_SLOTS)})`;
 }
 
-// --- Point List Management ---
-function addCardToPointList(card, mode = 'official', overridePoints = null) {
-    if (pointListCards.has(card.id)) {
-        // Already there -> open editor
-        openPointEditor(card.id);
-        return;
+function checkLegality() {
+    const mainCount = Array.isArray(deck.main) ? deck.main.length : Object.values(deck.main || {}).reduce((a,b)=>a+b,0);
+    const extraCount = Array.isArray(deck.extra) ? deck.extra.length : Object.values(deck.extra || {}).reduce((a,b)=>a+b,0);
+    const sideCount = Array.isArray(deck.side) ? deck.side.length : Object.values(deck.side || {}).reduce((a,b)=>a+b,0);
+    let message = '';
+    if (mainCount < 40 || mainCount > 60) message += 'Main deck must be 40-60 cards. ';
+    if (extraCount > 15) message += 'Extra deck max 15 cards. ';
+    if (sideCount > 15) message += 'Side deck max 15 cards. ';
+    // Check banlist limits
+    const combined = (Array.isArray(deck.main) ? deck.main : Object.entries(deck.main||{}).flatMap(([id,count])=>Array(count).fill(id)))
+                   .concat(Array.isArray(deck.extra) ? deck.extra : Object.entries(deck.extra||{}).flatMap(([id,count])=>Array(count).fill(id)))
+                   .concat(Array.isArray(deck.side) ? deck.side : Object.entries(deck.side||{}).flatMap(([id,count])=>Array(count).fill(id)));
+    const freq = {};
+    for (const id of combined) freq[id] = (freq[id]||0)+1;
+    for (const id in freq) {
+        const allowed = allowedCopiesFor(id);
+        if (freq[id] > allowed) message += `Card ${id} exceeds allowed ${allowed}. `;
     }
-
-    let resolved = 0;
-    const official = card?.misc_info?.[0]?.genesys_points ?? 0;
-
-    if (typeof mode === 'number') {
-        resolved = mode;
-    } else if (mode === 'prompt') {
-        // Use modal to prompt for points
-        openPointsModal({
-            title: 'Set Points',
-            cardName: card.name,
-            hint: `Official: ${official}`,
-            initial: (overridePoints !== null ? overridePoints : (official || 0)),
-            onConfirm: (val) => {
-                pointListCards.set(card.id, { card, points: val });
-                renderPointList();
-                updateSearchCardBadge(card.id);
-            }
-        });
-        return; // will complete in callback
-    } else { // 'official'
-        resolved = official || 0;
-    }
-    pointListCards.set(card.id, { card, points: resolved });
-    renderPointList();
-    updateSearchCardBadge(card.id);
+    if (!message) message = 'Deck is legal!';
+    const lm = document.getElementById('legalityMessage'); if (lm) lm.textContent = message;
 }
 
-function renderPointList() {
-    pointList.innerHTML = '';
-    const q = (listSearchInput?.value || '').trim().toLowerCase();
-    let items = [...pointListCards.values()]
-        .filter(entry => !q || entry.card.name.toLowerCase().includes(q));
-    // Apply sorting for list
-    if (listSortKey && listSortOrder) {
-        const key = listSortKey.value || 'alpha';
-        const order = (listSortOrder.value || 'asc').toLowerCase();
-        const dir = order === 'desc' ? -1 : 1;
-        const cmp = (a, b) => {
-            if (key === 'points') {
-                if (a.points === b.points) return a.card.name.localeCompare(b.card.name);
-                return (a.points - b.points) * dir;
-            }
-            return a.card.name.localeCompare(b.card.name) * dir;
-        };
-        items = items.slice().sort(cmp);
+function exportYDKE() {
+    const main = Array.isArray(deck.main) ? deck.main.map(Number) : Object.entries(deck.main||{}).flatMap(([id,count])=>Array(count).fill(Number(id)));
+    const extra = Array.isArray(deck.extra) ? deck.extra.map(Number) : Object.entries(deck.extra||{}).flatMap(([id,count])=>Array(count).fill(Number(id)));
+    const side = Array.isArray(deck.side) ? deck.side.map(Number) : Object.entries(deck.side||{}).flatMap(([id,count])=>Array(count).fill(Number(id)));
+    const ydke = createYDKE(main, extra, side);
+    // Copy to clipboard or display
+    navigator.clipboard.writeText(ydke).then(() => {
+        alert('YDKE code copied to clipboard: ' + ydke);
+    });
+}
+
+function createYDKE(main, extra, side) {
+    const buffer = new ArrayBuffer(12 + main.length * 4 + extra.length * 4 + side.length * 4);
+    const view = new DataView(buffer);
+    let offset = 0;
+    view.setUint32(offset, main.length, true); offset += 4;
+    for (let id of main) {
+        view.setUint32(offset, id, true); offset += 4;
+    }
+    view.setUint32(offset, extra.length, true); offset += 4;
+    for (let id of extra) {
+        view.setUint32(offset, id, true); offset += 4;
+    }
+    view.setUint32(offset, side.length, true); offset += 4;
+    for (let id of side) {
+        view.setUint32(offset, id, true); offset += 4;
+    }
+    const bytes = new Uint8Array(buffer);
+    const base64 = btoa(String.fromCharCode(...bytes));
+    return 'ydke://' + base64;
+}
+
+async function applyDateFilter() {
+    const endDateInput = HARDCODED_END_DATE;
+    const results = document.getElementById('search-results');
+    results.innerHTML = '<p>Loading cards...</p>';
+    try {
+        const url = `https://db.ygoprodeck.com/api/v7/cardinfo.php?dateregion=tcg&enddate=${endDateInput}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        allCards = data.data.map(card => ({
+            id: card.id,
+            name: card.name,
+            type: card.type,
+            race: card.race || card.type, // race field
+            attribute: card.attribute || null,
+            desc: card.desc || card.desc || '',
+            atk: typeof card.atk === 'number' ? card.atk : (card.atk === undefined ? null : Number(card.atk)),
+            def: typeof card.def === 'number' ? card.def : (card.def === undefined ? null : Number(card.def)),
+            level: card.level || null,
+            releaseDate: card.card_sets ? new Date(card.card_sets[0].tcg_date) : null
+        }));
+        filteredCards = allCards;
+        displayCards(filteredCards);
+    } catch (error) {
+        console.error('Error loading cards:', error);
+        results.innerHTML = '<p>Error loading cards. Please check your internet connection.</p>';
+    }
+}
+
+// Search button & bar
+document.getElementById('search-button').addEventListener('click', () => filterCards());
+document.getElementById('search-bar').addEventListener('input', () => filterCards());
+
+// Deck controls mapping
+document.getElementById('clear-deck').addEventListener('click', clearDeck);
+document.getElementById('copy-ydke').addEventListener('click', exportYDKE);
+const applyBtn = document.getElementById('applyFilter');
+if (applyBtn) applyBtn.addEventListener('click', applyDateFilter);
+document.getElementById('export-ydk').addEventListener('click', () => downloadYDK());
+// Pagination event wiring
+const _pagePrev = document.getElementById('page-prev');
+const _pageNext = document.getElementById('page-next');
+if (_pagePrev) _pagePrev.addEventListener('click', prevPage);
+if (_pageNext) _pageNext.addEventListener('click', nextPage);
+
+// Wire up cs-style filter UI
+document.getElementById('f-category').addEventListener('change', updateFilterVisibility);
+const clearFiltersBtn = document.getElementById('f-clear');
+if (clearFiltersBtn) {
+    clearFiltersBtn.addEventListener('click', () => { populateFilterOptions(); updateFilterVisibility(); const sb = document.getElementById('search-bar'); if (sb) sb.value=''; displayCards([]); });
+}
+
+// Attempt to load banlist from a workspace-provided JS file first (defines
+// `window.WORKSPACE_BANLIST_TEXT`), then fall back to fetching the raw
+// `Purist.lflist.conf` over HTTP. If neither is available the UI will show
+// a helpful message instructing the user to either serve the folder or
+// include `purist-banlist.js` in the project.
+function autoLoadWorkspaceBanlist() {
+    // Preferred: `purist-banlist.js` included in the page that defines
+    // `window.WORKSPACE_BANLIST_TEXT`.
+    try {
+        if (window && window.WORKSPACE_BANLIST_TEXT) {
+            loadBanlistFromText(window.WORKSPACE_BANLIST_TEXT, 'Purist.lflist.conf (in-page)');
+            return;
+        }
+    } catch (e) {}
+
+    // Fallback: try to fetch the raw file via HTTP from the workspace root.
+    fetch('./Purist.lflist.conf').then(r => {
+        if (!r.ok) throw new Error('no-banlist');
+        return r.text();
+    }).then(txt => {
+        loadBanlistFromText(txt, 'Purist.lflist.conf');
+    }).catch(() => {
+        const status = document.getElementById('banlist-status');
+        if (status) status.textContent = 'No workspace Purist.lflist.conf found — include purist-banlist.js or serve folder via HTTP';
+    });
+}
+
+// Populate filters on load
+populateFilterOptions();
+updateFilterVisibility();
+// Ensure deck slot placeholders are present on initial load
+ensureDeckSlots();
+// Automatically load the cardpool on open
+applyDateFilter();
+// Try to load banlist from workspace (in-page wrapper or raw file)
+autoLoadWorkspaceBanlist();
+
+// Global drop handler: if user drops a deck card outside of deck containers or search panel,
+// treat it as removing that single copy (discard). Avoid acting when drop was on a deck-grid (those handlers handle moves).
+document.addEventListener('drop', function(e) {
+    try {
+        // If dropped inside a deck-grid or the search section, don't handle here
+        if (e.target && (e.target.closest && (e.target.closest('.deck-grid') || e.target.closest('.search-section') || e.target.closest('#search-results')))) return;
+        let raw = e.dataTransfer.getData('application/x-deck');
+        if (!raw) {
+            const plain = e.dataTransfer.getData('text/plain');
+            if (plain && plain.startsWith('deck:')) raw = plain.slice(5);
+        }
+        if (!raw) return;
+        const payload = JSON.parse(raw);
+        if (payload && payload.action === 'from-deck') {
+            removeFromDeck(payload.cardId, payload.section);
+            try { window._kp_drag_payload = null; } catch (ex) {}
+            updateDeckDisplay();
+        }
+    } catch (err) { }
+});
+
+// Theme (dark mode) helpers
+function setTheme(dark) {
+    const body = document.body;
+    const btn = document.getElementById('theme-toggle');
+    if (dark) {
+        body.setAttribute('data-theme', 'dark');
+        if (btn) btn.textContent = 'Light Mode';
+        localStorage.setItem('kp_theme', 'dark');
     } else {
-        items = items.slice().sort((a,b) => a.card.name.localeCompare(b.card.name));
+        body.removeAttribute('data-theme');
+        if (btn) btn.textContent = 'Dark Mode';
+        localStorage.setItem('kp_theme', 'light');
     }
-    items.forEach(entry => {
-        const el = createCardElement(entry.card, true, entry.points);
-        el.addEventListener('click', () => openPointEditor(entry.card.id));
-        el.addEventListener('contextmenu', (e) => { e.preventDefault(); removeCardFromPointList(entry.card.id); });
-        el.title = 'Left: edit | Right: remove';
-        pointList.appendChild(el);
-    });
-    updateTotalPoints();
 }
 
-function openPointEditor(cardId) {
-    const entry = pointListCards.get(cardId);
-    if (!entry) return;
-    const current = entry.points;
-    openPointsModal({
-        title: 'Edit Points',
-        cardName: entry.card.name,
-        hint: '',
-        initial: current,
-        onConfirm: (val) => {
-            if (val === current) return;
-            entry.points = val;
-            const node = pointList.querySelector(`[data-card-id="${cardId}"] .points`);
-            if (node) node.textContent = val;
-            updateTotalPoints();
-            updateSearchCardBadge(cardId);
+function initTheme() {
+    const saved = localStorage.getItem('kp_theme');
+    let dark = false;
+    if (saved === 'dark') dark = true;
+    else if (saved === 'light') dark = false;
+    else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) dark = true;
+    setTheme(dark);
+}
+
+// Wire theme toggle button
+const themeBtn = document.getElementById('theme-toggle');
+if (themeBtn) {
+    themeBtn.addEventListener('click', () => {
+        const isDark = document.body.getAttribute('data-theme') === 'dark';
+        setTheme(!isDark);
+    });
+}
+// initialize on load
+initTheme();
+
+// Combined filter implementation
+function parseComparatorExpression(expr) {
+    if (!expr) return null;
+    expr = expr.trim();
+    if (expr === '?') return (v) => v === null || v === undefined;
+    const tokens = expr.split(',').map(s => s.trim()).filter(Boolean);
+    const checks = tokens.map(tok => {
+        if (/^>=\s*\d+$/.test(tok)) { const n = Number(tok.replace(/[^0-9]/g, '')); return v => v !== null && v >= n; }
+        if (/^<=\s*\d+$/.test(tok)) { const n = Number(tok.replace(/[^0-9]/g, '')); return v => v !== null && v <= n; }
+        if (/^>\s*\d+$/.test(tok)) { const n = Number(tok.replace(/[^0-9]/g, '')); return v => v !== null && v > n; }
+        if (/^<\s*\d+$/.test(tok)) { const n = Number(tok.replace(/[^0-9]/g, '')); return v => v !== null && v < n; }
+        if (/^\d+-\d+$/.test(tok)) { const [a,b]=tok.split('-').map(Number); return v => v!==null && v>=a && v<=b; }
+        if (/^\d+$/.test(tok)) { const n=Number(tok); return v => v!==null && v===n; }
+        return null;
+    }).filter(Boolean);
+    if (checks.length===0) return null;
+    return (val) => checks.some(fn => fn(val));
+}
+
+function filterCards() {
+    // reset to first page when applying filters
+    currentPage = 1;
+    const q = (document.getElementById('search-bar').value||'').toLowerCase();
+    const cat = document.getElementById('f-category').value;
+    const attr = document.getElementById('f-attribute').value;
+    const type = document.getElementById('f-type').value;
+    const race = document.getElementById('f-race').value;
+    const levelExpr = document.getElementById('f-level').value;
+    const atkExpr = document.getElementById('f-atk').value;
+    const defExpr = document.getElementById('f-def').value;
+    const levelMatcher = parseComparatorExpression(levelExpr);
+    const atkMatcher = parseComparatorExpression(atkExpr);
+    const defMatcher = parseComparatorExpression(defExpr);
+    const tagEls = document.querySelectorAll('.f-monster-tag:checked');
+    const tags = Array.from(tagEls).map(e=>e.value.toLowerCase());
+
+    const out = allCards.filter(card => {
+        if (q) {
+            const inName = card.name && card.name.toLowerCase().includes(q);
+            const inDesc = card.desc && card.desc.toLowerCase().includes(q);
+            if (!inName && !inDesc) return false;
         }
-    });
-}
-
-function updateTotalPoints() {
-    const total = [...pointListCards.values()].reduce((sum, e) => sum + (e.points || 0), 0);
-    const el = document.getElementById('total-points');
-    if (el) el.textContent = `(${total})`;
-}
-
-function removeCardFromPointList(cardId) {
-    if (!pointListCards.has(cardId)) return;
-    pointListCards.delete(cardId);
-    const node = pointList.querySelector(`[data-card-id="${cardId}"]`);
-    if (node?.parentElement) node.parentElement.removeChild(node);
-    updateTotalPoints();
-    updateSearchCardBadge(cardId);
-}
-
-// --- Export / Download ---
-function buildAllowlistJson() {
-    // Match python script Genesys format: { "genesys": maxPoints, "genesys<id>": pointValue, ... }
-    // Only include entries with >0 points, as 0-point cards are free (not present) per script logic
-    const maxPointsInput = document.getElementById('max-genesys');
-    let maxPoints = parseInt(maxPointsInput?.value || '100', 10);
-    if (isNaN(maxPoints) || maxPoints <= 0) maxPoints = 100;
-    const obj = { genesys: maxPoints };
-    [...pointListCards.values()].forEach(entry => {
-        if (entry.points > 0) {
-            obj[`genesys${entry.card.id}`] = entry.points;
+        if (cat && cat !== 'all' && cat !== 'All') {
+            if (!card.type || card.type.toLowerCase().indexOf(cat.toLowerCase())===-1) return false;
         }
+        if (attr && attr !== 'all') {
+            if (!card.attribute || card.attribute.toLowerCase() !== attr.toLowerCase()) return false;
+        }
+        if (type && type !== 'all') {
+            if (!card.type || card.type.toLowerCase().indexOf(type.toLowerCase())===-1) return false;
+        }
+        if (race && race !== 'all') {
+            if (!card.race || card.race.toLowerCase() !== race.toLowerCase()) return false;
+        }
+        // tags (e.g., tuner, pendulum)
+        for (const t of tags) {
+            if (!card.type || card.type.toLowerCase().indexOf(t)===-1) return false;
+        }
+        if (atkMatcher) {
+            if (!atkMatcher(card.atk)) return false;
+        }
+        if (defMatcher) {
+            if (!defMatcher(card.def)) return false;
+        }
+        return true;
     });
-    return JSON.stringify(obj, null, 2);
+    filteredCards = out;
+    displayCards(filteredCards);
 }
 
-function handleDownloadAllowlist() {
-    if (pointListCards.size === 0) {
-        if (!confirm('Point list is empty. Download empty allowlist.json anyway?')) return;
-    }
-    const json = buildAllowlistJson();
-    const blob = new Blob([json], { type: 'application/json' });
+// Clear deck contents
+function clearDeck() {
+    deck = { main: [], extra: [], side: [] };
+    updateDeckDisplay();
+    const status = document.getElementById('import-status'); if (status) status.textContent = '';
+    const lm = document.getElementById('legalityMessage'); if (lm) lm.textContent = '';
+}
+
+// Create plain .ydk text and trigger download
+function createYDKText(mainArr, extraArr, sideArr) {
+    let lines = [];
+    lines.push('#created by Kingdoms Purists Builder');
+    lines.push('#main');
+    mainArr.forEach(id => lines.push(String(id)));
+    lines.push('#extra');
+    extraArr.forEach(id => lines.push(String(id)));
+    lines.push('!side');
+    sideArr.forEach(id => lines.push(String(id)));
+    return lines.join('\n');
+}
+
+function downloadYDK() {
+    const main = Array.isArray(deck.main) ? deck.main.map(Number) : Object.entries(deck.main||{}).flatMap(([id,count])=>Array(count).fill(Number(id)));
+    const extra = Array.isArray(deck.extra) ? deck.extra.map(Number) : Object.entries(deck.extra||{}).flatMap(([id,count])=>Array(count).fill(Number(id)));
+    const side = Array.isArray(deck.side) ? deck.side.map(Number) : Object.entries(deck.side||{}).flatMap(([id,count])=>Array(count).fill(Number(id)));
+    const content = createYDKText(main, extra, side);
+    const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'allowlist.json';
+    a.download = 'deck.ydk';
     document.body.appendChild(a);
     a.click();
-    document.body.removeChild(a);
+    a.remove();
     URL.revokeObjectURL(url);
-}
-
-// --- Selection Mode ---
-function toggleSelectionMode() {
-    selectionMode = !selectionMode;
-    if (!selectionMode) {
-        clearSelection();
-    }
-    const btn = document.getElementById('toggle-select-mode');
-    btn.textContent = selectionMode ? 'Selection: On' : 'Selection: Off';
-    updateSelectionToolbarState();
-}
-
-function toggleSearchCardSelection(cardId, element) {
-    if (selectedSearchCardIds.has(cardId)) {
-        selectedSearchCardIds.delete(cardId);
-        element.classList.remove('selected');
-    } else {
-        selectedSearchCardIds.add(cardId);
-        element.classList.add('selected');
-    }
-    updateSelectionToolbarState();
-    refreshSearchResults();
-}
-
-function updateSelectionToolbarState() {
-    const countSpan = document.getElementById('selection-count');
-    const addOfficialBtn = document.getElementById('add-selected-official');
-    const addCustomBtn = document.getElementById('add-selected-custom');
-    const clearBtn = document.getElementById('clear-selection');
-    countSpan.textContent = `${selectedSearchCardIds.size} selected`;
-    const disabled = !selectionMode || selectedSearchCardIds.size === 0;
-    addOfficialBtn.disabled = disabled;
-    addCustomBtn.disabled = disabled;
-    clearBtn.disabled = !selectionMode || selectedSearchCardIds.size === 0;
-}
-
-function addSelectedOfficial() {
-    if (selectedSearchCardIds.size === 0) return;
-    selectedSearchCardIds.forEach(id => {
-        const card = idToCard.get(id);
-        if (card && !pointListCards.has(id)) addCardToPointList(card, 'official');
-    });
-    clearSelection();
-}
-
-function addSelectedCustom() {
-    if (selectedSearchCardIds.size === 0) return;
-    openPointsModal({
-        title: 'Apply Points to Selected',
-        cardName: `${selectedSearchCardIds.size} cards`,
-        hint: 'This will set the same points for all selected cards.',
-        initial: 0,
-        onConfirm: (val) => {
-            selectedSearchCardIds.forEach(id => {
-                const card = idToCard.get(id);
-                if (!card) return;
-                if (!pointListCards.has(id)) {
-                    addCardToPointList(card, val); // explicit numeric
-                } else {
-                    const entry = pointListCards.get(id);
-                    entry.points = val;
-                    const span = pointList.querySelector(`[data-card-id="${id}"] .points`);
-                    if (span) span.textContent = val;
-                    updateSearchCardBadge(id);
-                }
-            });
-            updateTotalPoints();
-            clearSelection();
-            refreshVisibleSearchBadges();
-        }
-    });
-}
-
-function clearSelection() {
-    selectedSearchCardIds.clear();
-    document.querySelectorAll('#search-results .card.selected').forEach(el => el.classList.remove('selected'));
-    updateSelectionToolbarState();
-    refreshSearchResults();
-}
-
-// helper to re-run search render when selection changes without losing query
-function refreshSearchResults() {
-    // create a faux event-like object
-    handleSearch({ target: searchBar });
-}
-
-// --- Hover Preview ---
-let previewVisible = false;
-let lastPreviewKey = '';
-function showPreview(url, evt, card = null) {
-    if (!previewEl) return;
-    const key = `${card?.id || ''}|${url}`;
-    if (lastPreviewKey !== key) {
-        previewEl.innerHTML = buildPreviewContent(url, card);
-        lastPreviewKey = key;
-    }
-    previewEl.style.display = 'block';
-    previewVisible = true;
-    positionPreview(evt);
-}
-function positionPreview(evt) {
-    if (!previewEl || !previewVisible) return;
-    const pad = 16; // gap from cursor and viewport edges
-    const imgBox = previewEl.getBoundingClientRect();
-    let x = evt.clientX + pad;
-    let y = evt.clientY + pad;
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    if (x + imgBox.width > vw - pad) x = evt.clientX - imgBox.width - pad;
-    if (y + imgBox.height > vh - pad) y = evt.clientY - imgBox.height - pad;
-    // Fallback clamp
-    x = Math.max(pad, Math.min(x, vw - imgBox.width - pad));
-    y = Math.max(pad, Math.min(y, vh - imgBox.height - pad));
-    previewEl.style.left = `${x}px`;
-    previewEl.style.top = `${y}px`;
-}
-function hidePreview() {
-    if (!previewEl) return;
-    previewEl.style.display = 'none';
-    previewVisible = false;
-}
-
-function buildPreviewContent(imgUrl, card) {
-    const safe = (s) => (s == null ? '' : String(s));
-    if (!card) return `<div class="preview-content"><div class="preview-image"><img src="${imgUrl}" alt="Card preview"></div></div>`;
-    const name = safe(card.name);
-    const frame = (card.frameType || '').toLowerCase();
-    const category = detectCardCategory(card);
-    const typeLine = buildTypeLine(card, category);
-    const statsLine = buildStatsLine(card);
-    const desc = safe(card.desc);
-    return `
-      <div class="preview-content">
-        <div class="preview-image"><img src="${imgUrl}" alt="${name}"></div>
-        <div class="preview-info">
-          <div class="preview-name">${escapeHtml(name)}</div>
-          <div class="preview-typeline">${escapeHtml(typeLine)}</div>
-          ${statsLine ? `<div class="preview-stats">${escapeHtml(statsLine)}</div>` : ''}
-          <div class="preview-text">${escapeHtml(desc)}</div>
-        </div>
-      </div>`;
-}
-
-function buildTypeLine(card, category) {
-    // Examples:
-    // Monster: "[Dragon/Effect/Pendulum]"
-    // Spell:   "[Spell/Quick-Play]"
-    // Trap:    "[Trap/Counter]"
-    const cat = (category || detectCardCategory(card)).toLowerCase();
-    const parts = [];
-    if (cat === 'monster'.toLowerCase()) {
-        // species (race)
-        if (card.race) parts.push(card.race);
-        const t = (card.type || '').toLowerCase();
-        // card type tags based on normalize and inherent tags
-        const norm = normalizeCardType(card, 'Monster');
-        if (norm && !['Normal','Effect'].includes(norm)) parts.push(norm);
-        // add Effect if not Normal and not already covered by Fusion/Synchro/Xyz/Link/Ritual
-        const isExtra = ['Fusion','Synchro','Xyz','Link','Ritual'].some(x => parts.includes(x));
-        if (!isExtra) {
-            const hasEffectLike = t.includes('effect') || t.includes('spirit') || t.includes('tuner') || t.includes('flip') || t.includes('gemini') || t.includes('union');
-            if (hasEffectLike && !parts.includes('Effect')) parts.push('Effect');
-        }
-        // Pendulum tag
-        const isPendulum = (card.scale != null || card.pend_scale != null) || (card.type || '').toLowerCase().includes('pendulum') || (card.frameType || '').toLowerCase().includes('pendulum');
-        if (isPendulum) parts.push('Pendulum');
-        return `[${parts.join('/')}]`;
-    } else if (cat === 'spell') {
-        parts.push('Spell');
-        if (card.race) parts.push(card.race);
-        return `[${parts.join('/')}]`;
-    } else if (cat === 'trap') {
-        parts.push('Trap');
-        if (card.race) parts.push(card.race);
-        return `[${parts.join('/')}]`;
-    }
-    return '';
-}
-
-function buildStatsLine(card) {
-    // For Monsters: show Level/Rank/Link, Scale if Pendulum, ATK/DEF (or ATK/Link)
-    const t = (card.type || '').toLowerCase();
-    const parts = [];
-    const isLink = t.includes('link');
-    const isXyz = t.includes('xyz');
-    const isPendulum = (card.scale != null || card.pend_scale != null) || t.includes('pendulum') || (card.frameType || '').toLowerCase().includes('pendulum');
-    if (isLink) {
-        if (card.linkval != null) parts.push(`LINK-${card.linkval}`);
-    } else if (isXyz) {
-        if (card.level != null) parts.push(`RANK ${card.level}`);
-    } else if (card.level != null) {
-        parts.push(`LV ${card.level}`);
-    }
-    if (isPendulum) {
-        const sc = card.scale ?? card.pend_scale;
-        if (sc != null) parts.push(`SCALE ${sc}`);
-    }
-    // ATK/DEF or ATK/— (Link has no DEF)
-    const atk = card.atk;
-    const def = isLink ? null : card.def;
-    const atkStr = (atk != null ? atk : '?');
-    const defStr = isLink ? '—' : (def != null ? def : '?');
-    if (atk != null || def != null || isLink) parts.push(`ATK ${atkStr} / DEF ${defStr}`);
-    return parts.join(' · ');
-}
-
-function escapeHtml(s) {
-    return String(s)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-}
-
-// --- Points Modal Controller ---
-let pmState = null; // { onConfirm }
-function openPointsModal({ title, cardName, hint, initial, onConfirm }) {
-    if (!pmBackdrop) return;
-    pmState = { onConfirm };
-    pmTitle.textContent = title || 'Set Points';
-    pmCardname.textContent = cardName || '';
-    pmHint.textContent = hint || '';
-    pmError.textContent = '';
-    pmInput.value = (typeof initial === 'number' ? String(initial) : (initial || ''));
-    pmBackdrop.style.display = 'flex';
-    // focus input next frame for better UX
-    setTimeout(() => { pmInput?.focus(); pmInput?.select(); }, 0);
-}
-function closePointsModal() {
-    if (!pmBackdrop) return;
-    pmBackdrop.style.display = 'none';
-    pmState = null;
-}
-function confirmPointsModal() {
-    if (!pmState) { closePointsModal(); return; }
-    const raw = pmInput.value.trim();
-    if (raw === '') { pmError.textContent = 'Please enter a number.'; return; }
-    const val = parseInt(raw, 10);
-    if (isNaN(val) || val < 0) { pmError.textContent = 'Points must be a non-negative integer.'; return; }
-    const cb = pmState.onConfirm;
-    closePointsModal();
-    try { cb?.(val); } catch {}
-}
-
-// Keep search badges in sync
-function updateSearchCardBadge(cardId) {
-    const badge = searchResults?.querySelector(`[data-card-id="${cardId}"] .genesys-badge`);
-    if (!badge) return;
-    const card = idToCard.get(cardId);
-    if (!card) return;
-    const official = card?.misc_info?.[0]?.genesys_points ?? officialGenesysList[card.name] ?? 0;
-    const assigned = pointListCards.get(cardId)?.points;
-    const display = (assigned != null ? assigned : official);
-    badge.textContent = display;
-    badge.title = (assigned != null) ? `Assigned Points: ${assigned}` : `Official Genesys Points: ${official}`;
-    badge.classList.toggle('assigned', assigned != null);
-    badge.classList.toggle('official', assigned == null);
-}
-function refreshVisibleSearchBadges() {
-    if (!searchResults) return;
-    searchResults.querySelectorAll('.card').forEach(cardEl => {
-        const id = parseInt(cardEl.dataset.cardId, 10);
-        if (!isNaN(id)) updateSearchCardBadge(id);
-    });
 }
