@@ -55,9 +55,7 @@
                     <button id="search-button" type="button">Search</button>
                 </div>
                 <div id="search-tools" style="margin:0.5rem 0; display:flex; flex-wrap:wrap; gap:0.5rem; align-items:center;"></div>
-                <div id="banlist-info" style="margin:0.5rem 0;">
-                    <span id="banlist-status" class="muted">Using workspace Purist.lflist.conf</span>
-                </div>
+                <!-- Banlist status intentionally hidden -->
                 <div id="search-pagination" style="display:flex; gap:0.5rem; align-items:center; margin-bottom:0.5rem;">
                     <button id="page-prev" type="button">Prev</button>
                     <div id="page-info" style="min-width:160px; text-align:center">Page 1 of 1</div>
@@ -77,6 +75,7 @@
                         <div id="legalityMessage" class="muted" style="margin-left:0.5rem"></div>
                     </div>
                 </div>
+                <div id="deck-archetypes" class="muted" style="margin:0.5rem 0 0 0"> </div>
                 <div class="deck-row">
                     <div id="deck-sections" class="deck-area-limited">
                         <div class="deck-zone">
@@ -112,6 +111,7 @@
         </div> <!-- .container -->
         </main>
     <script src="purist-banlist.js"></script>
+    <script src="card-archetypes.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

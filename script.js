@@ -29,14 +29,14 @@ function loadBanlistFromText(text, sourceName) {
     banlist = parseLflist(text);
     const status = document.getElementById('banlist-status');
     const count = Object.keys(banlist).length;
-    if (status) status.textContent = `Loaded ${count} entries`;
+    // Intentionally do not update status text (avoid showing "Loaded X entries")
     updateAllBanBadges();
     updateDeckDisplay();
 }
 
 function clearBanlist() {
     banlist = {};
-    const status = document.getElementById('banlist-status'); if (status) status.textContent = 'Cleared';
+    const status = document.getElementById('banlist-status'); // no status text changes
     updateAllBanBadges();
     updateDeckDisplay();
 }
@@ -231,6 +231,13 @@ function tryAddCardToSection(cardId, section) {
     }
 }
 
+function invalidFlashContainer(section) {
+    const containerEl = document.getElementById(`${section}-deck`);
+    if (!containerEl) return;
+    containerEl.classList.add('invalid');
+    setTimeout(()=>containerEl.classList.remove('invalid'), 700);
+}
+
 // Allow dropping a deck card onto the search panel to remove it from its section
 const searchPanel = document.querySelector('.search-section');
 if (searchPanel) {
@@ -257,9 +264,9 @@ if (searchPanel) {
 }
 }
 
-// Pagination state (5 rows x 4 cols => 20 per page)
+// Pagination state (6 rows x 4 cols => 24 per page)
 let currentPage = 1;
-const pageSize = 20;
+const pageSize = 24;
 
 // Replace with your GitHub repo URL for images
 const imageBaseUrl = 'https://raw.githubusercontent.com/JustBryant/KDR-Revamped-Images/main/small_tcg/';
@@ -389,18 +396,51 @@ function displayCards(cardList) {
             div.addEventListener('dragstart', (ev) => {
                 try { ev.dataTransfer.setData('text/plain', String(card.id)); ev.dataTransfer.effectAllowed = 'copy'; } catch (e) {}
             });
+            // Right-click to add to deck (Ctrl+Right -> side)
+            div.addEventListener('contextmenu', (ev) => {
+                ev.preventDefault();
+                ev.stopImmediatePropagation();
+                const cardId = card.id;
+                const isCtrl = ev.ctrlKey;
+                if (isCtrl) {
+                    const ok = addToDeck(cardId, 'side'); if (!ok) invalidFlashContainer('side');
+                } else {
+                    // decide default destination: extra if monster extra-type, otherwise main
+                    const type = (card.type||'').toLowerCase();
+                    const isExtraType = /fusion|synchro|xyz|link/i.test(type);
+                    const target = (isExtraType && /monster/i.test(type)) ? 'extra' : 'main';
+                    const ok = addToDeck(cardId, target); if (!ok) invalidFlashContainer(target);
+                }
+            });
+            // hover visual for search results
+            div.addEventListener('mouseenter', function() { this.classList.add('hovered'); });
+            div.addEventListener('mouseleave', function() { this.classList.remove('hovered'); });
             const allowed = allowedCopiesFor(card.id);
             let badge = '';
-            if (allowed === 0) badge = '<span class="ban-badge forbidden">F</span>';
-            else if (allowed === 1) badge = '<span class="ban-badge limited">1</span>';
+            // Do not show an indicator for unlimited cards (3 or more)
+            if (allowed === 0) {
+                const STOP_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="#b71c1c" stroke-width="2" fill="none"/><line x1="6.5" y1="6.5" x2="17.5" y2="17.5" stroke="#b71c1c" stroke-width="2" stroke-linecap="round"/></svg>';
+                badge = `<span class="ban-badge forbidden">${STOP_SVG}</span>`;
+            } else if (allowed === 1) badge = '<span class="ban-badge limited">1</span>';
             else if (allowed === 2) badge = '<span class="ban-badge limited">2</span>';
-            else badge = `<span class="ban-badge unlimited">${allowed}</span>`;
+            // else leave badge empty for unlimited
             div.innerHTML = `
                 <div class="card-image">${badge}<img src="${imgSrc}" alt="${card.name}" onerror="this.style.display='none'"></div>
                 <div class="card-info"><div class="card-name">${card.name}</div><div class="card-type">${card.type || ''} ${card.race ? '- ' + card.race : ''}</div></div>
             `;
             // click to preview
             div.addEventListener('click', () => showCardPreviewById(card.id));
+            // Middle-click on search result: add another copy to default section
+            div.addEventListener('auxclick', (ev) => {
+                if (ev.button === 1) {
+                    ev.preventDefault();
+                    ev.stopImmediatePropagation();
+                    const type = (card.type||'').toLowerCase();
+                    const isExtraType = /fusion|synchro|xyz|link/i.test(type);
+                    const target = (isExtraType && /monster/i.test(type)) ? 'extra' : 'main';
+                    const ok = addToDeck(card.id, target); if (!ok) invalidFlashContainer(target);
+                }
+            });
         } else {
             // empty placeholder
             div.innerHTML = `
@@ -426,11 +466,25 @@ function updateAllBanBadges() {
         if (existing) existing.remove();
         if (!id) return;
         const allowed = allowedCopiesFor(id);
-        let badgeEl = document.createElement('span'); badgeEl.className = 'ban-badge';
-        if (allowed === 0) { badgeEl.classList.add('forbidden'); badgeEl.textContent = 'F'; }
-        else if (allowed === 1) { badgeEl.classList.add('limited'); badgeEl.textContent = '1'; }
-        else if (allowed === 2) { badgeEl.classList.add('limited'); badgeEl.textContent = '2'; }
-        else { badgeEl.classList.add('unlimited'); badgeEl.textContent = String(allowed); }
+        // Do not show a badge for unlimited cards (3 or more)
+        if (allowed === null || allowed === undefined) return;
+        if (allowed >= 3) return;
+        const badgeEl = document.createElement('span'); badgeEl.className = 'ban-badge';
+        if (allowed === 0) {
+            badgeEl.classList.add('forbidden');
+            const STOP_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="#b71c1c" stroke-width="2" fill="none"/><line x1="6.5" y1="6.5" x2="17.5" y2="17.5" stroke="#b71c1c" stroke-width="2" stroke-linecap="round"/></svg>';
+            badgeEl.innerHTML = STOP_SVG;
+            badgeEl.setAttribute('aria-label', 'Forbidden');
+            badgeEl.title = 'Forbidden';
+        } else if (allowed === 1) {
+            badgeEl.classList.add('limited'); badgeEl.textContent = '1';
+            badgeEl.setAttribute('aria-label', 'Limited (1)');
+            badgeEl.title = 'Limited — 1 copy allowed';
+        } else if (allowed === 2) {
+            badgeEl.classList.add('limited'); badgeEl.textContent = '2';
+            badgeEl.setAttribute('aria-label', 'Semi-limited (2)');
+            badgeEl.title = 'Semi-limited — 2 copies allowed';
+        }
         imgWrap.prepend(badgeEl);
     });
 }
@@ -525,6 +579,16 @@ function clearCardPreview() {
 function addToDeck(cardId, section) {
     const card = allCards.find(c => String(c.id) === String(cardId));
     if (!card) return false;
+    // Prevent accidental duplicate adds from rapid duplicate events (e.g., middle-click firing twice)
+    try {
+        const now = Date.now();
+        const last = window._last_manual_add || null;
+        if (last && last.cardId == String(cardId) && last.section == section && (now - last.time) < 250) {
+            return false;
+        }
+        window._last_manual_add = { cardId: String(cardId), section: section, time: now };
+        setTimeout(() => { try { window._last_manual_add = null; } catch(e){} }, 300);
+    } catch(e) {}
     // enforce copies per card according to banlist across entire deck (main+extra+side)
     const combined = (Array.isArray(deck.main) ? deck.main : Object.entries(deck.main||{}).flatMap(([id,count])=>Array(count).fill(id)))
                    .concat(Array.isArray(deck.extra) ? deck.extra : Object.entries(deck.extra||{}).flatMap(([id,count])=>Array(count).fill(id)))
@@ -565,10 +629,25 @@ function nextPage() {
 }
 
 function removeFromDeck(cardId, section) {
+    // Optional third argument `slotIndex` will remove that exact copy at that index.
+    const args = Array.from(arguments);
+    const slotIndex = (args.length >= 3) ? Number(args[2]) : null;
     if (!deck[section] || deck[section].length === 0) return;
-    const idx = deck[section].findIndex(id => String(id) === String(cardId));
-    if (idx === -1) return;
-    deck[section].splice(idx, 1);
+    if (slotIndex !== null && !Number.isNaN(slotIndex) && slotIndex >= 0 && slotIndex < deck[section].length) {
+        // only remove if the id at that index matches
+        if (String(deck[section][slotIndex]) === String(cardId)) {
+            deck[section].splice(slotIndex, 1);
+        } else {
+            // fallback to removing the first matching copy
+            const idx = deck[section].findIndex(id => String(id) === String(cardId));
+            if (idx === -1) return;
+            deck[section].splice(idx, 1);
+        }
+    } else {
+        const idx = deck[section].findIndex(id => String(id) === String(cardId));
+        if (idx === -1) return;
+        deck[section].splice(idx, 1);
+    }
     console.log('removeFromDeck:', section, cardId, 'now', deck[section].slice(0,10));
     updateDeckDisplay();
 }
@@ -577,7 +656,43 @@ function updateDeckDisplay() {
     updateSection('main', 'main-deck', 'main-count');
     updateSection('extra', 'extra-deck', 'extra-count');
     updateSection('side', 'side-deck', 'side-count');
+    // Update archetype summary after sections are refreshed
+    try { updateDeckArchetypes(); } catch (e) {}
 }
+
+function updateDeckArchetypes() {
+    const el = document.getElementById('deck-archetypes');
+    if (!el) return;
+    // Build combined deck list
+    const mainArr = Array.isArray(deck.main) ? deck.main : Object.entries(deck.main||{}).flatMap(([id,count])=>Array(count).fill(id));
+    const extraArr = Array.isArray(deck.extra) ? deck.extra : Object.entries(deck.extra||{}).flatMap(([id,count])=>Array(count).fill(id));
+    const sideArr = Array.isArray(deck.side) ? deck.side : Object.entries(deck.side||{}).flatMap(([id,count])=>Array(count).fill(id));
+    const combined = mainArr.concat(extraArr).concat(sideArr);
+    if (!combined || combined.length === 0) { el.textContent = ''; return; }
+
+    const counts = {};
+    const archetypes = (typeof window !== 'undefined' && window.CARD_ARCHETYPES) ? window.CARD_ARCHETYPES : {};
+    for (const id of combined) {
+        const key = String(id);
+        const list = archetypes[key];
+        if (!list || !Array.isArray(list)) continue;
+        for (const name of list) {
+            if (!name) continue;
+            const n = String(name).trim();
+            if (!n) continue;
+            counts[n] = (counts[n] || 0) + 1;
+        }
+    }
+    const entries = Object.entries(counts).sort((a,b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    if (entries.length === 0) { el.textContent = ''; return; }
+    // Limit display to top 12 archetypes to avoid overflowing UI
+    const maxShow = 12;
+    const parts = entries.slice(0, maxShow).map(([k,v]) => `${k} (${v})`);
+    el.textContent = 'Archetypes: ' + parts.join(', ');
+}
+
+// Expose for external callers (card-archetypes loader) and initialize once
+try { window.updateDeckArchetypes = updateDeckArchetypes; } catch (e) {}
 
 function updateSection(section, divId, countId) {
     const div = document.getElementById(divId);
@@ -614,8 +729,35 @@ function updateSection(section, divId, countId) {
                 slot.appendChild(img);
                 slot.classList.add('has-card');
                 slot.dataset.cardId = card.id;
+                // expose slot index so we can remove this exact copy later
+                slot.dataset.slotIndex = i;
+                // hover visual: indicate which slot is hovered
+                slot.addEventListener('mouseenter', function() { this.classList.add('hovered'); });
+                slot.addEventListener('mouseleave', function() { this.classList.remove('hovered'); });
                 // clicking a slot shows preview
                 slot.onclick = () => showCardPreviewById(card.id);
+                // Right-click on slot: remove this card from the deck (single copy)
+                slot.addEventListener('contextmenu', function(ev) {
+                    ev.preventDefault();
+                    ev.stopImmediatePropagation();
+                    const cid = this.dataset.cardId;
+                    const sec = this.dataset.section || section;
+                    const idx = Number(this.dataset.slotIndex);
+                    if (cid) removeFromDeck(cid, sec, idx);
+                });
+                // Middle-click on slot: add another copy of this card to same section
+                slot.addEventListener('auxclick', function(ev) {
+                    if (ev.button === 1) {
+                        ev.preventDefault();
+                        ev.stopImmediatePropagation();
+                        const cid = this.dataset.cardId;
+                        const sec = this.dataset.section || section;
+                        if (cid) {
+                            const ok = addToDeck(cid, sec);
+                            if (!ok) invalidFlashContainer(sec);
+                        }
+                    }
+                });
                 // make slot draggable so user can drag card out to remove/move
                 slot.draggable = true;
                 slot.dataset.section = section;
