@@ -6,198 +6,199 @@ window.WORKSPACE_BANLIST_TEXT = `!Untitled Banlist
 --EndDate 2014-08-16
 $whitelist
 #forbidden
-82301904 0 --Chaos Emperor Dragon - Envoy of the End
-40737112 0 --Dark Magician of Chaos
-44910027 0 --Victory Dragon
-40044918 0 --Elemental HERO Stratos
-91020571 0 --Reactan, Dragon Ruler of Pebbles
-21593977 0 --Makyura the Destructor
-27415516 0 --Stream, Dragon Ruler of Droplets
-33184167 0 --Tribe-Infecting Virus
-78010363 0 --Witch of the Black Forest
-14878871 0 --Rescue Cat
+50321796 0 --Brionac, Dragon of the Ice Barrier
 53797637 0 --Burner, Dragon Ruler of Sparks
-26202165 0 --Sangan
+82301904 0 --Chaos Emperor Dragon - Envoy of the End
 34124316 0 --Cyber Jar
-79106360 0 --Morphing Jar #2
-78706415 0 --Fiber Jar
-89185742 0 --Lightning, Dragon Ruler of Drafts
 69015963 0 --Cyber-Stein
-33508719 0 --Morphing Jar
-3078576 0 --Yata-Garasu
+40737112 0 --Dark Magician of Chaos
+32646477 0 --Dark Strike Fighter
 56570271 0 --Destiny HERO - Disk Commander
-34206604 0 --Magical Scientist
-8131171 0 --Sinister Serpent
+40044918 0 --Elemental HERO Stratos
+78706415 0 --Fiber Jar
 93369354 0 --Fishborg Blaster
 67441435 0 --Glow-Up Bulb
+7391448 0 --Goyo Guardian
+89185742 0 --Lightning, Dragon Ruler of Drafts
+34206604 0 --Magical Scientist
+21593977 0 --Makyura the Destructor
 96782886 0 --Mind Master
+33508719 0 --Morphing Jar
+79106360 0 --Morphing Jar #2
+54719828 0 --Number 16: Shock Master
+91020571 0 --Reactan, Dragon Ruler of Pebbles
+14878871 0 --Rescue Cat
+26202165 0 --Sangan
+8131171 0 --Sinister Serpent
+27415516 0 --Stream, Dragon Ruler of Droplets
 20663556 0 --Substitoad
 63519819 0 --Thousand-Eyes Restrict
+33184167 0 --Tribe-Infecting Virus
 52687916 0 --Trishula, Dragon of the Ice Barrier
-32646477 0 --Dark Strike Fighter
-50321796 0 --Brionac, Dragon of the Ice Barrier
-54719828 0 --Number 16: Shock Master
-21044178 0 --Abyss Dweller
+44910027 0 --Victory Dragon
 81122844 0 --Wind-Up Carrier Zenmaity
+78010363 0 --Witch of the Black Forest
+3078576 0 --Yata-Garasu
 87910978 0 --Brain Control
+69243953 0 --Butterfly Dagger - Elma
 72892473 0 --Card Destruction
+57953380 0 --Card of Safe Return
 4031928 0 --Change of Heart
 60682203 0 --Cold Wave
 17375316 0 --Confiscation
 44763025 0 --Delinquent Duo
 23557835 0 --Dimension Fusion
+62265044 0 --Dragon Ravine
+77565204 0 --Future Fusion
+27970830 0 --Gateway of the Six
 42703248 0 --Giant Trunade
 79571449 0 --Graceful Charity
 18144506 0 --Harpie's Feather Duster
 19613556 0 --Heavy Storm
 85602018 0 --Last Will
+34906152 0 --Mass Driver
 46411259 0 --Metamorphosis
+41482598 0 --Mirage of Nightmare
 83764718 0 --Monster Reborn
 74191942 0 --Painful Choice
 67169062 0 --Pot of Avarice
 55144522 0 --Pot of Greed
+70828912 0 --Premature Burial
 12580477 0 --Raigeki
-42829885 0 --The Forceful Sentry
+45986603 0 --Snatch Steal
 46448938 0 --Spellbook of Judgment
 27770341 0 --Super Rejuvenation
-57953380 0 --Card of Safe Return
-77565204 0 --Future Fusion
-27970830 0 --Gateway of the Six
-34906152 0 --Mass Driver
-41482598 0 --Mirage of Nightmare
 29762407 0 --Temple of the Kings
-69243953 0 --Butterfly Dagger - Elma
-70828912 0 --Premature Burial
-45986603 0 --Snatch Steal
-62265044 0 --Dragon Ravine
+42829885 0 --The Forceful Sentry
 57728570 0 --Crush Card Virus
 17484499 0 --Exchange of the Spirit
+61740673 0 --Imperial Order
 28566710 0 --Last Turn
 27174286 0 --Return from the Different Dimension
 83555666 0 --Ring of Destruction
+93016201 0 --Royal Oppression
 57585212 0 --Self-Destruct Button
 3280747 0 --Sixth Sense
+41420027 0 --Solemn Judgment
 35316708 0 --Time Seal
 64697231 0 --Trap Dustshoot
-61740673 0 --Imperial Order
-93016201 0 --Royal Oppression
 80604091 0 --Ultimate Offering
-41420027 0 --Solemn Judgment
-5851097 0 --Vanity's Emptiness
+82732705 0 --Skill Drain
+30241314 0 --Macro Cosmos
+54974237 0 --Eradicator Epidemic Virus
+73599290 0 --Soul Drain
+58921041 0 --Anti-Spell Fragrance
+81674782 0 --Dimensional Fissure
+23434538 0 --Maxx "C"
 47084486 0 --Vanity's Fiend
 72634965 0 --Vanity's Ruler
+33746252 0 --Majesty's Fiend
+5851097 0 --Vanity's Emptiness
+22888900 0 --Grisaille Prison
 59509952 0 --Archlord Kristya
-34267821 0 --Artifact Lancea
-20292186 0 --Artifact Scythe
 84478195 0 --Barrier Statue of the Abyss
 19740112 0 --Barrier Statue of the Drought
 46145256 0 --Barrier Statue of the Heavens
-73356503 0 --Barrier Statue of the Stormwinds
 47961808 0 --Barrier Statue of the Inferno
+73356503 0 --Barrier Statue of the Stormwinds
 10963799 0 --Barrier Statue of the Torrent
-97940434 0 --Chaos Hunter
-56784842 0 --Angel O7
 42009836 0 --Fossil Dyna Pachycephalo
 41855169 0 --Jowgen the Spiritualist
-33746252 0 --Majesty's Fiend
-1149109 0 --Deck Lockdown
-45141013 0 --Heat Wave
-47594939 0 --And the Band Played On
 30459350 0 --Imperial Iron Wall
 29549364 0 --Mask of Restrict
 68937720 0 --Mind Drain
 59305593 0 --Mistake
 67234805 0 --Powersink Stone
+27581098 0 --Non-Fusion Area
+26586849 0 --Royal Prison
 23516703 0 --Summon Limit
-22888900 0 --Grisaille Prison
+47594939 0 --And the Band Played On
+45141013 0 --Heat Wave
+21044178 0 --Abyss Dweller
 68462976 0 --Secret Village of the Spellcasters
 7811875 0 --Gravity Collapse
 #limited
+74311226 1 --Atlantean Dragoons
+72989439 1 --Black Luster Soldier - Envoy of the Beginning
+2009101 1 --Blackwing - Gale the Whirlwind
+53804307 1 --Blaster, Dragon Ruler of Infernos
+1662004 1 --Brotherhood of the Fire Fist - Spirit
+3534077 1 --Coach Soldier Wolfbark
+15341821 1 --Dandylion
+65192027 1 --Dark Armed Dragon
+14943837 1 --Debris Dragon
+78868119 1 --Deep Sea Diva
+70583986 1 --Dewloren, Tiger King of the Ice Barrier
+45222299 1 --Evigishki Gustkraken
+11877465 1 --Evigishki Mind Augus
+33396948 1 --Exodia the Forbidden One
+50091196 1 --Formula Synchron
+64034255 1 --Genex Ally Birdman
+41470137 1 --Gladiator Beast Bestiari
+44330098 1 --Gorz the Emissary of Darkness
+37742478 1 --Honest
+68184115 1 --Inzektor Dragonfly
+69207766 1 --Inzektor Hornet
 7902349 1 --Left Arm of the Forbidden One
 44519536 1 --Left Leg of the Forbidden One
+29981921 1 --Legendary Six Samurai - Shi En
+31560081 1 --Magician of Faith
+69293721 1 --Mermail Abyssgunde
+80344569 1 --Neo-Spacian Grand Mole
+16226786 1 --Night Assailant
+88264978 1 --Red-Eyes Darkness Metal Dragon
+90411554 1 --Redox, Dragon Ruler of Boulders
+85138716 1 --Rescue Rabbit
 70903634 1 --Right Arm of the Forbidden One
 8124921 1 --Right Leg of the Forbidden One
-88264978 1 --Red-Eyes Darkness Metal Dragon
-72989439 1 --Black Luster Soldier - Envoy of the Beginning
-53804307 1 --Blaster, Dragon Ruler of Infernos
-65192027 1 --Dark Armed Dragon
-44330098 1 --Gorz the Emissary of Darkness
-26400609 1 --Tidal, Dragon Ruler of Waterfalls
-89399912 1 --Tempest, Dragon Ruler of Storms
-90411554 1 --Redox, Dragon Ruler of Boulders
-71564252 1 --Thunder King Rai-Oh
-74311226 1 --Atlantean Dragoons
-3534077 1 --Coach Soldier Wolfbark
-41470137 1 --Gladiator Beast Bestiari
-37742478 1 --Honest
-14943837 1 --Debris Dragon
-59297550 1 --Wind-Up Magician
-85138716 1 --Rescue Rabbit
-64034255 1 --Genex Ally Birdman
-69293721 1 --Mermail Abyssgunde
-2009101 1 --Blackwing - Gale the Whirlwind
-33396948 1 --Exodia the Forbidden One
-68184115 1 --Inzektor Dragonfly
-80344569 1 --Neo-Spacian Grand Mole
-1662004 1 --Brotherhood of the Fire Fist - Spirit
-69207766 1 --Inzektor Hornet
-15341821 1 --Dandylion
-16226786 1 --Night Assailant
-78868119 1 --Deep Sea Diva
-11877465 1 --Evigishki Mind Augus
-45222299 1 --Evigishki Gustkraken
-7391448 1 --Goyo Guardian
-70583986 1 --Dewloren, Tiger King of the Ice Barrier
-29981921 1 --Legendary Six Samurai - Shi En
 90953320 1 --T.G. Hyper Librarian
+89399912 1 --Tempest, Dragon Ruler of Storms
+71564252 1 --Thunder King Rai-Oh
+26400609 1 --Tidal, Dragon Ruler of Waterfalls
+59297550 1 --Wind-Up Magician
 1475311 1 --Allure of Darkness
+14087893 1 --Book of Moon
+48976825 1 --Burial from a Different Dimension
 94886282 1 --Charge of the Light Brigade
 53129443 1 --Dark Hole
+15854426 1 --Divine Wind of Mist Valley
 95308449 1 --Final Countdown
 81439173 1 --Foolish Burial
 75500286 1 --Gold Sarcophagus
+66957584 1 --Infernity Launcher
+23171610 1 --Limiter Removal
 37520316 1 --Mind Control
 43040603 1 --Monster Gate
 33782437 1 --One Day of Peace
 2295440 1 --One for One
+32807846 1 --Reinforcement of the Army
 74845897 1 --Rekindling
 72405967 1 --Royal Tribute
 45725480 1 --Sacred Sword of Seven Stars
-14087893 1 --Book of Moon
-48976825 1 --Burial from a Different Dimension
-23171610 1 --Limiter Removal
 97997309 1 --Spellbook of Fate
-81674782 1 --Dimensional Fissure
-66957584 1 --Infernity Launcher
-15854426 1 --Divine Wind of Mist Valley
 29401950 1 --Bottomless Trap Hole
 36468556 1 --Ceasefire
 94192409 1 --Compulsory Evacuation Device
-54974237 1 --Eradicator Epidemic Virus
-6148016 1 --Geargiagear
+9059700 1 --Infernity Barrier
 32723153 1 --Magical Explosion
+84749824 1 --Solemn Warning
 46652477 1 --The Transmigration Prophecy
 53582587 1 --Torrential Tribute
-30241314 1 --Macro Cosmos
-73599290 1 --Soul Drain
 17078030 1 --Wall of Revealing Light
-9059700 1 --Infernity Barrier
-84749824 1 --Solemn Warning
 #semi-limited
-98777036 2 --Tragoedia
-9596126 2 --Chaos Sorcerer
-10028593 2 --Reborn Tengu
-28297833 2 --Necroface
-423585 2 --Summoner Monk
-48686504 2 --Lonefire Blossom
 85087012 2 --Card Trooper
-31560081 2 --Magician of Faith
-50091196 2 --Formula Synchron
-25377819 2 --Hieratic Seal of Convocation
-58577036 2 --Reasoning
-32807846 2 --Reinforcement of the Army
+9596126 2 --Chaos Sorcerer
+48686504 2 --Lonefire Blossom
+28297833 2 --Necroface
+10028593 2 --Reborn Tengu
+423585 2 --Summoner Monk
+98777036 2 --Tragoedia
 46052429 2 --Advanced Ritual Art
 91623717 2 --Chain Strike
+25377819 2 --Hieratic Seal of Convocation
+58577036 2 --Reasoning
+70342110 2 --Dimensional Prison
+44095762 2 --Mirror Force
 29843091 2 --Ojama Trio
 #whitelist
 27551 3 --Limit Reverse

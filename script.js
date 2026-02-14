@@ -48,6 +48,25 @@ function allowedCopiesFor(cardId) {
     return DEFAULT_ALLOWED;
 }
 
+// Flash an invalid container. Accepts either a DOM element or a section id string.
+function invalidFlash(target) {
+    try {
+        let el = null;
+        if (!target) return;
+        if (typeof target === 'string') {
+            el = document.getElementById(`${target}-deck`);
+        } else if (target instanceof Element) {
+            el = target;
+        }
+        if (!el) return;
+        el.classList.add('invalid');
+        setTimeout(()=>el.classList.remove('invalid'),700);
+    } catch (e) {}
+}
+
+// Backwards-compatible alias used elsewhere
+function invalidFlashContainer(section) { invalidFlash(section); }
+
 // Deck slot counts
 const MAIN_SLOTS = 60;
 const EXTRA_SLOTS = 15;
@@ -268,11 +287,11 @@ if (searchPanel) {
 let currentPage = 1;
 const pageSize = 24;
 
-// Replace with your GitHub repo URL for images
-const imageBaseUrl = 'https://raw.githubusercontent.com/JustBryant/KDR-Revamped-Images/main/small_tcg/';
+// Replace with your GitHub repo URL for images (use raw.githubusercontent for direct image links)
+const imageBaseUrl = 'https://raw.githubusercontent.com/JustBryant/KDR-Revamped-Images/main/full_tcg/';
 
 // Hardcoded end date for Kingdoms Purists format - change this to your cutoff date
-const HARDCODED_END_DATE = '2015-08-06';
+const HARDCODED_END_DATE = '2014-08-15';
 
 // Filter option lists
 const monsterMainTypes = ['Any','Normal','Effect','Ritual','Fusion','Synchro','Xyz','Link','Pendulum'];
@@ -487,6 +506,40 @@ function updateAllBanBadges() {
         }
         imgWrap.prepend(badgeEl);
     });
+
+    // Also update badges on deck slots (cards placed in decks)
+    const slots = document.querySelectorAll('.deck-grid .deck-slot.has-card');
+    slots.forEach(slot => {
+        const id = slot.dataset.cardId;
+        // Remove any existing badge
+        const existing = slot.querySelector('.ban-badge');
+        if (existing) existing.remove();
+        if (!id) return;
+        const allowed = allowedCopiesFor(id);
+        if (allowed === null || allowed === undefined) return;
+        if (allowed >= 3) return;
+        const badgeEl = document.createElement('span'); badgeEl.className = 'ban-badge';
+        if (allowed === 0) {
+            badgeEl.classList.add('forbidden');
+            const STOP_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="#b71c1c" stroke-width="2" fill="none"/><line x1="6.5" y1="6.5" x2="17.5" y2="17.5" stroke="#b71c1c" stroke-width="2" stroke-linecap="round"/></svg>';
+            badgeEl.innerHTML = STOP_SVG;
+            badgeEl.setAttribute('aria-label', 'Forbidden');
+            badgeEl.title = 'Forbidden';
+        } else if (allowed === 1) {
+            badgeEl.classList.add('limited'); badgeEl.textContent = '1';
+            badgeEl.setAttribute('aria-label', 'Limited (1)');
+            badgeEl.title = 'Limited — 1 copy allowed';
+        } else if (allowed === 2) {
+            badgeEl.classList.add('limited'); badgeEl.textContent = '2';
+            badgeEl.setAttribute('aria-label', 'Semi-limited (2)');
+            badgeEl.title = 'Semi-limited — 2 copies allowed';
+        }
+        // Prefer putting the badge into the image wrapper so it aligns
+        // exactly with the image edges; fallback to the slot container.
+        const slotImgWrap = slot.querySelector('.card-image');
+        if (slotImgWrap) slotImgWrap.prepend(badgeEl);
+        else slot.prepend(badgeEl);
+    });
 }
 
 function showCardPreviewById(cardId) {
@@ -602,6 +655,50 @@ function addToDeck(cardId, section) {
     return true;
 }
 
+// Type priority function: lower numbers sort earlier.
+function cardTypePriority(type) {
+    if (!type) return 99;
+    const t = String(type).toLowerCase();
+    if (/effect/.test(t)) return 1;
+    if (/normal/.test(t) && /monster/.test(t)) return 2;
+    if (/fusion/.test(t)) return 3;
+    if (/ritual/.test(t)) return 4;
+    if (/synchro/.test(t)) return 5;
+    if (/xyz/.test(t)) return 6;
+    if (/link/.test(t)) return 7;
+    if (/pendulum/.test(t)) return 8;
+    if (/monster/.test(t)) return 9;
+    if (/spell/.test(t)) return 20;
+    if (/trap/.test(t)) return 21;
+    return 99;
+}
+
+// Sort a single deck section in-place: groups by type priority, then alphabetically by name.
+function sortDeck(section) {
+    if (!Array.isArray(deck[section])) return;
+    // Build array of objects {id, name, type}
+    const mapped = deck[section].map(id => {
+        const card = allCards.find(c => String(c.id) === String(id));
+        return { id: String(id), name: card ? (card.name || '') : String(id), type: card ? (card.type || '') : '' };
+    });
+    mapped.sort((a,b) => {
+        const pa = cardTypePriority(a.type);
+        const pb = cardTypePriority(b.type);
+        if (pa !== pb) return pa - pb;
+        // stable secondary sort: card name, case-insensitive
+        return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
+    });
+    // Replace deck section preserving as strings
+    deck[section] = mapped.map(x => x.id);
+}
+
+function sortAllDecks() {
+    sortDeck('main');
+    sortDeck('extra');
+    sortDeck('side');
+    updateDeckDisplay();
+}
+
 // Pagination helpers
 function updatePaginationControls(totalCount, totalPages) {
     const info = document.getElementById('page-info');
@@ -658,6 +755,8 @@ function updateDeckDisplay() {
     updateSection('side', 'side-deck', 'side-count');
     // Update archetype summary after sections are refreshed
     try { updateDeckArchetypes(); } catch (e) {}
+    // Ensure banlist badges are refreshed for both search results and deck slots
+    try { updateAllBanBadges(); } catch (e) {}
 }
 
 function updateDeckArchetypes() {
@@ -672,15 +771,54 @@ function updateDeckArchetypes() {
 
     const counts = {};
     const archetypes = (typeof window !== 'undefined' && window.CARD_ARCHETYPES) ? window.CARD_ARCHETYPES : {};
-    for (const id of combined) {
-        const key = String(id);
-        const list = archetypes[key];
-        if (!list || !Array.isArray(list)) continue;
-        for (const name of list) {
-            if (!name) continue;
-            const n = String(name).trim();
-            if (!n) continue;
-            counts[n] = (counts[n] || 0) + 1;
+    const blacklist = (typeof window !== 'undefined' && Array.isArray(window.ARCHETYPE_BLACKLIST))
+        ? window.ARCHETYPE_BLACKLIST.map(s => String(s).toLowerCase())
+        : [];
+    // Normalize function: lower-case and collapse non-alphanumerics to spaces
+    const normalize = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+    const blacklistNorm = new Set(blacklist.map(normalize));
+    const isBlacklisted = (name) => {
+        if (!name) return false;
+        const n = normalize(name);
+        if (!n) return false;
+        for (const b of blacklistNorm) {
+            if (!b) continue;
+            if (n.indexOf(b) !== -1) return true; // blacklist token appears inside archetype name
+            if (b.indexOf(n) !== -1) return true; // archetype name appears inside blacklist token
+        }
+        return false;
+    };
+
+    if (archetypes && Object.keys(archetypes).length > 0) {
+        for (const id of combined) {
+            const key = String(id);
+            const list = archetypes[key];
+            if (!list || !Array.isArray(list)) continue;
+            for (const name of list) {
+                if (!name) continue;
+                const n = String(name).trim();
+                if (!n) continue;
+                if (isBlacklisted(n)) continue;
+                counts[n] = (counts[n] || 0) + 1;
+            }
+        }
+    } else if (typeof window !== 'undefined' && Array.isArray(window.ARCHETYPE_WHITELIST)) {
+        // Fallback: if authoritative mapping isn't available (e.g., running via file://),
+        // attempt a conservative whitelist-based match using card `name` / `desc`.
+        // This only matches explicit whitelist tokens within the card name/desc (case-insensitive).
+        const wl = window.ARCHETYPE_WHITELIST.map(s => String(s).toLowerCase());
+        for (const id of combined) {
+            const cardObj = allCards.find(c => String(c.id) === String(id));
+            if (!cardObj) continue;
+            const hay = ((cardObj.name||'') + ' ' + (cardObj.desc||'')).toLowerCase();
+            for (const token of wl) {
+                if (!token) continue;
+                if (isBlacklisted(token)) continue;
+                if (hay.indexOf(token) !== -1) {
+                    const display = token.replace(/\s+/g, ' ').trim();
+                    counts[display] = (counts[display] || 0) + 1;
+                }
+            }
         }
     }
     const entries = Object.entries(counts).sort((a,b) => b[1] - a[1] || a[0].localeCompare(b[0]));
@@ -726,7 +864,11 @@ function updateSection(section, divId, countId) {
                 img.src = `${imageBaseUrl}${card.id}.jpg`;
                 img.alt = card.name;
                 img.onerror = function() { this.style.display = 'none'; };
-                slot.appendChild(img);
+                // Wrap image in .card-image so badges can be positioned relative to the image
+                const wrap = document.createElement('div');
+                wrap.className = 'card-image';
+                wrap.appendChild(img);
+                slot.appendChild(wrap);
                 slot.classList.add('has-card');
                 slot.dataset.cardId = card.id;
                 // expose slot index so we can remove this exact copy later
@@ -844,24 +986,32 @@ function exportYDKE() {
 }
 
 function createYDKE(main, extra, side) {
-    const buffer = new ArrayBuffer(12 + main.length * 4 + extra.length * 4 + side.length * 4);
-    const view = new DataView(buffer);
-    let offset = 0;
-    view.setUint32(offset, main.length, true); offset += 4;
-    for (let id of main) {
-        view.setUint32(offset, id, true); offset += 4;
+    // We'll construct each section buffer separately below
+    // Convert bytes to base64 safely in chunks
+    function bytesToBase64(u8) {
+        const CHUNK = 0x8000; // 32KB
+        let s = '';
+        for (let i = 0; i < u8.length; i += CHUNK) {
+            s += String.fromCharCode.apply(null, Array.from(u8.subarray(i, i + CHUNK)));
+        }
+        return btoa(s);
     }
-    view.setUint32(offset, extra.length, true); offset += 4;
-    for (let id of extra) {
-        view.setUint32(offset, id, true); offset += 4;
+
+    // Build separate section buffers: each section encoded as [count:uint32LE][id:uint32LE...]
+    function sectionBase64(arr) {
+        const buf = new ArrayBuffer(4 + arr.length * 4);
+        const dv = new DataView(buf);
+        let off = 0;
+        dv.setUint32(off, arr.length, true); off += 4;
+        for (const id of arr) { dv.setUint32(off, Number(id), true); off += 4; }
+        return bytesToBase64(new Uint8Array(buf));
     }
-    view.setUint32(offset, side.length, true); offset += 4;
-    for (let id of side) {
-        view.setUint32(offset, id, true); offset += 4;
-    }
-    const bytes = new Uint8Array(buffer);
-    const base64 = btoa(String.fromCharCode(...bytes));
-    return 'ydke://' + base64;
+
+    const main64 = sectionBase64(main);
+    const extra64 = sectionBase64(extra);
+    const side64 = sectionBase64(side);
+    // Return three blocks separated by '!' and trailing '!'
+    return 'ydke://' + main64 + '!' + extra64 + '!' + side64 + '!';
 }
 
 async function applyDateFilter() {
@@ -898,6 +1048,8 @@ document.getElementById('search-bar').addEventListener('input', () => filterCard
 
 // Deck controls mapping
 document.getElementById('clear-deck').addEventListener('click', clearDeck);
+const sortBtn = document.getElementById('sort-deck');
+if (sortBtn) sortBtn.addEventListener('click', () => { sortAllDecks(); });
 document.getElementById('copy-ydke').addEventListener('click', exportYDKE);
 const applyBtn = document.getElementById('applyFilter');
 if (applyBtn) applyBtn.addEventListener('click', applyDateFilter);

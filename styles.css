@@ -301,23 +301,24 @@ main {
 /* Search results: always 3 columns with proper grid spacing like deck area */
 /* Search results grid: fixed 4 columns x 5 rows so 20 cards visible */
 #search-results {
-    /* Grid fills the container tightly: 4 columns x 5 rows */
+    /* Grid is fixed to 4 columns x 5 rows and centered within the panel */
     display: grid;
-    grid-template-columns: repeat(4, minmax(var(--sr-card-w), 1fr));
-    grid-template-rows: repeat(6, var(--sr-card-h));
+    grid-template-columns: repeat(4, var(--sr-card-w));
+    grid-template-rows: repeat(5, var(--sr-card-h));
     gap: var(--sr-gap);
     overflow: hidden; /* avoid scrollbars inside panel */
     flex: 1 1 auto;
     min-height: 0;
     width: 100%;
-    /* slightly reduce the computed height so the last row doesn't get clipped */
-    height: calc((var(--sr-card-h) * 6) + (var(--sr-gap) * 5) - 12px);
-    padding: 4px; /* fit cards within panel bounds */
-    align-content: start;
-    align-items: start;
-    justify-content: stretch;
-    justify-items: start; /* left-align cards so they sit within the panel */
+    /* calculated height for exactly 5 rows plus gaps and small padding */
+    height: calc((var(--sr-card-h) * 5) + (var(--sr-gap) * 4) + 8px);
+    padding: 8px; /* give a little breathing room so cards don't touch edges */
     box-sizing: border-box;
+    /* center the fixed-size grid within the panel */
+    align-content: center;
+    align-items: center;
+    justify-content: center;
+    justify-items: center;
 }
 
 /* Make the grid visually separated: visible slot lines and inset cards */
@@ -360,8 +361,52 @@ body[data-theme="dark"] #search-results .card {
 /* Ensure images never get cropped: center them and scale to fit inside the cell. */
 /* Cards fill their grid cells snugly and keep a slight inner margin */
 #search-results .card { overflow: hidden; display: flex; align-items: center; justify-content: center; padding: 2px; box-sizing: border-box; }
-#search-results .card .card-image { width: 100%; height: 100%; display:flex; align-items:center; justify-content:center; }
-#search-results .card .card-image img { width: auto; height: 100%; object-fit: contain; max-width: 100%; display: block; border-radius: 6px; }
+#search-results .card .card-image { width: 100%; height: 100%; display:block; padding: 0; box-sizing: border-box; }
+/* Ensure the image wrapper is the positioning context for badges so
+    badges align to the image edges (not the outer card slot). */
+.card .card-image { position: relative; overflow: hidden; }
+
+/* When a badge is placed inside the image wrapper, pin it to the
+    top-left corner of the image so it touches both image edges. */
+.card .card-image .ban-badge { top: 0; left: 0; right: auto; transform: none; margin: 0; }
+# Stronger overrides to ensure badges sit exactly on the image corner
+.card .card-image .ban-badge {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    transform: translate(0, 0) !important;
+    z-index: 40 !important;
+    pointer-events: none !important;
+}
+.card .card-image .ban-badge.forbidden {
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 50% !important;
+    padding: 0 !important;
+    /* push the badge slightly outwards so it visually touches the top-left corner */
+    top: -10px !important;
+    left: -10px !important;
+}
+
+/* Deck slot variants (smaller) */
+.deck-grid .deck-slot .ban-badge {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    transform: translate(0, 0) !important;
+    z-index: 40 !important;
+    pointer-events: none !important;
+}
+.deck-grid .deck-slot .ban-badge.forbidden {
+    width: 34px !important;
+    height: 34px !important;
+    top: -8px !important;
+    left: -8px !important;
+}
+#search-results .card .card-image img { width: 100% !important; height: 100% !important; object-fit: cover !important; display: block; border-radius: 6px; }
 
 /* -------- Responsive scaling -------- */
 /* Wide screens: scale up to use free space */
@@ -470,6 +515,15 @@ body[data-theme="dark"] #search-results .card {
     display: block;
     border-radius: 4px;
 }
+
+/* Make each slot a positioning context so badges can be pinned to the
+    card image corner and touch both edges. */
+.deck-grid .deck-slot { position: relative; }
+.deck-grid .deck-slot .ban-badge { position: absolute; top: 0; left: 0; margin: 0; z-index: 15; }
+
+/* Slightly reduce forbidden badge size in deck slots so it doesn't overflow
+    smaller mini slots while still touching the image edges. */
+.deck-grid .deck-slot .ban-badge.forbidden { width: 30px; height: 30px; }
 
 /* Smaller variant for Extra/Side slots when using the mini sizing */
 #extra-deck.deck-grid .deck-slot,
@@ -1069,56 +1123,58 @@ body[data-theme="dark"] .slot-placeholder {
         min-height: 32px;
     }
 
-    /* Mobile search results - single column, compact */
-    #search-results {
-        --sr-cols: 1;
-        --sr-card-w: 100%;
-        --sr-card-h: 120px;
-        gap: 0.2rem;
-        flex: 1;
-        overflow-y: auto;
-        overflow-x: hidden;
-    }
+    @media (max-width: 640px) {
+        /* Mobile search results - single column, compact */
+        #search-results {
+            --sr-cols: 1;
+            --sr-card-w: 100%;
+            --sr-card-h: 120px;
+            gap: 0.2rem;
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
 
-    /* Make search result cards more compact */
-    #search-results .card {
-        display: flex;
-        align-items: center;
-        background: var(--panel-bg);
-        border: 1px solid var(--input-border);
-        border-radius: 4px;
-        padding: 0.2rem;
-        height: auto;
-    }
+        /* Make search result cards more compact */
+        #search-results .card {
+            display: flex;
+            align-items: center;
+            background: var(--panel-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 4px;
+            padding: 0.2rem;
+            height: auto;
+        }
 
-    #search-results .card img {
-        width: 60px;
-        height: 87px;
-        object-fit: cover;
-        border-radius: 3px;
-        margin-right: 0.3rem;
-        flex-shrink: 0;
-    }
+        #search-results .card img {
+            width: 60px;
+            height: 87px;
+            object-fit: cover;
+            border-radius: 3px;
+            margin-right: 0.3rem;
+            flex-shrink: 0;
+        }
 
-    #search-results .card-info {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 0.1rem;
-        min-width: 0;
-    }
+        #search-results .card-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.1rem;
+            min-width: 0;
+        }
 
-    #search-results .card-name {
-        font-weight: 600;
-        font-size: 0.75rem;
-        line-height: 1.1;
-        word-wrap: break-word;
-    }
+        #search-results .card-name {
+            font-weight: 600;
+            font-size: 0.75rem;
+            line-height: 1.1;
+            word-wrap: break-word;
+        }
 
-    #search-results .card-type {
-        font-size: 0.65rem;
-        color: var(--text-muted);
-        line-height: 1;
+        #search-results .card-type {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            line-height: 1;
+        }
     }
 
     /* Mobile deck grids - more visible grid layout */
@@ -1272,4 +1328,34 @@ body[data-theme="dark"] .slot-placeholder {
         padding: 2px 1px;
         min-height: 28px;
     }
+}
+
+/* Strong override: force search results to be exactly 4 columns x 5 rows
+   and hide any implicit extra rows. Uses high specificity and !important
+   so other rules (including media queries) cannot expand it. */
+.search-section #search-results,
+.search-section > div:has(#search-results) #search-results {
+    grid-template-columns: repeat(4, var(--sr-card-w)) !important;
+    grid-template-rows: repeat(5, var(--sr-card-h)) !important;
+    /* ensure implicit rows are same fixed height as explicit rows */
+    grid-auto-rows: var(--sr-card-h) !important;
+    gap: var(--sr-gap) !important;
+    /* exact container height for 5 rows + gaps */
+    height: calc((var(--sr-card-h) * 5) + (var(--sr-gap) * 4) + 8px) !important;
+    max-height: calc((var(--sr-card-h) * 5) + (var(--sr-gap) * 4) + 8px) !important;
+    overflow: hidden !important;
+    padding: 8px !important;
+    /* top-align the grid so rows render from the top and don't get centered */
+    align-content: start !important;
+    align-items: start !important;
+    justify-content: center !important;
+    justify-items: center !important;
+    box-sizing: border-box !important;
+}
+
+/* Ensure individual grid items don't add external margins or exceed cell height */
+.search-section #search-results .card {
+    margin: 0 !important;
+    height: var(--sr-card-h) !important;
+    box-sizing: border-box !important;
 }

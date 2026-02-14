@@ -573,6 +573,30 @@
     "Simorgh"
   ];
 
+  // Manual blacklist: archetypes that should NOT be counted until you remove them.
+  // Add or remove entries here to control which archetypes are ignored by the UI.
+  window.ARCHETYPE_BLACKLIST = [
+    "Pendulum",
+    "Utopic",
+    "Jinzo",
+    "Battleguard",
+    "Celtic Guard",
+    "Elder Entity",
+    "Magician Girl",
+    "Chaos",
+    "Firewall",
+    "Buster Blader",
+    "Machine Angel",
+    "Cynet",
+    "Aqua Jet",
+    "Power Tool",
+    "Forbidden",
+    "Eyes Restrict",
+    "Blue-Eyes",
+    "Shark",
+    "Rose Dragon"
+  ];
+
   // Optional: if you paste a pre-filtered mapping below as `window.__CARD_ARCHETYPES_EMBEDDED__`,
   // this file will use it as `window.CARD_ARCHETYPES` so no fetch is required.
   if (window.__CARD_ARCHETYPES_EMBEDDED__ && typeof window.__CARD_ARCHETYPES_EMBEDDED__ === 'object') {
