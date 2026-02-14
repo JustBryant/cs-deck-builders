@@ -21,7 +21,7 @@
       window.CARD_ARCHETYPES = mapping;
       console.log('CARD_ARCHETYPES loaded', Object.keys(mapping).length, 'entries; whitelist size:', Array.isArray(whitelist)?whitelist.length:0);
       // Refresh UI summary if the page has exposed the updater
-      try { if (typeof window.updateDeckArchetypes === 'function') window.updateDeckArchetypes(); } catch (e) {}
+      try { if (typeof window.updateDeckArchetypes === 'function') window.updateDeckArchetypes().catch(() => {}); } catch (e) {}
     } catch (err) {
       console.warn('Error processing card archetypes:', err);
       window.CARD_ARCHETYPES = mapping || {};

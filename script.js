@@ -754,14 +754,37 @@ function updateDeckDisplay() {
     updateSection('extra', 'extra-deck', 'extra-count');
     updateSection('side', 'side-deck', 'side-count');
     // Update archetype summary after sections are refreshed
-    try { updateDeckArchetypes(); } catch (e) {}
+    try { updateDeckArchetypes().catch(() => {}); } catch (e) {}
     // Ensure banlist badges are refreshed for both search results and deck slots
     try { updateAllBanBadges(); } catch (e) {}
 }
 
-function updateDeckArchetypes() {
+async function updateDeckArchetypes() {
     const el = document.getElementById('deck-archetypes');
     if (!el) return;
+    // Ensure authoritative mapping is available; try to fetch it if missing.
+    if (!(typeof window !== 'undefined' && window.CARD_ARCHETYPES && Object.keys(window.CARD_ARCHETYPES).length > 0)) {
+        try {
+            if (location && String(location.protocol).startsWith('http')) {
+                const resp = await fetch('card-archetypes-authoritative.json');
+                if (resp && resp.ok) {
+                    const mapping = await resp.json();
+                    if (mapping && typeof mapping === 'object') {
+                        window.CARD_ARCHETYPES = mapping;
+                        console.log('Loaded CARD_ARCHETYPES from card-archetypes-authoritative.json');
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn('Could not fetch authoritative archetype mapping:', e);
+        }
+    }
+    // If still missing, warn and clear display (authoritative-only mode)
+    if (!(typeof window !== 'undefined' && window.CARD_ARCHETYPES && Object.keys(window.CARD_ARCHETYPES).length > 0)) {
+        console.warn('CARD_ARCHETYPES mapping not available — archetype counts disabled (authoritative-only mode)');
+        el.textContent = '';
+        return;
+    }
     // Build combined deck list
     const mainArr = Array.isArray(deck.main) ? deck.main : Object.entries(deck.main||{}).flatMap(([id,count])=>Array(count).fill(id));
     const extraArr = Array.isArray(deck.extra) ? deck.extra : Object.entries(deck.extra||{}).flatMap(([id,count])=>Array(count).fill(id));
@@ -783,42 +806,25 @@ function updateDeckArchetypes() {
         if (!n) return false;
         for (const b of blacklistNorm) {
             if (!b) continue;
-            if (n.indexOf(b) !== -1) return true; // blacklist token appears inside archetype name
-            if (b.indexOf(n) !== -1) return true; // archetype name appears inside blacklist token
+            // Only blacklist when the normalized archetype name contains the blacklist token
+            // as a substring — do not blacklist shorter names just because a blacklist entry
+            // contains them (e.g., don't let "Magician Girl" blacklist "Magician").
+            if (n.indexOf(b) !== -1) return true;
         }
         return false;
     };
 
-    if (archetypes && Object.keys(archetypes).length > 0) {
-        for (const id of combined) {
-            const key = String(id);
-            const list = archetypes[key];
-            if (!list || !Array.isArray(list)) continue;
-            for (const name of list) {
-                if (!name) continue;
-                const n = String(name).trim();
-                if (!n) continue;
-                if (isBlacklisted(n)) continue;
-                counts[n] = (counts[n] || 0) + 1;
-            }
-        }
-    } else if (typeof window !== 'undefined' && Array.isArray(window.ARCHETYPE_WHITELIST)) {
-        // Fallback: if authoritative mapping isn't available (e.g., running via file://),
-        // attempt a conservative whitelist-based match using card `name` / `desc`.
-        // This only matches explicit whitelist tokens within the card name/desc (case-insensitive).
-        const wl = window.ARCHETYPE_WHITELIST.map(s => String(s).toLowerCase());
-        for (const id of combined) {
-            const cardObj = allCards.find(c => String(c.id) === String(id));
-            if (!cardObj) continue;
-            const hay = ((cardObj.name||'') + ' ' + (cardObj.desc||'')).toLowerCase();
-            for (const token of wl) {
-                if (!token) continue;
-                if (isBlacklisted(token)) continue;
-                if (hay.indexOf(token) !== -1) {
-                    const display = token.replace(/\s+/g, ' ').trim();
-                    counts[display] = (counts[display] || 0) + 1;
-                }
-            }
+    // Use ONLY the authoritative mapping `window.CARD_ARCHETYPES`.
+    for (const id of combined) {
+        const key = String(id);
+        const list = archetypes[key];
+        if (!list || !Array.isArray(list)) continue;
+        for (const name of list) {
+            if (!name) continue;
+            const n = String(name).trim();
+            if (!n) continue;
+            if (isBlacklisted(n)) continue;
+            counts[n] = (counts[n] || 0) + 1;
         }
     }
     const entries = Object.entries(counts).sort((a,b) => b[1] - a[1] || a[0].localeCompare(b[0]));

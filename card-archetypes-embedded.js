@@ -594,7 +594,8 @@
     "Eyes Restrict",
     "Blue-Eyes",
     "Shark",
-    "Rose Dragon"
+    "Rose Dragon",
+    "Counter"
   ];
 
   // Optional: if you paste a pre-filtered mapping below as `window.__CARD_ARCHETYPES_EMBEDDED__`,
@@ -602,7 +603,7 @@
   if (window.__CARD_ARCHETYPES_EMBEDDED__ && typeof window.__CARD_ARCHETYPES_EMBEDDED__ === 'object') {
     window.CARD_ARCHETYPES = window.__CARD_ARCHETYPES_EMBEDDED__;
     console.log('Using embedded CARD_ARCHETYPES (user-provided) entries=', Object.keys(window.CARD_ARCHETYPES).length);
-    try{ if (typeof window.updateDeckArchetypes === 'function') window.updateDeckArchetypes(); }catch(e){}
+    try{ if (typeof window.updateDeckArchetypes === 'function') window.updateDeckArchetypes().catch(() => {}); }catch(e){}
   } else {
     // If fetch fails (file://), advise running a local HTTP server or generating an embedded mapping.
     console.log('ARCHETYPE_WHITELIST available. To enable archetype display on file://, either:');
