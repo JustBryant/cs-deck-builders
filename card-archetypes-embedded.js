@@ -595,7 +595,8 @@
     "Blue-Eyes",
     "Shark",
     "Rose Dragon",
-    "Counter"
+    "Counter",
+    "-Eyes Dragon"
   ];
 
   // Optional: if you paste a pre-filtered mapping below as `window.__CARD_ARCHETYPES_EMBEDDED__`,
