@@ -10,13 +10,16 @@
       if (!mapping || typeof mapping !== 'object') mapping = {};
       // If a whitelist is provided (array of canonical archetype names), filter each card's series list
       if (Array.isArray(whitelist)) {
-        const allowed = new Set(whitelist.map(s => String(s).trim()));
+        // Compare whitelist case-insensitively for robustness.
+        const allowedNorm = new Set(whitelist.map(s => String(s).trim().toLowerCase()));
+        let kept = 0, removed = 0;
         for (const cid of Object.keys(mapping)) {
           const arr = Array.isArray(mapping[cid]) ? mapping[cid] : [];
-          const filtered = arr.map(s => String(s).trim()).filter(s => allowed.has(s));
-          if (filtered.length > 0) mapping[cid] = filtered;
-          else delete mapping[cid];
+          const filtered = arr.map(s => String(s).trim()).filter(s => allowedNorm.has(String(s).trim().toLowerCase()));
+          if (filtered.length > 0) { mapping[cid] = filtered; kept++; }
+          else { delete mapping[cid]; removed++; }
         }
+        console.log('Applied archetype whitelist — kept', kept, 'card entries; removed', removed);
       }
       window.CARD_ARCHETYPES = mapping;
       console.log('CARD_ARCHETYPES loaded', Object.keys(mapping).length, 'entries; whitelist size:', Array.isArray(whitelist)?whitelist.length:0);

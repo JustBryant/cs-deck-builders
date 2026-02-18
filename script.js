@@ -794,6 +794,32 @@ async function updateDeckArchetypes() {
 
     const counts = {};
     const archetypes = (typeof window !== 'undefined' && window.CARD_ARCHETYPES) ? window.CARD_ARCHETYPES : {};
+    // Ensure we have an explicit whitelist; if missing, try fetching it (strict enforcement)
+    let whitelistArr = Array.isArray(window.ARCHETYPE_WHITELIST) ? window.ARCHETYPE_WHITELIST : null;
+    if (!Array.isArray(whitelistArr)) {
+        try {
+            if (location && String(location.protocol).startsWith('http')) {
+                const wresp = await fetch('archetype-whitelist.json');
+                if (wresp && wresp.ok) {
+                    const wjson = await wresp.json();
+                    if (Array.isArray(wjson)) {
+                        window.ARCHETYPE_WHITELIST = wjson;
+                        whitelistArr = wjson;
+                        console.log('Loaded ARCHETYPE_WHITELIST from archetype-whitelist.json');
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn('Could not fetch archetype whitelist:', e);
+        }
+    }
+    // If whitelist still missing, enforce strict policy: do not display archetypes.
+    if (!Array.isArray(whitelistArr) || whitelistArr.length === 0) {
+        console.warn('Archetype whitelist missing or empty — no archetypes will be displayed (strict whitelist enforcement)');
+        el.textContent = '';
+        return;
+    }
+    const allowedNorm = new Set(whitelistArr.map(s => String(s).trim().toLowerCase()));
     const blacklist = (typeof window !== 'undefined' && Array.isArray(window.ARCHETYPE_BLACKLIST))
         ? window.ARCHETYPE_BLACKLIST.map(s => String(s).toLowerCase())
         : [];
@@ -823,6 +849,8 @@ async function updateDeckArchetypes() {
             if (!name) continue;
             const n = String(name).trim();
             if (!n) continue;
+            // Only count archetypes that are explicitly on the whitelist (case-insensitive)
+            if (!allowedNorm.has(n.toLowerCase())) continue;
             if (isBlacklisted(n)) continue;
             counts[n] = (counts[n] || 0) + 1;
         }
