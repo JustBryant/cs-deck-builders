@@ -283,9 +283,9 @@ if (searchPanel) {
 }
 }
 
-// Pagination state (6 rows x 4 cols => 24 per page)
+// Pagination state (5 rows x 4 cols => 20 per page)
 let currentPage = 1;
-const pageSize = 24;
+const pageSize = 20;
 
 // Replace with your GitHub repo URL for images (use raw.githubusercontent for direct image links)
 const imageBaseUrl = 'https://raw.githubusercontent.com/JustBryant/KDR-Revamped-Images/main/full_tcg/';
@@ -1230,20 +1230,187 @@ function filterCards() {
     const tagEls = document.querySelectorAll('.f-monster-tag:checked');
     const tags = Array.from(tagEls).map(e=>e.value.toLowerCase());
 
+    // Helper: parse the API `card.type` into category and subtype for reliable matching
+    const parseCardType = (t) => {
+        if (!t) return { category: null, subtype: null };
+        const s = String(t);
+        const sLow = s.toLowerCase();
+        // canonicalize raw type into tokens (split on non-alphanumerics)
+        const rawNorm = sLow.replace(/[^a-z0-9]+/g, ' ').trim();
+        const tokens = rawNorm ? rawNorm.split(/\s+/) : [];
+
+        const has = (tok) => tokens.indexOf(tok) !== -1;
+
+        // Monster
+        if (sLow.indexOf('monster') !== -1) {
+            // common monster subtypes
+            if (has('pendulum')) return { category: 'monster', subtype: 'Pendulum' };
+            if (has('fusion')) return { category: 'monster', subtype: 'Fusion' };
+            if (has('synchro')) return { category: 'monster', subtype: 'Synchro' };
+            if (has('xyz')) return { category: 'monster', subtype: 'Xyz' };
+            if (has('link')) return { category: 'monster', subtype: 'Link' };
+            if (has('ritual')) return { category: 'monster', subtype: 'Ritual' };
+            if (has('flip')) return { category: 'monster', subtype: 'Flip' };
+            if (has('gemini')) return { category: 'monster', subtype: 'Gemini' };
+            if (has('spirit')) return { category: 'monster', subtype: 'Spirit' };
+            if (has('tuner')) return { category: 'monster', subtype: 'Tuner' };
+            if (has('union')) return { category: 'monster', subtype: 'Union' };
+            if (has('normal')) return { category: 'monster', subtype: 'Normal' };
+            return { category: 'monster', subtype: 'Effect' };
+        }
+
+        // Spell
+        if (sLow.indexOf('spell') !== -1) {
+            if (has('continuous')) return { category: 'spell', subtype: 'Continuous' };
+            if (has('equip')) return { category: 'spell', subtype: 'Equip' };
+            // quick-play may appear as 'quick-play' or 'quick play' -> token 'quick' covers it
+            if (has('quick')) return { category: 'spell', subtype: 'Quick-Play' };
+            if (has('field')) return { category: 'spell', subtype: 'Field' };
+            if (has('ritual')) return { category: 'spell', subtype: 'Ritual' };
+            if (has('normal')) return { category: 'spell', subtype: 'Normal' };
+            return { category: 'spell', subtype: null };
+        }
+
+        // Trap
+        if (sLow.indexOf('trap') !== -1) {
+            if (has('continuous')) return { category: 'trap', subtype: 'Continuous' };
+            if (has('counter')) return { category: 'trap', subtype: 'Counter' };
+            if (has('normal')) return { category: 'trap', subtype: 'Normal' };
+            return { category: 'trap', subtype: null };
+        }
+
+        return { category: null, subtype: null };
+    };
+
+    // Debug: when filtering Spells/Traps, show counts by parsed subtype to help diagnose
+    try {
+        const sampleCats = allCards.reduce((acc, c) => {
+            const p = parseCardType(c.type);
+            if (!p || !p.category) return acc;
+            acc[p.category] = acc[p.category] || {};
+            const sub = p.subtype || 'NONE';
+            acc[p.category][sub] = (acc[p.category][sub] || 0) + 1;
+            return acc;
+        }, {});
+        console.debug('card type distribution (sample):', sampleCats);
+        // Debug: list some raw `card.type` values for spells/traps that produced NONE subtype
+        try {
+            const spellNone = [];
+            const trapNone = [];
+            for (const c of allCards) {
+                const p = parseCardType(c.type);
+                if (!p || !p.category) continue;
+                if (p.category === 'spell' && !p.subtype && spellNone.length < 20) {
+                    if (!spellNone.includes(String(c.type))) spellNone.push(String(c.type));
+                }
+                if (p.category === 'trap' && !p.subtype && trapNone.length < 20) {
+                    if (!trapNone.includes(String(c.type))) trapNone.push(String(c.type));
+                }
+                if (spellNone.length >= 20 && trapNone.length >= 20) break;
+            }
+            if (spellNone.length) console.debug('sample raw spell.type values with NONE subtype:', spellNone);
+            if (trapNone.length) console.debug('sample raw trap.type values with NONE subtype:', trapNone);
+        } catch (e) {}
+    } catch (e) {}
+
+    // Debugging aid: if user searches a specific name, log where matching cards are filtered out
+    if (q && q.length > 2) {
+        try {
+            const nameMatches = allCards.filter(c => c.name && String(c.name).toLowerCase().includes(q));
+            if (nameMatches.length === 0) {
+                console.debug('Search debug - no direct name matches for', q);
+            } else {
+                // For each matching card, explain which filters (if any) would exclude it
+                const explain = (c) => {
+                    const reasons = [];
+                    const parsed = parseCardType(c.type || '');
+                    // category
+                    if (cat && cat !== 'all' && cat !== 'All') {
+                        if (!parsed.category || parsed.category.toLowerCase() !== String(cat).toLowerCase()) reasons.push('category mismatch (' + (parsed.category||'none') + ' != ' + String(cat) + ')');
+                    }
+                    // attribute
+                    if (attr && attr !== 'all') {
+                        if (!c.attribute || c.attribute.toLowerCase() !== attr.toLowerCase()) reasons.push('attribute mismatch (' + (c.attribute||'none') + ' != ' + attr + ')');
+                    }
+                    // type/subtype
+                    if (type && type !== 'all') {
+                        if (parsed.category === 'spell' || parsed.category === 'trap') {
+                            const want = String(type).toLowerCase();
+                            const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+                            const wantNorm = norm(want);
+                            const gotNorm = norm(parsed.subtype || '');
+                            const rawTypeNorm = norm(String(c.type || ''));
+                            const rawRaceNorm = norm(String(c.race || ''));
+                            if (!(gotNorm === wantNorm || rawTypeNorm.indexOf(wantNorm) !== -1 || rawRaceNorm.indexOf(wantNorm) !== -1)) {
+                                reasons.push('subtype mismatch (want=' + type + ', parsed=' + (parsed.subtype||'none') + ', rawType=' + (c.type||'') + ', race=' + (c.race||'') + ')');
+                            }
+                        } else {
+                            if (!c.type || c.type.toLowerCase().indexOf(type.toLowerCase())===-1) reasons.push('type contains-mismatch (' + (c.type||'') + ' !includes ' + type + ')');
+                        }
+                    }
+                    // race
+                    if (race && race !== 'all') {
+                        if (!c.race || c.race.toLowerCase() !== race.toLowerCase()) reasons.push('race mismatch (' + (c.race||'') + ' != ' + race + ')');
+                    }
+                    // tags
+                    const tagEls = document.querySelectorAll('.f-monster-tag:checked');
+                    const tagsChecked = Array.from(tagEls).map(e=>e.value.toLowerCase());
+                    for (const t of tagsChecked) {
+                        if (!c.type || c.type.toLowerCase().indexOf(t)===-1) reasons.push('tag mismatch ('+t+')');
+                    }
+                    // atk/def
+                    if (atkMatcher && !atkMatcher(c.atk)) reasons.push('atk mismatch');
+                    if (defMatcher && !defMatcher(c.def)) reasons.push('def mismatch');
+                    return reasons;
+                };
+                for (const c of nameMatches) {
+                    console.debug('Search debug - match', c.id, c.name, 'type="' + c.type + '" race="' + c.race + '" =>', explain(c).length ? explain(c) : ['passes filters']);
+                }
+            }
+        } catch (e) { console.warn('Search debug error', e); }
+    }
+
     const out = allCards.filter(card => {
         if (q) {
             const inName = card.name && card.name.toLowerCase().includes(q);
             const inDesc = card.desc && card.desc.toLowerCase().includes(q);
             if (!inName && !inDesc) return false;
         }
+        const parsed = parseCardType(card.type);
         if (cat && cat !== 'all' && cat !== 'All') {
-            if (!card.type || card.type.toLowerCase().indexOf(cat.toLowerCase())===-1) return false;
+            // Match category (monster/spell/trap) case-insensitively
+            if (!parsed.category || parsed.category.toLowerCase() !== String(cat).toLowerCase()) return false;
         }
         if (attr && attr !== 'all') {
             if (!card.attribute || card.attribute.toLowerCase() !== attr.toLowerCase()) return false;
         }
         if (type && type !== 'all') {
-            if (!card.type || card.type.toLowerCase().indexOf(type.toLowerCase())===-1) return false;
+            // For Spell/Trap subtypes, use parsed.subtype for exact matches
+            if (parsed.category === 'spell' || parsed.category === 'trap') {
+                const want = String(type).toLowerCase();
+                const gotSubtype = parsed.subtype ? String(parsed.subtype).toLowerCase() : '';
+                const rawType = card.type ? String(card.type).toLowerCase() : '';
+                const rawRace = card.race ? String(card.race).toLowerCase() : '';
+                // Normalize tokens for loose matching (handles 'Quick-Play' vs 'Quick Play')
+                const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+                const wantNorm = norm(want);
+                const gotNorm = norm(gotSubtype);
+                const rawTypeNorm = norm(rawType);
+                const rawRaceNorm = norm(rawRace);
+                // Match if parsed subtype equals requested OR raw card.type or card.race contains the requested token
+                if (gotNorm === wantNorm) {
+                    // ok
+                } else if (rawTypeNorm.indexOf(wantNorm) !== -1) {
+                    // ok
+                } else if (rawRaceNorm.indexOf(wantNorm) !== -1) {
+                    // ok
+                } else {
+                    return false;
+                }
+            } else {
+                // For monsters/types fall back to previous contains-match behavior
+                if (!card.type || card.type.toLowerCase().indexOf(type.toLowerCase())===-1) return false;
+            }
         }
         if (race && race !== 'all') {
             if (!card.race || card.race.toLowerCase() !== race.toLowerCase()) return false;

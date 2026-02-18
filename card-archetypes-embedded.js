@@ -111,7 +111,6 @@
   "GMX",
   "Blaze Accelerator",
   "Abyss Actor",
-  "Skyblaster",
   "Cloudian",
   "Qli",
   "Meklord Army",
