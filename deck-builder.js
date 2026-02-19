@@ -876,6 +876,13 @@
   function bindUI(){
     const apply = document.getElementById('apply-filters'); if (apply) apply.addEventListener('click', filterCards);
     const clear = document.getElementById('clear-filters'); if (clear) clear.addEventListener('click', ()=>{ document.getElementById('search-input').value=''; filterCards(); });
+    // Pressing Enter in the search input should trigger the search
+    const searchInput = document.getElementById('search-input');
+    if (searchInput){
+      searchInput.addEventListener('keydown', function(e){
+        if (e.key === 'Enter' || e.keyCode === 13){ e.preventDefault(); filterCards(); }
+      });
+    }
     // pager controls
     const prev = document.getElementById('pager-prev'); if (prev) prev.addEventListener('click', prevPage);
     const next = document.getElementById('pager-next'); if (next) next.addEventListener('click', nextPage);
