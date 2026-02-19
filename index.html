@@ -1,119 +1,447 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kingdoms Purists Deck Builder</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Custom Format — Deck Builder</title>
+  <link rel="stylesheet" href="deck-builder.css">
+  <style>
+    /* local archetype summary styles */
+    #deck-archetypes-list { display:flex; flex-direction:column; gap:6px; color:var(--muted); }
+    #deck-archetypes-list .archetype-item { display:flex; justify-content:space-between; align-items:center; padding:4px 6px; border-radius:6px; }
+    #deck-archetypes-list .archetype-item .name { font-weight:600; color:#cfeee8 }
+    #deck-archetypes-list .archetype-item .count { opacity:0.8; font-size:0.9rem }
+  </style>
 </head>
-<body>
-        <h1>Kingdoms Purists Deck Builder</h1>
-        <main>
-        <div class="container">
-            <div class="search-section">
-                <div id="filters" style="margin-bottom:0.5rem;">
-                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:0.5rem; align-items:end;">
-                        <label style="display:flex; flex-direction:column; gap:4px;">
-                            <span>Category</span>
-                            <select id="f-category">
-                                <option value="all" selected>All</option>
-                                <option value="Monster">Monster</option>
-                                <option value="Spell">Spell</option>
-                                <option value="Trap">Trap</option>
-                            </select>
-                        </label>
-                        <label style="display:flex; flex-direction:column; gap:4px;">
-                            <span>Attribute</span>
-                            <select id="f-attribute"><option value="all" selected>All</option></select>
-                        </label>
-                        <label style="display:flex; flex-direction:column; gap:4px;">
-                            <span>Card Type</span>
-                            <select id="f-type"><option value="all" selected>All</option></select>
-                        </label>
-                        <label style="display:flex; flex-direction:column; gap:4px;">
-                            <span>Type</span>
-                            <select id="f-race"><option value="all" selected>All</option></select>
-                        </label>
-                        <div id="monster-tags">
-                            <label><input type="checkbox" class="f-monster-tag" id="f-tag-pendulum" value="Pendulum" disabled><span>Pendulum</span></label>
-                            <label><input type="checkbox" class="f-monster-tag" id="f-tag-tuner" value="Tuner" disabled><span>Tuner</span></label>
-                            <label><input type="checkbox" class="f-monster-tag" id="f-tag-flip" value="Flip" disabled><span>Flip</span></label>
-                            <label><input type="checkbox" class="f-monster-tag" id="f-tag-spirit" value="Spirit" disabled><span>Spirit</span></label>
-                            <label><input type="checkbox" class="f-monster-tag" id="f-tag-gemini" value="Gemini" disabled><span>Gemini</span></label>
-                            <label><input type="checkbox" class="f-monster-tag" id="f-tag-union" value="Union" disabled><span>Union</span></label>
-                        </div>
-                        <div id="monster-numerics">
-                            <label style="display:flex; flex-direction:column; gap:4px;"><span>Lv/Rank</span><input id="f-level" type="text" placeholder=">=4, <8, 7, etc."></label>
-                            <label style="display:flex; flex-direction:column; gap:4px;"><span>Scale</span><input id="f-scale" type="number" min="0" placeholder="any"></label>
-                            <label style="display:flex; flex-direction:column; gap:4px;"><span>ATK</span><input id="f-atk" type="text" placeholder=">2000, <=1500, 0, etc."></label>
-                            <label style="display:flex; flex-direction:column; gap:4px;"><span>DEF</span><input id="f-def" type="text" placeholder=">=2000, <1000, ?, etc."></label>
-                        </div>
-                    </div>
-                </div>
-                <div style="display:flex; gap:0.5rem; align-items:center;">
-                    <input type="text" id="search-bar" placeholder="Search for a card..." style="flex:1 1 auto;">
-                    <button id="search-button" type="button">Search</button>
-                </div>
-                <div id="search-tools" style="margin:0.5rem 0; display:flex; flex-wrap:wrap; gap:0.5rem; align-items:center;"></div>
-                <!-- Banlist status intentionally hidden -->
-                <div id="search-pagination" style="display:flex; gap:0.5rem; align-items:center; margin-bottom:0.5rem;">
-                    <button id="page-prev" type="button">Prev</button>
-                    <div id="page-info" style="min-width:160px; text-align:center">Page 1 of 1</div>
-                    <button id="page-next" type="button">Next</button>
-                </div>
-                <div id="search-results"></div>
-            </div>
-            <div class="list-section">
-                <div class="list-header">
-                    <h2>Deck</h2>
-                    <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
-                        <button id="clear-deck">Clear Deck</button>
-                        <button id="sort-deck">Sort Deck</button>
-                        <button id="export-ydk">Download .ydk</button>
-                        <button id="copy-ydke">Copy YDKE</button>
-                        <button id="theme-toggle" class="theme-toggle" type="button">Dark Mode</button>
-                        <span id="import-status" class="muted"></span>
-                        <div id="legalityMessage" class="muted" style="margin-left:0.5rem"></div>
-                    </div>
-                </div>
-                <div id="deck-archetypes" class="muted" style="margin:0.5rem 0 0 0"> </div>
-                <div class="deck-row">
-                    <div id="deck-sections" class="deck-area-limited">
-                        <div class="deck-zone">
-                            <div class="deck-zone-header">Main Deck <span id="main-count" class="muted">(0/60)</span></div>
-                            <div id="main-deck" class="deck-grid"></div>
-                        </div>
-                        <div class="deck-zone">
-                            <div class="deck-zone-header">Extra Deck <span id="extra-count" class="muted">(0/15)</span></div>
-                            <div id="extra-deck" class="deck-grid"></div>
-                        </div>
-                        <div class="deck-zone">
-                            <div class="deck-zone-header">Side Deck <span id="side-count" class="muted">(0/15)</span></div>
-                            <div id="side-deck" class="deck-grid"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- preview panel placed as the right column inside the main container -->
-            <aside id="card-preview-panel" class="right-preview">
-                <div class="preview-inner">
-                    <div id="preview-image-wrap" class="preview-image-wrap">
-                        <img id="preview-image" src="" alt="" class="preview-img" style="display:none;">
-                    </div>
-                    <div id="preview-info" class="preview-info" style="display:none;">
-                        <h3 id="preview-name" class="preview-name"></h3>
-                        <div id="preview-typeline" class="muted preview-typeline"></div>
-                        <div id="preview-stats" class="muted preview-stats"></div>
-                        <div id="preview-desc" class="preview-desc"></div>
-                    </div>
-                    <div id="preview-empty" class="muted preview-empty">Select a card from the results or a slot to preview its full image and description.</div>
-                </div>
-            </aside>
-        </div> <!-- .container -->
-        </main>
-    <script src="purist-banlist.js"></script>
-    <script src="card-archetypes.js"></script>
-    <script src="card-archetypes-embedded.js"></script>
-    <script src="script.js"></script>
+<body class="deck-builder-app">
+  <header class="db-header">
+    <div class="brand">Kingdoms Purists Deck Builder</div>
+    <nav class="controls">
+      <button class="btn primary" id="toggle-sidebar">☰ Cards</button>
+      <button class="btn" id="import-deck">Import</button>
+      <button class="btn" id="export-deck">Export</button>
+    </nav>
+  </header>
+
+  <main class="db-main">
+    <aside class="db-sidebar" id="sidebar">
+
+      <div class="filters" aria-hidden="false">
+        <!-- Single search bar (only one) -->
+        <div class="filter-row search-row">
+          <input class="search" id="search-input" type="search" placeholder="Search cards" aria-label="Search cards">
+        </div>
+
+        <div class="two-col">
+          <div class="filter-row">
+            <label>Category</label>
+            <select id="filter-category">
+              <option value="">Any</option>
+              <option>Monster</option>
+              <option>Spell</option>
+              <option>Trap</option>
+            </select>
+          </div>
+
+          <div class="filter-row">
+            <label>Attribute</label>
+            <select id="filter-attr">
+              <option value="">Any</option>
+              <option>LIGHT</option>
+              <option>DARK</option>
+              <option>WATER</option>
+              <option>FIRE</option>
+              <option>EARTH</option>
+              <option>WIND</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="filter-row">
+            <label>Card Type</label>
+            <select id="filter-cardtype">
+              <option value="">Any</option>
+              <option>Normal</option>
+              <option>Effect</option>
+              <option>Fusion</option>
+              <option>Synchro</option>
+              <option>Xyz</option>
+              <option>Link</option>
+            </select>
+          </div>
+
+          <div class="filter-row">
+            <label>Type</label>
+            <select id="filter-type">
+              <option value="">Any</option>
+              <option>Spellcaster</option>
+              <option>Warrior</option>
+              <option>Dragon</option>
+              <option>Machine</option>
+              <option>Beast</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="checkbox-row">
+          <div class="checkboxes">
+            <label><input type="checkbox" id="chk-pendulum"> Pendulum</label>
+            <label><input type="checkbox" id="chk-tuner"> Tuner</label>
+            <label><input type="checkbox" id="chk-flip"> Flip</label>
+            <label><input type="checkbox" id="chk-spirit"> Spirit</label>
+            <label><input type="checkbox" id="chk-gemini"> Gemini</label>
+            <label><input type="checkbox" id="chk-union"> Union</label>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="filter-row">
+            <label>LV / Rank</label>
+            <input type="number" id="filter-level" min="0" max="12" placeholder="e.g. 4">
+          </div>
+          <div class="filter-row">
+            <label>Scale</label>
+            <input type="number" id="filter-scale" min="0" max="13" placeholder="Any">
+          </div>
+        </div>
+
+        <div class="two-col small-numbers">
+          <div class="filter-row">
+            <label>ATK</label>
+            <input class="small-num" type="text" id="filter-atk" placeholder="e.g. 300, <300, 100-300">
+          </div>
+          <div class="filter-row">
+            <label>DEF</label>
+            <input class="small-num" type="text" id="filter-def" placeholder="e.g. 300, <300, 100-300">
+          </div>
+        </div>
+
+        <div class="filter-actions">
+          <button class="btn" id="clear-filters">Clear</button>
+          <button class="btn" id="apply-filters">Apply</button>
+        </div>
+      </div>
+
+      <div class="card-list" id="card-list">
+        <!-- card tiles will be populated by JS. kept empty here. -->
+      </div>
+      <div class="card-pager" id="card-pager" style="display:flex;align-items:center;gap:8px;padding:6px 8px;">
+        <button class="btn" id="pager-prev" aria-label="Previous page">Prev</button>
+        <div id="pager-status" style="font-size:0.9rem;color:var(--muted)">1 / 1</div>
+        <button class="btn" id="pager-next" aria-label="Next page">Next</button>
+      </div>
+      
+      <div id="deck-archetypes" style="margin-top:10px;padding:8px;border-top:1px solid rgba(255,255,255,0.03);">
+        <div style="font-size:0.85rem;color:var(--muted);margin-bottom:6px;font-weight:600">Archetypes in Deck</div>
+        <div id="deck-archetypes-list" style="display:flex;flex-direction:column;gap:6px;color:var(--muted)">None</div>
+      </div>
+      
+    </aside>
+
+    <section class="db-canvas">
+      <div class="deck-zones">
+        <div class="zone zone-main">
+          <h3 class="zone-title">Main Deck <span class="deck-count" id="main-count">(0/60)</span></h3>
+          <div class="zone-body grid-main" id="main-deck" data-capacity="60">
+            <!-- 60 slots -->
+            <!-- JS will mark slots as filled; slots have data-index -->
+            <!-- Generate 60 slots in HTML so layout is stable across aspect ratios -->
+            <!-- Start slots -->
+            
+            <!-- slots inserted by server/JS fallback: include them here statically -->
+            <!-- We'll include them statically for now -->
+            
+            <!-- SLOT TEMPLATE -->
+            
+            <!-- 60 slots -->
+            
+            <script type="text/template" id="slot-template">
+              <div class="card-slot" data-filled="false"></div>
+            </script>
+          </div>
+        </div>
+
+        <div class="zone zone-extra">
+          <h3 class="zone-title">Extra Deck <span class="deck-count" id="extra-count">(0/15)</span></h3>
+          <div class="zone-body grid-extra" id="extra-deck" data-capacity="15"></div>
+        </div>
+
+        <div class="zone zone-side">
+          <h3 class="zone-title">Side Deck <span class="deck-count" id="side-count">(0/15)</span></h3>
+          <div class="zone-body grid-side" id="side-deck" data-capacity="15"></div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="db-preview">
+      <div class="preview-card" id="preview-card">
+        <div class="preview-image" aria-hidden="true">Preview</div>
+        <div class="preview-info">
+          <h4 class="card-name"></h4>
+          <p class="card-text"></p>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- footer removed per request -->
+
+  <!-- Export modal -->
+  <div id="export-modal" class="kb-modal" hidden>
+    <div class="kb-modal-inner">
+      <button id="export-close" class="kb-close" aria-label="Close">✕</button>
+      <h3 style="margin:0 0 8px 0">Export Deck</h3>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button class="btn" id="export-ydk">Export to .ydk</button>
+        <button class="btn" id="export-ydke">Export to YDKE</button>
+        <button class="btn" id="export-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import modal -->
+  <div id="import-modal" class="kb-modal" hidden>
+    <div class="kb-modal-inner">
+      <button id="import-close" class="kb-close" aria-label="Close">✕</button>
+      <h3 style="margin:0 0 8px 0">Import Deck (.ydk or YDKE)</h3>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;gap:8px">
+          <button class="btn" id="import-choice-ydk">Import from .ydk</button>
+          <button class="btn" id="import-choice-ydke">Import from YDKE</button>
+          <div style="flex:1"></div>
+        </div>
+
+        <div id="import-ydk-panel" style="display:none;flex-direction:column;gap:8px">
+          <label style="font-size:0.85rem;color:var(--muted)">Choose .ydk file</label>
+          <input type="file" id="import-file" accept=".ydk,text/plain" />
+        </div>
+
+        <div id="import-ydke-panel" style="display:none;flex-direction:column;gap:8px">
+          <div style="font-size:0.85rem;color:var(--muted);">Paste a YDKE string below:</div>
+          <textarea id="import-ydke" rows="4" style="width:100%;border-radius:6px;padding:8px;background:rgba(255,255,255,0.02);color:var(--muted);border:1px solid rgba(255,255,255,0.04)"></textarea>
+          <div style="display:flex;gap:8px;justify-content:flex-end">
+            <button class="btn" id="import-do-cancel">Back</button>
+            <button class="btn primary" id="import-do">Import</button>
+          </div>
+        </div>
+
+        <div id="import-report" style="margin-top:8px;max-height:220px;overflow:auto;display:none;border-top:1px solid rgba(255,255,255,0.03);padding-top:8px">
+          <strong style="display:block;margin-bottom:6px">Removed Cards</strong>
+          <ul id="import-report-list" style="margin:0;padding-left:16px;color:var(--muted)"></ul>
+          <div style="display:flex;justify-content:flex-end;margin-top:8px">
+            <button class="btn" id="import-done">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Enhanced JS: build slot grids, toggle sidebar, simple add-to-deck behavior
+    (function(){
+      const sb = document.getElementById('sidebar');
+      const toggle = document.getElementById('toggle-sidebar');
+      toggle.addEventListener('click', ()=> sb.classList.toggle('open'));
+
+      function makeSlots(container, count){
+        for(let i=0;i<count;i++){
+          const slot = document.createElement('div');
+          slot.className = 'card-slot';
+          slot.dataset.filled = 'false';
+          slot.dataset.index = i;
+          container.appendChild(slot);
+        }
+      }
+
+      const main = document.getElementById('main-deck');
+      const extra = document.getElementById('extra-deck');
+      const side = document.getElementById('side-deck');
+      makeSlots(main, 60);
+      makeSlots(extra, 15);
+      makeSlots(side, 15);
+
+      function updateCounts(){
+        const cMain = main.querySelectorAll('.card-slot[data-filled="true"]').length;
+        const cExtra = extra.querySelectorAll('.card-slot[data-filled="true"]').length;
+        const cSide = side.querySelectorAll('.card-slot[data-filled="true"]').length;
+        const mainCountEl = document.getElementById('main-count'); if (mainCountEl) mainCountEl.textContent = `(${cMain}/60)`;
+        const extraCountEl = document.getElementById('extra-count'); if (extraCountEl) extraCountEl.textContent = `(${cExtra}/15)`;
+        const sideCountEl = document.getElementById('side-count'); if (sideCountEl) sideCountEl.textContent = `(${cSide}/15)`;
+      }
+
+      function addToDeck(container){
+        const slot = Array.from(container.querySelectorAll('.card-slot')).find(s=> s.dataset.filled === 'false');
+        if(!slot) return false;
+        slot.dataset.filled = 'true';
+        // Do not insert text; only mark as filled. Image rendering handled by deck scripts.
+        slot.classList.add('filled');
+        slot.classList.add('filled');
+        updateCounts();
+        return true;
+      }
+
+      // Card list: render 20 empty slots (5 rows x 4 cols). No fake pagination.
+      const cardList = document.getElementById('card-list');
+
+      function renderCardTile(idx){
+        const tile = document.createElement('div');
+        tile.className = 'card-tile empty';
+        tile.dataset.slotIndex = idx;
+        tile.setAttribute('role','button');
+        tile.setAttribute('tabindex','0');
+        // inner tile surface that mimics deck slot so images always snap into a slot shape
+        const surface = document.createElement('div'); surface.className = 'card-slot tile-slot'; surface.dataset.filled = 'false';
+        const imgWrap = document.createElement('div'); imgWrap.className = 'card-image';
+        surface.appendChild(imgWrap);
+        tile.appendChild(surface);
+        return tile;
+      }
+
+      function populateCardList(){
+        cardList.innerHTML = '';
+        const perPage = 20;
+        for(let i=1;i<=perPage;i++){
+          cardList.appendChild(renderCardTile(i));
+        }
+      }
+
+      // initial population (20 slots)
+      populateCardList();
+
+      const btnAddMain = document.getElementById('add-to-deck'); if (btnAddMain) btnAddMain.addEventListener('click', ()=> addToDeck(main));
+      const btnAddExtra = document.getElementById('add-to-extra'); if (btnAddExtra) btnAddExtra.addEventListener('click', ()=> addToDeck(extra));
+      const btnAddSide = document.getElementById('add-to-side'); if (btnAddSide) btnAddSide.addEventListener('click', ()=> addToDeck(side));
+
+      // Filter/clear helpers (stubs)
+      function resetFilters(){
+        document.getElementById('search-input').value = '';
+        document.getElementById('filter-category').value = '';
+        document.getElementById('filter-attr').value = '';
+        document.getElementById('filter-cardtype').value = '';
+        document.getElementById('filter-type').value = '';
+        document.getElementById('chk-pendulum').checked = false;
+        document.getElementById('chk-tuner').checked = false;
+        document.getElementById('chk-flip').checked = false;
+        document.getElementById('chk-spirit').checked = false;
+        document.getElementById('chk-gemini').checked = false;
+        document.getElementById('chk-union').checked = false;
+        const lvlEl = document.getElementById('filter-level'); if (lvlEl) lvlEl.value = '';
+        const scaleEl = document.getElementById('filter-scale'); if (scaleEl) scaleEl.value = 0;
+        const scaleVal = document.getElementById('scale-val'); if (scaleVal) scaleVal.textContent = 'Any';
+        document.getElementById('filter-atk').value = '';
+        document.getElementById('filter-def').value = '';
+      }
+
+      document.getElementById('clear-filters').addEventListener('click', ()=>{
+        resetFilters();
+      });
+
+      // scale is now a numeric input; no range output to update
+
+      document.getElementById('apply-filters').addEventListener('click', ()=>{
+        const filters = {
+          q: document.getElementById('search-input').value.trim(),
+          category: document.getElementById('filter-category').value,
+          attribute: document.getElementById('filter-attr').value,
+          cardType: document.getElementById('filter-cardtype').value,
+          type: document.getElementById('filter-type').value,
+          characteristics: {
+            pendulum: document.getElementById('chk-pendulum').checked,
+            tuner: document.getElementById('chk-tuner').checked,
+            flip: document.getElementById('chk-flip').checked,
+            spirit: document.getElementById('chk-spirit').checked,
+            gemini: document.getElementById('chk-gemini').checked,
+            union: document.getElementById('chk-union').checked
+          },
+          level: document.getElementById('filter-level').value,
+          scale: document.getElementById('filter-scale').value,
+          atk: document.getElementById('filter-atk').value,
+          def: document.getElementById('filter-def').value
+        };
+        // Hook: replace with real filtering of `card-list`
+        console.log('Apply filters:', filters);
+      });
+
+      // expose for dev
+      window.deckBuilder = { addToDeck, updateCounts };
+      updateCounts();
+    })();
+  </script>
+
+  <!-- Load archetype mapping and the focused deck-builder script -->
+  <script src="card-archetypes-embedded.js"></script>
+  <script src="card-archetypes.js"></script>
+  <script src="deck-builder.js"></script>
+  <script>
+    (function(){
+      const modal = document.getElementById('export-modal');
+      const btn = document.getElementById('export-deck');
+      const bYdk = document.getElementById('export-ydk');
+      const bYdke = document.getElementById('export-ydke');
+      const bCancel = document.getElementById('export-cancel');
+      const exportClose = document.getElementById('export-close');
+      if (!btn || !modal) return;
+      function show(){ modal.hidden = false; document.body.style.overflow='hidden'; }
+      function hide(){ modal.hidden = true; document.body.style.overflow=''; }
+      btn.addEventListener('click', (e)=>{ e.preventDefault(); show(); });
+      if (bCancel) bCancel.addEventListener('click', hide);
+      if (exportClose) exportClose.addEventListener('click', hide);
+      if (bYdk) bYdk.addEventListener('click', ()=>{ try{ if (window.downloadYDK) window.downloadYDK(); }finally{ hide(); } });
+      if (bYdke) bYdke.addEventListener('click', ()=>{ try{ if (window.exportYDKE) window.exportYDKE(); }finally{ hide(); } });
+      // close when clicking outside inner
+      modal.addEventListener('click', (ev)=>{ if (ev.target === modal) hide(); });
+    })();
+  </script>
+  <script>
+    (function(){
+      const modal = document.getElementById('import-modal');
+      const btn = document.getElementById('import-deck');
+      const input = document.getElementById('import-file');
+      const paste = document.getElementById('import-ydke');
+      const doBtn = document.getElementById('import-do');
+      const closeBtn = document.getElementById('import-close');
+      const backFromYdke = document.getElementById('import-do-cancel');
+      const choiceYdk = document.getElementById('import-choice-ydk');
+      const choiceYdke = document.getElementById('import-choice-ydke');
+      const panelYdk = document.getElementById('import-ydk-panel');
+      const panelYdke = document.getElementById('import-ydke-panel');
+      const report = document.getElementById('import-report');
+      const reportList = document.getElementById('import-report-list');
+      if (!btn || !modal) return;
+      function resetModalState(){ report.style.display='none'; reportList.innerHTML=''; panelYdk.style.display='none'; panelYdke.style.display='none'; choiceYdk.style.display='inline-flex'; choiceYdke.style.display='inline-flex'; if (paste) paste.value=''; if (input) input.value=''; }
+      function show(){ modal.hidden = false; document.body.style.overflow='hidden'; resetModalState(); }
+      function hide(){ modal.hidden = true; document.body.style.overflow=''; }
+      btn.addEventListener('click', (e)=>{ e.preventDefault(); show(); });
+      if (closeBtn) closeBtn.addEventListener('click', hide);
+      if (choiceYdk) choiceYdk.addEventListener('click', ()=>{ choiceYdk.style.display='none'; choiceYdke.style.display='none'; panelYdk.style.display='flex'; if (input) input.focus(); });
+      if (choiceYdke) choiceYdke.addEventListener('click', ()=>{ choiceYdk.style.display='none'; choiceYdke.style.display='none'; panelYdke.style.display='flex'; if (paste) paste.focus(); });
+      if (backFromYdke) backFromYdke.addEventListener('click', ()=>{ resetModalState(); });
+      // file selection -> read and import as YDK; show report and keep modal open
+      if (input){ input.addEventListener('change', (ev)=>{
+        const f = ev.target.files && ev.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = function(){ const txt = String(r.result||''); if (window.importDeckFromText) window.importDeckFromText(txt, 'ydk').then(res=>{ if (res && res.report && res.report.length){
+                  // hide input controls & choices, show report and Close button
+                  panelYdk.style.display='none'; panelYdke.style.display='none'; choiceYdk.style.display='none'; choiceYdke.style.display='none';
+                  report.style.display='block'; reportList.innerHTML = res.report.map(item=>`<li>${item}</li>`).join('');
+                  const doneBtn = document.getElementById('import-done'); if (doneBtn) doneBtn.focus();
+                } else { report.style.display='none'; reportList.innerHTML=''; hide(); } }); }; r.readAsText(f);
+      }); }
+      // paste/import YDKE -> show report and keep modal open
+      if (doBtn){ doBtn.addEventListener('click', ()=>{
+        const val = paste && paste.value && paste.value.trim(); if (!val) { alert('Paste a YDKE string or choose a .ydk file'); return; }
+        const isYDKE = val.toLowerCase().startsWith('ydke://');
+        if (window.importDeckFromText){ window.importDeckFromText(val, isYDKE ? 'ydke':'ydk').then(res=>{ if (res && res.report && res.report.length){
+                  // hide input controls & choices, show report and Close button
+                  panelYdk.style.display='none'; panelYdke.style.display='none'; choiceYdk.style.display='none'; choiceYdke.style.display='none';
+                  report.style.display='block'; reportList.innerHTML = res.report.map(item=>`<li>${item}</li>`).join('');
+                  const doneBtn = document.getElementById('import-done'); if (doneBtn) doneBtn.focus();
+                } else { report.style.display='none'; reportList.innerHTML=''; hide(); } }); }
+      }); }
+      // Close button in report area
+      const doneBtn = document.getElementById('import-done'); if (doneBtn) doneBtn.addEventListener('click', ()=>{ hide(); });
+      // close when clicking outside inner
+      modal.addEventListener('click', (ev)=>{ if (ev.target === modal) hide(); });
+    })();
+  </script>
 </body>
 </html>

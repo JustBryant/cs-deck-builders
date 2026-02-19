@@ -4,7 +4,7 @@
 // paste a filtered mapping into `window.CARD_ARCHETYPES` in this file.
 (function(){
   window.ARCHETYPE_WHITELIST = [
-    "Subterror Behemoth",
+  "Subterror Behemoth",
   "Hieratic",
   "The Agent",
   "Machina",
@@ -19,7 +19,6 @@
   "The Phantom Knights",
   "Silent Magician",
   "Super Quant",
-  "Mischief",
   "Crusadia",
   "Ritual Beast",
   "Mist Valley",
