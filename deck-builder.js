@@ -481,6 +481,8 @@
     const scaleFilter = scaleFilterRaw !== '' ? Number(scaleFilterRaw) : null;
     const atkFilterRaw = (document.getElementById('filter-atk') && document.getElementById('filter-atk').value) || '';
     const defFilterRaw = (document.getElementById('filter-def') && document.getElementById('filter-def').value) || '';
+    const banFilterRaw = (document.getElementById('filter-banstatus') && document.getElementById('filter-banstatus').value) || '';
+    const banFilter = banFilterRaw !== '' ? Number(banFilterRaw) : null;
 
     // helper: parse comparison input like '<300', '<=300', '>300', '>=300', '=300', '300',
     // or ranges like '100-300' or '100..300'. Returns an object describing the comparator,
@@ -583,6 +585,8 @@
 
       // text search still applies when provided
       if (q){ if (!(c.name && c.name.toLowerCase().includes(q)) && !(c.desc && c.desc.toLowerCase().includes(q))) return false; }
+        // Banlist/limit filter: if set, require the allowed copies for this card to match the selection
+        if (banFilter !== null){ try{ const allowed = allowedCopiesFor(c.id); if (Number(allowed) !== Number(banFilter)) return false; }catch(e){} }
       return true;
     });
     filteredCards = out;
@@ -908,13 +912,16 @@
   function updateFilterAvailability(){
     const catEl = document.getElementById('filter-category');
     const cat = (catEl && (String(catEl.value||'').trim().toLowerCase())) || '';
-    const ids = ['filter-attr','filter-cardtype','filter-type','filter-level','filter-scale','filter-atk','filter-def','chk-pendulum','chk-tuner','chk-flip','chk-spirit','chk-gemini','chk-union'];
+    const ids = ['filter-attr','filter-cardtype','filter-type','filter-level','filter-scale','filter-atk','filter-def','filter-banstatus','chk-pendulum','chk-tuner','chk-flip','chk-spirit','chk-gemini','chk-union'];
     ids.forEach(id=>{
       const el = document.getElementById(id);
       if (!el) return;
       // default: disable and clear
       let shouldEnable = false;
-      if (cat === 'monster') {
+      if (id === 'filter-banstatus') {
+        // Always enable ban status filter
+        shouldEnable = true;
+      } else if (cat === 'monster') {
         shouldEnable = true; // all enabled for monster
       } else if (cat === 'spell' || cat === 'trap') {
         // only card-type should be enabled for spell/trap
