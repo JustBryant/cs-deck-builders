@@ -584,7 +584,8 @@
     "Polymerization",
     "Black Luster Soldier",
     "Trap Hole",
-    "Hole"
+    "Hole",
+    "Goblin"
 
   ];
 
