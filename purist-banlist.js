@@ -67,6 +67,7 @@ $whitelist
 12580477 0 --Raigeki
 45986603 0 --Snatch Steal
 46448938 0 --Spellbook of Judgment
+48130397 0 --Super Polymerization
 27770341 0 --Super Rejuvenation
 29762407 0 --Temple of the Kings
 42829885 0 --The Forceful Sentry
