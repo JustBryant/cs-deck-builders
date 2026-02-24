@@ -14,11 +14,108 @@
   // Deck model
   const deck = { main: [], extra: [], side: [] };
   let banlist = {};
+  // cache for async-resolved ban overrides for IDs not present directly in `banlist`
+  const _kp_ban_override = {}; // id -> numeric allowed copies
+  const _kp_ban_fetching = new Set();
+  // mapping of normalized card name -> most restrictive ban value (0..3)
+  const _kp_name_ban_map = {};
+  const _kp_name_fetching = new Set();
+  // optional map of banlist id -> name parsed from the lflist file comments (if present)
+  const _kp_banlist_names = {};
 
   function allowedCopiesFor(cardId){
     if (!cardId) return DEFAULT_ALLOWED;
     const id = String(cardId);
-    if (banlist.hasOwnProperty(id)) return Number(banlist[id]);
+    // debug helper
+    const DBG = (msg, ...args) => { try{ if (window && window.console && console.debug) console.debug('KPDBG:', msg, ...args); }catch(e){} };
+    DBG('allowedCopiesFor start', id);
+    // if we resolved an override previously, prefer it
+    if (_kp_ban_override.hasOwnProperty(id)){
+      DBG('override hit', id, _kp_ban_override[id]);
+      return Number(_kp_ban_override[id]);
+    }
+    // direct id match in banlist
+    if (banlist.hasOwnProperty(id)){
+      DBG('direct banlist hit', id, banlist[id]);
+      return Number(banlist[id]);
+    }
+    // if we already have a name->ban mapping, prefer it when possible
+    try{
+      const cardForName = allCards.find(c => String(c.id) === String(id));
+      if (cardForName && cardForName.name){
+        const nm = String(cardForName.name||'').toLowerCase().replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim();
+        if (nm && _kp_name_ban_map.hasOwnProperty(nm)){
+          DBG('name-ban-map hit', id, nm, _kp_name_ban_map[nm]);
+          return Number(_kp_name_ban_map[nm]);
+        }
+      }
+    }catch(e){}
+    // attempt to find the same card by name among loaded `allCards` and use the most restrictive limit
+    try{
+      const card = allCards.find(c => String(c.id) === String(id));
+      DBG('found in allCards?', !!card);
+      if (card && card.name){
+        const nameNorm = String(card.name||'').toLowerCase().replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim();
+        DBG('normalized name', nameNorm);
+        // gather banlist values for any card sharing the same name (different print IDs)
+        const vals = [];
+        for (const c of allCards){
+          try{
+            if (!c || !c.name) continue;
+            const otherName = String(c.name||'').toLowerCase().replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim();
+            if (otherName !== nameNorm) continue;
+            const cid = String(c.id);
+            if (banlist.hasOwnProperty(cid)) vals.push(Number(banlist[cid]));
+          }catch(e){}
+        }
+        if (vals.length > 0){
+          DBG('name-based banlist matches', id, vals);
+          return Math.min(...vals);
+        }
+      }
+    }catch(e){ /* ignore */ }
+    // If card not in current allCards list, attempt an async fetch to resolve name-based ban entries
+    try{
+      const card = allCards.find(c => String(c.id) === String(id));
+      if (!card){
+        // kick off async resolution (non-blocking). This will update badges when resolved.
+        if (!_kp_ban_fetching.has(id)){
+          _kp_ban_fetching.add(id);
+          (async function(resolveId){
+            try{
+              const url = `https://db.ygoprodeck.com/api/v7/cardinfo.php?id=${encodeURIComponent(resolveId)}`;
+              const r = await fetch(url);
+              if (!r.ok) return;
+              const jd = await r.json();
+              if (!jd || !jd.data || !jd.data[0]) return;
+              const name = String(jd.data[0].name||'').toLowerCase().replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim();
+              if (!name) return;
+              DBG('fetched name for id', resolveId, name);
+              // gather banlist values for any card sharing the same normalized name
+              const vals = [];
+              for (const c of allCards){
+                try{
+                  if (!c || !c.name) continue;
+                  const other = String(c.name||'').toLowerCase().replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim();
+                  if (other !== name) continue;
+                  const cid = String(c.id);
+                  if (banlist.hasOwnProperty(cid)) vals.push(Number(banlist[cid]));
+                }catch(e){}
+              }
+              if (vals.length > 0){
+                const best = Math.min(...vals);
+                _kp_ban_override[resolveId] = Number(best);
+                try{ if (typeof console !== 'undefined' && console && console.debug) console.debug('Ban override applied', resolveId, best, 'name=', name); }catch(e){}
+                try{ if (typeof updateAllBadges === 'function') updateAllBadges(); }catch(e){}
+                try{ if (typeof updateDeckArchetypes === 'function') updateDeckArchetypes(); }catch(e){}
+              }
+            }catch(e){ /* ignore */ }
+            finally{ _kp_ban_fetching.delete(resolveId); }
+          })(id);
+        }
+      }
+    }catch(e){ /* ignore */ }
+    DBG('default allowed', DEFAULT_ALLOWED);
     return DEFAULT_ALLOWED;
   }
 
@@ -619,14 +716,87 @@
       updatePager();
       // populate dynamic selects now that `allCards` is available
       try{ updateCardTypeOptions(); updateTypeOptions(); }catch(e){}
+      try{ buildNameBanMap(); }catch(e){}
       displayCards(filteredCards.slice(0,pageSize));
     }catch(e){ console.warn('applyDateFilter failed',e); }
   }
 
   // Banlist loader (simple text parse). If a global WORKSPACE_BANLIST_TEXT exists prefer it.
-  function parseLflist(text){ const map={}; if (!text) return map; const lines=String(text).split(/\r?\n/); for (let raw of lines){ let line=raw.trim(); if(!line||line.startsWith('#')||line.startsWith('//')) continue; let m=line.match(/^(\d+)\s*[=:\s]\s*(\d+)$/); if (m){ map[String(m[1])]=Number(m[2]); continue;} m=line.match(/^(\d+)$/); if (m){ map[String(m[1])]=0; continue;} m=line.match(/(\d+).*?(\d+)/); if (m){ map[String(m[1])]=Number(m[2]); continue; } } return map; }
+  function parseLflist(text){
+    const map={}; if (!text) return map; const lines=String(text).split(/\r?\n/);
+    for (let raw of lines){
+      let line=raw.trim(); if(!line||line.startsWith('#')||line.startsWith('//')) continue;
+      // attempt to capture an inline comment name after '--' or ' -- '
+      let commentMatch = raw.match(/--\s*(.*)$/);
+      let commentName = commentMatch ? commentMatch[1].trim() : null;
+      let m=line.match(/^(\d+)\s*[=:\s]\s*(\d+)$/);
+      if (m){ map[String(m[1])]=Number(m[2]); if (commentName) _kp_banlist_names[String(m[1])] = commentName; continue; }
+      m=line.match(/^(\d+)$/);
+      if (m){ map[String(m[1])]=0; if (commentName) _kp_banlist_names[String(m[1])] = commentName; continue; }
+      m=line.match(/(\d+).*?(\d+)/);
+      if (m){ map[String(m[1])]=Number(m[2]); if (commentName) _kp_banlist_names[String(m[1])] = commentName; continue; }
+    }
+    return map;
+  }
 
-  function autoLoadBanlist(){ try{ if (window.WORKSPACE_BANLIST_TEXT){ banlist = parseLflist(window.WORKSPACE_BANLIST_TEXT); updateAllBadges(); return; } }catch(e){} fetch('./Purist.lflist.conf').then(r=>{ if (!r.ok) throw new Error('no'); return r.text() }).then(t=>{ banlist = parseLflist(t); updateAllBadges(); }).catch(()=>{ /* optional: no banlist available */ }); }
+  function autoLoadBanlist(){
+    try{
+      if (window.WORKSPACE_BANLIST_TEXT){
+        banlist = parseLflist(window.WORKSPACE_BANLIST_TEXT);
+        try{ buildNameBanMap(); }catch(e){}
+        updateAllBadges();
+        return;
+      }
+    }catch(e){}
+    fetch('./Purist.lflist.conf').then(r=>{ if (!r.ok) throw new Error('no'); return r.text() }).then(t=>{ banlist = parseLflist(t); try{ buildNameBanMap(); }catch(e){}; updateAllBadges(); }).catch(()=>{ /* optional: no banlist available */ });
+  }
+  
+  
+  // Build name->ban mapping from the loaded `banlist`. Prefer local `allCards` lookups,
+  // fall back to fetching card names for IDs not present locally. Updates `_kp_name_ban_map`.
+  function buildNameBanMap(){
+    // reset
+    for (const k of Object.keys(_kp_name_ban_map)) delete _kp_name_ban_map[k];
+    // helper
+    const normalize = s => String(s||'').toLowerCase().replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim();
+    // for each id in banlist, map its name (if available) to the ban value (keep min)
+    Object.keys(banlist||{}).forEach(id => {
+      try{
+        const val = Number(banlist[id]);
+        // Prefer explicit name in lflist file comment if present
+        if (_kp_banlist_names.hasOwnProperty(id)){
+          const nm = normalize(_kp_banlist_names[id]);
+          if (nm){ if (!_kp_name_ban_map.hasOwnProperty(nm)) _kp_name_ban_map[nm] = val; else _kp_name_ban_map[nm] = Math.min(_kp_name_ban_map[nm], val); }
+          return;
+        }
+        // try local allCards
+        const card = allCards.find(c => String(c.id) === String(id));
+        if (card && card.name){
+          const nm = normalize(card.name);
+          if (!nm) return;
+          if (!_kp_name_ban_map.hasOwnProperty(nm)) _kp_name_ban_map[nm] = val;
+          else _kp_name_ban_map[nm] = Math.min(_kp_name_ban_map[nm], val);
+          return;
+        }
+        // if not found locally nor in comments, fetch name async (but avoid duplicate fetches)
+        if (_kp_name_fetching.has(id)) return;
+        _kp_name_fetching.add(id);
+        (async function(resolveId, resolveVal){
+          try{
+            const url = `https://db.ygoprodeck.com/api/v7/cardinfo.php?id=${encodeURIComponent(resolveId)}`;
+            const r = await fetch(url);
+            if (!r.ok) return;
+            const jd = await r.json(); if (!jd || !jd.data || !jd.data[0]) return;
+            const nm = normalize(jd.data[0].name||''); if (!nm) return;
+            if (!_kp_name_ban_map.hasOwnProperty(nm)) _kp_name_ban_map[nm] = resolveVal; else _kp_name_ban_map[nm] = Math.min(_kp_name_ban_map[nm], resolveVal);
+            try{ if (typeof console !== 'undefined' && console && console.debug) console.debug('KPDBG: buildNameBanMap resolved', resolveId, resolveVal, nm); }catch(e){}
+            try{ if (typeof updateAllBadges === 'function') updateAllBadges(); }catch(e){}
+          }catch(e){}
+          finally{ _kp_name_fetching.delete(resolveId); }
+        })(id, val);
+      }catch(e){}
+    });
+  }
 
   function updateAllBadges(){ // update badges in search tiles and deck slots
     try{ if (typeof console !== 'undefined' && console && console.debug) console.debug('updateAllBadges: banlist entries=', Object.keys(banlist||{}).length); }catch(e){}
