@@ -695,22 +695,72 @@
   // Fetch cards by end date (wrap original API call but resilient)
   async function applyDateFilter(){
     const results = document.getElementById('card-list'); if (results) results.innerHTML = ''; try{
-      const HARDCODED_END_DATE = '2014-08-15';
-      const url = `https://db.ygoprodeck.com/api/v7/cardinfo.php?dateregion=tcg&enddate=${HARDCODED_END_DATE}`;
-      const resp = await fetch(url);
-      const data = await resp.json();
-      allCards = (data && data.data) ? data.data.map(card=>({
-        id: card.id,
-        name: card.name,
-        type: card.type,
-        race: card.race,
-        desc: card.desc||'',
-        atk: (card.atk !== undefined) ? card.atk : null,
-        def: (card.def !== undefined) ? card.def : null,
-        attribute: card.attribute || null,
-        level: (card.level !== undefined) ? card.level : (card.rank !== undefined ? card.rank : null),
-        scale: (card.scale !== undefined) ? card.scale : (card.pendulum_scale !== undefined ? card.pendulum_scale : null)
-      })) : [];
+      // If we have a loaded banlist (lflist), prefer using its IDs as the searchable pool
+      if (banlist && Object.keys(banlist||{}).length > 0){
+        // Build a minimal `allCards` synchronously from the local banlist comments
+        // to avoid fetching the entire card DB on startup. Use any parsed comment
+        // names from the lflist when available.
+        const ids = Object.keys(banlist||{}).map(x=>String(x));
+        allCards = ids.map(id => ({
+          id: Number(id),
+          name: (_kp_banlist_names && _kp_banlist_names[String(id)]) || String(id),
+          type: '',
+          race: '',
+          desc: '',
+          atk: null,
+          def: null,
+          attribute: null,
+          level: null,
+          scale: null
+        }));
+        // Asynchronously enrich the first visible page with full card data so the
+        // UI becomes informative shortly after initial render without blocking.
+        (async function enrichVisible(){
+          try{
+            const toFetch = allCards.slice(0, pageSize).map(c=>String(c.id)).filter(Boolean);
+            if (toFetch.length === 0) return;
+            const url = `https://db.ygoprodeck.com/api/v7/cardinfo.php?id=${toFetch.map(encodeURIComponent).join(',')}`;
+            const resp = await fetch(url);
+            if (!resp.ok) return;
+            const data = await resp.json();
+            if (!data || !data.data) return;
+            const map = new Map(data.data.map(d=>[String(d.id), d]));
+            for (let i=0;i<allCards.length && i<pageSize;i++){
+              const a = allCards[i];
+              const d = map.get(String(a.id));
+              if (d){
+                a.name = d.name || a.name;
+                a.type = d.type || a.type;
+                a.race = d.race || a.race;
+                a.desc = d.desc || a.desc;
+                a.atk = (d.atk !== undefined) ? d.atk : a.atk;
+                a.def = (d.def !== undefined) ? d.def : a.def;
+                a.attribute = d.attribute || a.attribute;
+                a.level = (d.level !== undefined) ? d.level : (d.rank !== undefined ? d.rank : a.level);
+                a.scale = (d.scale !== undefined) ? d.scale : (d.pendulum_scale !== undefined ? d.pendulum_scale : a.scale);
+              }
+            }
+            try{ displayCards(filteredCards.slice(0,pageSize)); }catch(e){}
+          }catch(e){}
+        })();
+      } else {
+        const HARDCODED_END_DATE = '2014-08-15';
+        const url = `https://db.ygoprodeck.com/api/v7/cardinfo.php?dateregion=tcg&enddate=${HARDCODED_END_DATE}`;
+        const resp = await fetch(url);
+        const data = await resp.json();
+        allCards = (data && data.data) ? data.data.map(card=>({
+          id: card.id,
+          name: card.name,
+          type: card.type,
+          race: card.race,
+          desc: card.desc||'',
+          atk: (card.atk !== undefined) ? card.atk : null,
+          def: (card.def !== undefined) ? card.def : null,
+          attribute: card.attribute || null,
+          level: (card.level !== undefined) ? card.level : (card.rank !== undefined ? card.rank : null),
+          scale: (card.scale !== undefined) ? card.scale : (card.pendulum_scale !== undefined ? card.pendulum_scale : null)
+        })) : [];
+      }
       filteredCards = allCards.slice();
       currentPage = 1;
       updatePager();
@@ -725,7 +775,9 @@
   function parseLflist(text){
     const map={}; if (!text) return map; const lines=String(text).split(/\r?\n/);
     for (let raw of lines){
-      let line=raw.trim(); if(!line||line.startsWith('#')||line.startsWith('//')) continue;
+      let line=raw.trim();
+      // skip blank lines and comment lines; also skip metadata lines that begin with '--'
+      if(!line||line.startsWith('#')||line.startsWith('//')||line.startsWith('--')) continue;
       // attempt to capture an inline comment name after '--' or ' -- '
       let commentMatch = raw.match(/--\s*(.*)$/);
       let commentName = commentMatch ? commentMatch[1].trim() : null;
@@ -745,10 +797,10 @@
         banlist = parseLflist(window.WORKSPACE_BANLIST_TEXT);
         try{ buildNameBanMap(); }catch(e){}
         updateAllBadges();
-        return;
+        return Promise.resolve();
       }
     }catch(e){}
-    fetch('./Purist.lflist.conf').then(r=>{ if (!r.ok) throw new Error('no'); return r.text() }).then(t=>{ banlist = parseLflist(t); try{ buildNameBanMap(); }catch(e){}; updateAllBadges(); }).catch(()=>{ /* optional: no banlist available */ });
+    return fetch('./Purist.lflist.conf').then(r=>{ if (!r.ok) throw new Error('no'); return r.text() }).then(t=>{ banlist = parseLflist(t); try{ buildNameBanMap(); }catch(e){}; updateAllBadges(); }).catch(()=>{ /* optional: no banlist available */ });
   }
   
   
@@ -963,7 +1015,22 @@
 
   // public API for other page scripts to call
   window.KPBuilder = {
-    init: function(){ ensureDeckSlots(); applyDateFilter(); autoLoadBanlist(); bindUI(); },
+    init: async function(){
+      try{
+        if (typeof console !== 'undefined' && console && console.debug) console.debug('KPDBG: KPBuilder.init start');
+        ensureDeckSlots();
+        if (typeof console !== 'undefined' && console && console.debug) console.debug('KPDBG: after ensureDeckSlots');
+        await autoLoadBanlist();
+        if (typeof console !== 'undefined' && console && console.debug) console.debug('KPDBG: after autoLoadBanlist');
+        await applyDateFilter();
+        if (typeof console !== 'undefined' && console && console.debug) console.debug('KPDBG: after applyDateFilter');
+        bindUI();
+        if (typeof console !== 'undefined' && console && console.debug) console.debug('KPDBG: KPBuilder.init complete');
+      }catch(err){
+        console.error && console.error('KPBuilder.init error', err);
+        throw err;
+      }
+    },
     displayCards: displayCards,
     updateDeckDisplay: updateDeckDisplay,
     addToDeck: tryAddCardToSection,
@@ -1196,7 +1263,12 @@
     return { category: null, subtype: null };
   }
 
-  // auto-init on DOM ready
-  document.addEventListener('DOMContentLoaded', ()=>{ try{ window.KPBuilder && window.KPBuilder.init(); }catch(e){} });
+  // auto-init on DOM ready (capture rejected promise to avoid silent failures)
+  document.addEventListener('DOMContentLoaded', ()=>{
+    try{
+      const p = window.KPBuilder && window.KPBuilder.init && window.KPBuilder.init();
+      if (p && typeof p.catch === 'function') p.catch(e=>{ console.error && console.error('KPBuilder.init rejected', e); });
+    }catch(e){ console.error && console.error('KPBuilder.init threw', e); }
+  });
 
 })();
