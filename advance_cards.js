@@ -163,8 +163,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
   document.getElementById('page-prev').addEventListener('click', ()=> gotoPage(currentPage-1, cards.length));
   document.getElementById('page-next').addEventListener('click', ()=> gotoPage(currentPage+1, cards.length));
   document.getElementById('page-size').addEventListener('change', (e)=>{ pageSize = parseInt(e.target.value||48,10); currentPage = 1; renderGrid(); });
-  // load the outputs/manual_cards.json (visual-only; no uploads)
-  fetch('outputs/manual_cards.json').then(r=>{ if(!r.ok) throw new Error('not found'); return r.json(); }).then(j=>{
+  // load the manual_cards.json from repo root (visual-only; no uploads)
+  fetch('manual_cards.json').then(r=>{ if(!r.ok) throw new Error('not found'); return r.json(); }).then(j=>{
     if(Array.isArray(j)){
       // ensure entries have image property
       cards = j.map(x=>({id: x.id, name: x.name, type: x.type, image: x.image||''}));
