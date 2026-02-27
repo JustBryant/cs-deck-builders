@@ -164,14 +164,37 @@ document.addEventListener('DOMContentLoaded', ()=>{
   document.getElementById('page-next').addEventListener('click', ()=> gotoPage(currentPage+1, cards.length));
   document.getElementById('page-size').addEventListener('change', (e)=>{ pageSize = parseInt(e.target.value||48,10); currentPage = 1; renderGrid(); });
   // load the manual_cards.json from repo root (visual-only; no uploads)
-  fetch('manual_cards.json').then(r=>{ if(!r.ok) throw new Error('not found'); return r.json(); }).then(j=>{
-    if(Array.isArray(j)){
-      // ensure entries have image property
+  // try multiple locations for manual_cards.json to handle different deploy setups
+  const tryPaths = [
+    'manual_cards.json',
+    './manual_cards.json',
+    'outputs/manual_cards.json',
+    './outputs/manual_cards.json',
+    // fallback to raw GitHub URL for this repo (main branch)
+    'https://raw.githubusercontent.com/JustBryant/cs-deck-builders/main/manual_cards.json',
+    'https://raw.githubusercontent.com/JustBryant/cs-deck-builders/main/outputs/manual_cards.json'
+  ];
+
+  async function fetchFirst(paths){
+    for(const p of paths){
+      try{
+        console.debug('Attempting to fetch', p);
+        const r = await fetch(p);
+        if(!r.ok) { console.debug('Not found or error', p, r.status); continue; }
+        const j = await r.json();
+        if(Array.isArray(j)) return j;
+      }catch(err){ console.debug('Fetch error', p, err); }
+    }
+    return null;
+  }
+
+  fetchFirst(tryPaths).then(j=>{
+    if(Array.isArray(j) && j.length>0){
       cards = j.map(x=>({id: x.id, name: x.name, type: x.type, image: x.image||''}));
       renderGrid();
+    } else {
+      const root = document.getElementById('grid-root'); root.innerHTML = '<div style="color:var(--muted)">No advance cards available.</div>';
+      console.warn('manual_cards.json not found in any candidate path. Tried:', tryPaths);
     }
-  }).catch(()=>{
-    // show empty state
-    const root = document.getElementById('grid-root'); root.innerHTML = '<div style="color:var(--muted)">No advance cards available.</div>';
   });
 });
