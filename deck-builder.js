@@ -203,6 +203,19 @@
     if (!card) {
       // still permit up to allowed copies by id
     }
+    // Validate section compatibility for known cards: extra deck only accepts extra-type monsters
+    try{
+      if (card){
+        const type = String(card.type||'');
+        const isExtraType = /fusion|synchro|xyz|link/i.test(type);
+        const isMonster = /monster/i.test(type);
+        if (section === 'extra'){
+          if (!(isMonster && isExtraType)) { flashInvalid(section); return false; }
+        } else if (section === 'main'){
+          if (isMonster && isExtraType) { flashInvalid(section); return false; }
+        }
+      }
+    }catch(e){ /* ignore type-check failures */ }
     // enforce banlist across whole deck
     const combined = deck.main.concat(deck.extra).concat(deck.side);
     const count = combined.filter(id=>String(id)===String(cardId)).length;
