@@ -3,6 +3,8 @@ const CATEGORY_ORDER = ['Normal Monster','Effect Monster','Fusion Monster','Sync
 let cards = [];
 let currentPage = 1;
 let pageSize = 48;
+// token used to cancel stale preview attempts
+let previewToken = 0;
 
 function totalPages(count){
   return Math.max(1, Math.ceil(count / pageSize));
@@ -154,7 +156,12 @@ function movePreview(e){
 }
 
 function hidePreview(){
-  const p = document.getElementById('preview'); p.style.display = 'none';
+  // cancel any in-flight preview work and clear the preview image
+  previewToken += 1;
+  const p = document.getElementById('preview');
+  const pi = document.getElementById('preview-img');
+  p.style.display = 'none';
+  try{ pi.src = ''; }catch(e){}
 }
 
 document.addEventListener('DOMContentLoaded', ()=>{
