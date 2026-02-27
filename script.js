@@ -174,43 +174,49 @@ function attachContainerDropHandlers(container, section) {
     container._hasDnD = true;
     container.addEventListener('dragover', function(e) { e.preventDefault(); container.classList.add('drag-over'); });
     container.addEventListener('dragleave', function(e) { container.classList.remove('drag-over'); });
-    container.addEventListener('drop', function(e) { e.preventDefault(); container.classList.remove('drag-over');
-        // if the data is from-deck (moving/removing), try to parse payload
-        let raw = e.dataTransfer.getData('application/x-deck');
-        if (!raw) {
-            // fallback: some browsers only preserve text/plain; we prefix deck drags with 'deck:'
-            const plain = e.dataTransfer.getData('text/plain');
-            if (plain && plain.startsWith('deck:')) raw = plain.slice(5);
-        }
-        if (raw) {
-            try {
-                const payload = JSON.parse(raw);
-                // dropping from a slot onto a container should be treated as move to that section
-                    if (payload && payload.action === 'from-deck') {
-                    // validate that target accepts the card before removing from source
-                    const card = allCards.find(c => String(c.id) === String(payload.cardId));
-                    const type = (card && card.type) ? String(card.type) : '';
-                    const isExtraType = /fusion|synchro|xyz|link/i.test(type);
-                    const isMonster = /monster/i.test(type);
-                    const acceptForTarget = (section === 'extra') ? (isMonster && isExtraType) : (section === 'main' ? !(isMonster && isExtraType) : true);
-                    if (!acceptForTarget) {
-                        // flash invalid
-                        container.classList.add('invalid');
-                        setTimeout(()=>container.classList.remove('invalid'),700);
+    container.addEventListener('drop', function(e) {
+        if (window._kp_drop_handled) return;
+        window._kp_drop_handled = true;
+        try {
+            e.preventDefault(); container.classList.remove('drag-over');
+            // if the data is from-deck (moving/removing), try to parse payload
+            let raw = e.dataTransfer.getData('application/x-deck');
+            if (!raw) {
+                // fallback: some browsers only preserve text/plain; we prefix deck drags with 'deck:'
+                const plain = e.dataTransfer.getData('text/plain');
+                if (plain && plain.startsWith('deck:')) raw = plain.slice(5);
+            }
+            if (raw) {
+                try {
+                    const payload = JSON.parse(raw);
+                    // dropping from a slot onto a container should be treated as move to that section
+                        if (payload && payload.action === 'from-deck') {
+                        // validate that target accepts the card before removing from source
+                        const card = allCards.find(c => String(c.id) === String(payload.cardId));
+                        const type = (card && card.type) ? String(card.type) : '';
+                        const isExtraType = /fusion|synchro|xyz|link/i.test(type);
+                        const isMonster = /monster/i.test(type);
+                        const acceptForTarget = (section === 'extra') ? (isMonster && isExtraType) : (section === 'main' ? !(isMonster && isExtraType) : true);
+                        if (!acceptForTarget) {
+                            // flash invalid
+                            container.classList.add('invalid');
+                            setTimeout(()=>container.classList.remove('invalid'),700);
+                            return;
+                        }
+                        // perform move
+                        if (payload.section && payload.cardId) {
+                            // prefer removing the exact slot if provided
+                            removeFromDeck(payload.cardId, payload.section, payload.slotIndex);
+                        }
+                        tryAddCardToSection(payload.cardId, section);
+                        // clear global payload marker so dragend doesn't double-remove
+                        try { window._kp_drag_payload = null; } catch (ex) {}
                         return;
                     }
-                    // perform move
-                    if (payload.section && payload.cardId) {
-                        removeFromDeck(payload.cardId, payload.section);
-                    }
-                    tryAddCardToSection(payload.cardId, section);
-                    // clear global payload marker so dragend doesn't double-remove
-                    try { window._kp_drag_payload = null; } catch (ex) {}
-                    return;
-                }
-            } catch (e) {}
-        }
-        const id = e.dataTransfer.getData('text/plain'); if (!id) return; tryAddCardToSection(id, section);
+                } catch (e) {}
+            }
+            const id = e.dataTransfer.getData('text/plain'); if (!id) return; tryAddCardToSection(id, section);
+        } finally { setTimeout(()=>{ window._kp_drop_handled = false; }, 0); }
     });
 }
 
@@ -218,28 +224,32 @@ function slotDragOver(e) { e.preventDefault(); /* allow drop */ }
 function slotDragEnter(e) { e.preventDefault(); this.classList.add('drag-over'); }
 function slotDragLeave(e) { this.classList.remove('drag-over'); }
 function slotDrop(e) {
-    e.preventDefault(); e.stopPropagation(); this.classList.remove('drag-over');
-    const section = this.dataset.section || (this.closest('.deck-grid') ? this.closest('.deck-grid').id.replace('-deck','') : null);
-    // try to read deck payload (move) first
-    let raw = e.dataTransfer.getData('application/x-deck');
-    if (!raw) {
-        const plain = e.dataTransfer.getData('text/plain');
-        if (plain && plain.startsWith('deck:')) raw = plain.slice(5);
-    }
-    if (raw) {
-        try {
-            const payload = JSON.parse(raw);
-            if (payload && payload.action === 'from-deck') {
-                // perform move to this section
-                if (payload.section && payload.cardId) removeFromDeck(payload.cardId, payload.section);
-                tryAddCardToSection(payload.cardId, section);
-                try { window._kp_drag_payload = null; } catch (ex) {}
-                return;
-            }
-        } catch (err) {}
-    }
-    // fallback: plain card id from search
-    const id = e.dataTransfer.getData('text/plain'); if (!id) return; tryAddCardToSection(id, section);
+    if (window._kp_drop_handled) return;
+    window._kp_drop_handled = true;
+    try {
+        e.preventDefault(); e.stopPropagation(); this.classList.remove('drag-over');
+        const section = this.dataset.section || (this.closest('.deck-grid') ? this.closest('.deck-grid').id.replace('-deck','') : null);
+        // try to read deck payload (move) first
+        let raw = e.dataTransfer.getData('application/x-deck');
+        if (!raw) {
+            const plain = e.dataTransfer.getData('text/plain');
+            if (plain && plain.startsWith('deck:')) raw = plain.slice(5);
+        }
+        if (raw) {
+            try {
+                const payload = JSON.parse(raw);
+                if (payload && payload.action === 'from-deck') {
+                    // perform move to this section
+                    if (payload.section && payload.cardId) removeFromDeck(payload.cardId, payload.section, payload.slotIndex);
+                    tryAddCardToSection(payload.cardId, section);
+                    try { window._kp_drag_payload = null; } catch (ex) {}
+                    return;
+                }
+            } catch (err) {}
+        }
+        // fallback: plain card id from search
+        const id = e.dataTransfer.getData('text/plain'); if (!id) return; tryAddCardToSection(id, section);
+    } finally { setTimeout(()=>{ window._kp_drop_handled = false; }, 0); }
 }
 
 function slotDragStart(e) {
@@ -248,7 +258,8 @@ function slotDragStart(e) {
     const section = this.dataset.section || (this.closest('.deck-grid') ? this.closest('.deck-grid').id.replace('-deck','') : null);
     if (!cardId) { e.preventDefault(); return; }
     try {
-        const payload = JSON.stringify({ action: 'from-deck', cardId: String(cardId), section: String(section) });
+        const slotIndex = (this.dataset.slotIndex !== undefined) ? Number(this.dataset.slotIndex) : null;
+        const payload = JSON.stringify({ action: 'from-deck', cardId: String(cardId), section: String(section), slotIndex: slotIndex });
         e.dataTransfer.setData('application/x-deck', payload);
         // also set plain text for compatibility
         e.dataTransfer.setData('text/plain', String(cardId));
@@ -304,7 +315,7 @@ if (searchPanel) {
             const payload = JSON.parse(raw);
             console.log('searchPanel drop payload:', payload);
             if (payload && payload.action === 'from-deck') {
-                removeFromDeck(payload.cardId, payload.section);
+                removeFromDeck(payload.cardId, payload.section, payload.slotIndex);
                 try { window._kp_drag_payload = null; } catch (ex) {}
                 updateDeckDisplay();
             }
@@ -1008,7 +1019,8 @@ function updateSection(section, divId, countId) {
                     const section = this.dataset.section || (this.closest('.deck-grid') ? this.closest('.deck-grid').id.replace('-deck','') : null);
                     if (!cardId) { e.preventDefault(); return; }
                     try {
-                        const payloadObj = { action: 'from-deck', cardId: String(cardId), section: String(section) };
+                        const slotIdx = (this.dataset && this.dataset.slotIndex !== undefined) ? Number(this.dataset.slotIndex) : null;
+                        const payloadObj = { action: 'from-deck', cardId: String(cardId), section: String(section), slotIndex: slotIdx };
                         const payload = JSON.stringify(payloadObj);
                         // set both a custom mime and a text/plain fallback that many browsers preserve
                         e.dataTransfer.setData('application/x-deck', payload);
@@ -1205,6 +1217,8 @@ autoLoadWorkspaceBanlist();
 // Global drop handler: if user drops a deck card outside of deck containers or search panel,
 // treat it as removing that single copy (discard). Avoid acting when drop was on a deck-grid (those handlers handle moves).
 document.addEventListener('drop', function(e) {
+    if (window._kp_drop_handled) return;
+    window._kp_drop_handled = true;
     try {
         // If dropped inside a deck-grid or the search section, don't handle here
         if (e.target && (e.target.closest && (e.target.closest('.deck-grid') || e.target.closest('.search-section') || e.target.closest('#search-results')))) return;
@@ -1216,11 +1230,12 @@ document.addEventListener('drop', function(e) {
         if (!raw) return;
         const payload = JSON.parse(raw);
         if (payload && payload.action === 'from-deck') {
-            removeFromDeck(payload.cardId, payload.section);
+            removeFromDeck(payload.cardId, payload.section, payload.slotIndex);
             try { window._kp_drag_payload = null; } catch (ex) {}
             updateDeckDisplay();
         }
     } catch (err) { }
+    finally { setTimeout(()=>{ window._kp_drop_handled = false; }, 0); }
 });
 
 // Theme (dark mode) helpers
@@ -1280,7 +1295,10 @@ function parseComparatorExpression(expr) {
 function filterCards() {
     // reset to first page when applying filters
     currentPage = 1;
-    const q = (document.getElementById('search-bar').value||'').toLowerCase();
+    const qRaw = (document.getElementById('search-bar').value||'');
+    const q = String(qRaw).toLowerCase();
+    const normalize = (s) => String(s||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();
+    const qNorm = normalize(qRaw);
     const cat = document.getElementById('f-category').value;
     const attr = document.getElementById('f-attribute').value;
     const type = document.getElementById('f-type').value;
@@ -1436,9 +1454,17 @@ function filterCards() {
 
     const out = allCards.filter(card => {
         if (q) {
-            const inName = card.name && card.name.toLowerCase().includes(q);
-            const inDesc = card.desc && card.desc.toLowerCase().includes(q);
-            if (!inName && !inDesc) return false;
+            const nameLow = card.name ? String(card.name).toLowerCase() : '';
+            const descLow = card.desc ? String(card.desc).toLowerCase() : '';
+            const nameNorm = normalize(card.name);
+            const descNorm = normalize(card.desc);
+            const inName = (nameLow && nameLow.includes(q)) || (qNorm && nameNorm && nameNorm.includes(qNorm));
+            const inDesc = (descLow && descLow.includes(q)) || (qNorm && descNorm && descNorm.includes(qNorm));
+            // token match: ensure all query tokens appear somewhere in the combined normalized text
+            const combinedNorm = normalize((card.name||'') + ' ' + (card.desc||'') + ' ' + (Array.isArray(card.archetypes)?card.archetypes.join(' '):''));
+            const tokens = qNorm.split(' ').filter(Boolean);
+            const tokensMatch = tokens.length > 0 ? tokens.every(t => combinedNorm.indexOf(t) !== -1) : false;
+            if (!inName && !inDesc && !tokensMatch) return false;
         }
         const parsed = parseCardType(card.type);
         if (cat && cat !== 'all' && cat !== 'All') {

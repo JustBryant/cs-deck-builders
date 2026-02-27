@@ -158,12 +158,17 @@
     if (container._kp_attached) return; container._kp_attached = true;
     container.addEventListener('dragover', e=>{ e.preventDefault(); container.classList.add('drag-over'); });
     container.addEventListener('dragleave', e=>{ container.classList.remove('drag-over'); });
-    container.addEventListener('drop', e=>{ e.preventDefault(); container.classList.remove('drag-over');
-      // Read payload (application/x-deck) or text/plain 'deck:' fallback
-      let raw = e.dataTransfer.getData('application/x-deck');
-      if (!raw){ const p = e.dataTransfer.getData('text/plain'); if (p && p.startsWith('deck:')) raw = p.slice(5); }
-      if (raw){ try { const payload = JSON.parse(raw); if (payload && payload.action==='from-deck'){ if (payload.section && payload.cardId) removeFromDeck(payload.cardId, payload.section); tryAddCardToSection(payload.cardId, section); try{ window._kp_drag_payload = null }catch(ex){} return; } } catch(err){} }
-      const id = e.dataTransfer.getData('text/plain'); if (!id) return; tryAddCardToSection(id, section);
+    container.addEventListener('drop', e=>{
+      if (window._kp_drop_handled) return;
+      window._kp_drop_handled = true;
+      try{
+        e.preventDefault(); container.classList.remove('drag-over');
+        // Read payload (application/x-deck) or text/plain 'deck:' fallback
+        let raw = e.dataTransfer.getData('application/x-deck');
+        if (!raw){ const p = e.dataTransfer.getData('text/plain'); if (p && p.startsWith('deck:')) raw = p.slice(5); }
+        if (raw){ try { const payload = JSON.parse(raw); if (payload && payload.action==='from-deck'){ if (payload.section && payload.cardId) removeFromDeck(payload.cardId, payload.section, payload.slotIndex); tryAddCardToSection(payload.cardId, section); try{ window._kp_drag_payload = null }catch(ex){} return; } } catch(err){} }
+        const id = e.dataTransfer.getData('text/plain'); if (!id) return; tryAddCardToSection(id, section);
+      } finally { setTimeout(()=>{ window._kp_drop_handled = false; }, 0); }
     });
   }
 
@@ -172,15 +177,19 @@
     slot.addEventListener('dragenter', e=>{ e.preventDefault(); slot.classList.add('drag-over'); });
     slot.addEventListener('dragleave', e=>{ slot.classList.remove('drag-over'); });
     slot.addEventListener('drop', e=>{
-      // Prevent the container-level drop handler from also running for the same event.
-      e.stopPropagation();
-      e.preventDefault();
-      slot.classList.remove('drag-over');
-      const section = slot.dataset.section || null;
-      let raw = e.dataTransfer.getData('application/x-deck');
-      if (!raw){ const p = e.dataTransfer.getData('text/plain'); if (p && p.startsWith('deck:')) raw = p.slice(5); }
-      if (raw){ try{ const payload = JSON.parse(raw); if (payload && payload.action==='from-deck'){ if (payload.section && payload.cardId) removeFromDeck(payload.cardId, payload.section); tryAddCardToSection(payload.cardId, section); try{ window._kp_drag_payload = null }catch(ex){} return; } } catch(err){} }
-      const id = e.dataTransfer.getData('text/plain'); if(!id) return; tryAddCardToSection(id, section);
+      if (window._kp_drop_handled) return;
+      window._kp_drop_handled = true;
+      try{
+        // Prevent the container-level drop handler from also running for the same event.
+        e.stopPropagation();
+        e.preventDefault();
+        slot.classList.remove('drag-over');
+        const section = slot.dataset.section || null;
+        let raw = e.dataTransfer.getData('application/x-deck');
+        if (!raw){ const p = e.dataTransfer.getData('text/plain'); if (p && p.startsWith('deck:')) raw = p.slice(5); }
+        if (raw){ try{ const payload = JSON.parse(raw); if (payload && payload.action==='from-deck'){ if (payload.section && payload.cardId) removeFromDeck(payload.cardId, payload.section, payload.slotIndex); tryAddCardToSection(payload.cardId, section); try{ window._kp_drag_payload = null }catch(ex){} return; } } catch(err){} }
+        const id = e.dataTransfer.getData('text/plain'); if(!id) return; tryAddCardToSection(id, section);
+      } finally { setTimeout(()=>{ window._kp_drop_handled = false; }, 0); }
     });
     // make slot a drop target; dragstart for filled slots will be attached when they hold a card
   }
@@ -310,7 +319,20 @@
           s.draggable = true;
             if (!s._kp_drag_attached){
             s._kp_drag_attached = true;
-            s.addEventListener('dragstart', function(e){ const cid = this.dataset.cardId; const sec = this.dataset.section; if (!cid) { e.preventDefault(); return; } try{ const payload = JSON.stringify({ action:'from-deck', cardId:String(cid), section:String(sec) }); e.dataTransfer.setData('application/x-deck', payload); e.dataTransfer.setData('text/plain', 'deck:'+payload); e.dataTransfer.effectAllowed = 'move'; try{ window._kp_drag_payload = { action:'from-deck', cardId:String(cid), section:String(sec) }; }catch(ex){} }catch(ex){} });
+            s.addEventListener('dragstart', function(e){
+              const cid = this.dataset.cardId;
+              const sec = this.dataset.section;
+              if (!cid) { e.preventDefault(); return; }
+              try{
+                const slotIdx = (this.dataset && this.dataset.slotIndex !== undefined) ? Number(this.dataset.slotIndex) : null;
+                const payloadObj = { action:'from-deck', cardId:String(cid), section:String(sec), slotIndex: slotIdx };
+                const payload = JSON.stringify(payloadObj);
+                e.dataTransfer.setData('application/x-deck', payload);
+                e.dataTransfer.setData('text/plain', 'deck:'+payload);
+                e.dataTransfer.effectAllowed = 'move';
+                try{ window._kp_drag_payload = payloadObj; }catch(ex){}
+              }catch(ex){}
+            });
             // middle-click on a deck slot -> insert another copy adjacent to this slot
             s.addEventListener('auxclick', function(ev){ try{ if (ev && ev.button === 1){ ev.preventDefault(); ev.stopPropagation(); const cid = this.dataset.cardId; const sec = this.dataset.section || section; const idx = Number(this.dataset.slotIndex); try{ if (window.showCardPreviewById) window.showCardPreviewById(cid); }catch(e){} insertCardAtPosition(cid, sec, idx+1); } }catch(e){} });
             // fallback for browsers that don't support 'auxclick'
