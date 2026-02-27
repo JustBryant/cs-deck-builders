@@ -360,6 +360,11 @@
     "type": "Effect Monster"
   },
   {
+    "id": "58066722",
+    "name": "Alien Stealthbuster",
+    "type": "Effect Monster"
+  },
+  {
     "id": "91231901",
     "name": "\"A\" Cell Recombination Device",
     "type": "Spell Card"
