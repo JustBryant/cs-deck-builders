@@ -1,0 +1,387 @@
+[
+  {
+    "id": "59048135",
+    "name": "Augmented Heraldry",
+    "type": "Spell Card"
+  },
+  {
+    "id": "35537251",
+    "name": "Battlin' Boxer Shadow",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "61156777",
+    "name": "BOXer",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "24861088",
+    "name": "Chronomaly Nebra Disk",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "73866096",
+    "name": "Dodododraw",
+    "type": "Spell Card"
+  },
+  {
+    "id": "34898052",
+    "name": "Dragoroar",
+    "type": "Spell Card"
+  },
+  {
+    "id": "54407825",
+    "name": "Earthshattering Event",
+    "type": "Spell Card"
+  },
+  {
+    "id": "63060238",
+    "name": "Elemental HERO Blazeman",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "45010690",
+    "name": "Flowerbot",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "28884172",
+    "name": "Gagaga Mancer",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "91499077",
+    "name": "Gagaga Samurai",
+    "type": "XYZ Monster"
+  },
+  {
+    "id": "387282",
+    "name": "Gagaga Sister",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "46659709",
+    "name": "Galaxy Soldier",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "9260791",
+    "name": "Galaxy-Eyes Cloudragon",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "53334641",
+    "name": "Ghostrick Angel of Mischief",
+    "type": "XYZ Monster"
+  },
+  {
+    "id": "80802524",
+    "name": "Ghostrick Break",
+    "type": "Trap Card"
+  },
+  {
+    "id": "64283880",
+    "name": "Guard Go!",
+    "type": "Trap Card"
+  },
+  {
+    "id": "54629413",
+    "name": "Guerilla Kite",
+    "type": "Tuner Monster"
+  },
+  {
+    "id": "34761062",
+    "name": "Heavy Knight of the Flame",
+    "type": "Gemini Monster"
+  },
+  {
+    "id": "87255382",
+    "name": "Heraldic Beast Amphisbaena",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "65848811",
+    "name": "Heroic Challenger - Assault Halberd",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "1833916",
+    "name": "Heroic Challenger - Thousand Blades",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "91677585",
+    "name": "Hi-Five the Sky",
+    "type": "Trap Card"
+  },
+  {
+    "id": "90098780",
+    "name": "Humhumming the Key Djinn",
+    "type": "XYZ Monster"
+  },
+  {
+    "id": "71415349",
+    "name": "Humpty Grumpty",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "8316565",
+    "name": "Jolt Counter",
+    "type": "Trap Card"
+  },
+  {
+    "id": "7541475",
+    "name": "Kabuki Dragon",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "63881033",
+    "name": "Marshalling Field",
+    "type": "Trap Card"
+  },
+  {
+    "id": "26949946",
+    "name": "Mecha Phantom Beast Jaculuslan",
+    "type": "Synchro Monster"
+  },
+  {
+    "id": "90555947",
+    "name": "Naturia Gaiastrio",
+    "type": "Fusion Monster"
+  },
+  {
+    "id": "23649496",
+    "name": "Number 18: Heraldry Patriarch",
+    "type": "XYZ Monster"
+  },
+  {
+    "id": "50260683",
+    "name": "Number 36: Chronomaly Chateau Huyuk",
+    "type": "XYZ Monster"
+  },
+  {
+    "id": "46871387",
+    "name": "Number 55: Gogogo Goliath",
+    "type": "XYZ Monster"
+  },
+  {
+    "id": "71921856",
+    "name": "Number 79: Battlin' Boxer Nova Kaiser",
+    "type": "XYZ Monster"
+  },
+  {
+    "id": "63504681",
+    "name": "Number 86: Heroic Champion - Rhongomyniad",
+    "type": "XYZ Monster"
+  },
+  {
+    "id": "65305468",
+    "name": "Number F0: Utopic Future",
+    "type": "XYZ Monster"
+  },
+  {
+    "id": "37115973",
+    "name": "Numeral Hunter",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "26493435",
+    "name": "Onomatopia",
+    "type": "Spell Card"
+  },
+  {
+    "id": "13760677",
+    "name": "P.M. Captor",
+    "type": "Pendulum Effect Monster"
+  },
+  {
+    "id": "60434189",
+    "name": "Pendulum Impenetrable",
+    "type": "Spell Card"
+  },
+  {
+    "id": "72044448",
+    "name": "Photon Stream of Destruction",
+    "type": "Spell Card"
+  },
+  {
+    "id": "10282757",
+    "name": "Planckton",
+    "type": "Trap Card"
+  },
+  {
+    "id": "50155385",
+    "name": "Spiritual Whisper",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "64726269",
+    "name": "Star Seraph Scale",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "38331564",
+    "name": "Star Seraph Scepter",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "91110378",
+    "name": "Star Seraph Sovereignty",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "8038143",
+    "name": "Tachyon Transmigration",
+    "type": "Trap Card"
+  },
+  {
+    "id": "27062594",
+    "name": "The Door of Destiny",
+    "type": "Trap Card"
+  },
+  {
+    "id": "81028112",
+    "name": "Wattsychic Fighter",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "86559484",
+    "name": "Xyz-Raypierce",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "85840608",
+    "name": "Neo Space Connector",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "64655485",
+    "name": "Elemental HERO Brave Neos",
+    "type": "Fusion Monster"
+  },
+  {
+    "id": "31322640",
+    "name": "Allure Palace",
+    "type": "Spell Card"
+  },
+  {
+    "id": "68316358",
+    "name": "Allure Dance",
+    "type": "Spell Card"
+  },
+  {
+    "id": "57869175",
+    "name": "Fortune Lady Past",
+    "type": "Tuner Monster"
+  },
+  {
+    "id": "70252926",
+    "name": "Fortune Lady Every",
+    "type": "Synchro Monster"
+  },
+  {
+    "id": "27895597",
+    "name": "Fortune Lady Calling",
+    "type": "Spell Card"
+  },
+  {
+    "id": "91407982",
+    "name": "Fortune Vision",
+    "type": "Spell Card"
+  },
+  {
+    "id": "84218527",
+    "name": "Fortune Lady Rewind",
+    "type": "Trap Card"
+  },
+  {
+    "id": "68078978",
+    "name": "Fortune Fairy Chee",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "31683874",
+    "name": "Fortune Fairy Ann",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "5298175",
+    "name": "Fortune Fairy Swee",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "79890560",
+    "name": "Fortune Fairy Hu",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "32305461",
+    "name": "Fortune Fairy En",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "6311717",
+    "name": "Fortune Fairy Hikari",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "67955331",
+    "name": "Lucky Loan",
+    "type": "Spell Card"
+  },
+  {
+    "id": "4072687",
+    "name": "Unacceptable Result",
+    "type": "Spell Card"
+  },
+  {
+    "id": "31461282",
+    "name": "Miracle Stone",
+    "type": "Spell Card"
+  },
+  {
+    "id": "44139064",
+    "name": "Megaroid City",
+    "type": "Spell Card"
+  },
+  {
+    "id": "71340250",
+    "name": "Mixeroid",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "17745969",
+    "name": "Super Vehicroid - Mobile Base",
+    "type": "Fusion Monster"
+  },
+  {
+    "id": "71768839",
+    "name": "I.A.S. -Invasive Alien Species-",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "91231901",
+    "name": "\"A\" Cell Recombination Device",
+    "type": "Spell Card"
+  },
+  {
+    "id": "6022371",
+    "name": "Water Dragon Cluster",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "43017476",
+    "name": "Duoterion",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "82616239",
+    "name": "Light Water Dragon",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "79402185",
+    "name": "Bonding - D2O",
+    "type": "Spell Card"
+  }
+]
