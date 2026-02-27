@@ -77,11 +77,32 @@
             <label>Type</label>
             <select id="filter-type">
               <option value="">Any</option>
-              <option>Spellcaster</option>
               <option>Warrior</option>
-              <option>Dragon</option>
+              <option>Spellcaster</option>
+              <option>Fairy</option>
+              <option>Fiend</option>
+              <option>Zombie</option>
               <option>Machine</option>
+              <option>Aqua</option>
+              <option>Pyro</option>
+              <option>Rock</option>
+              <option>Winged Beast</option>
+              <option>Plant</option>
+              <option>Insect</option>
+              <option>Thunder</option>
+              <option>Dragon</option>
               <option>Beast</option>
+              <option>Beast-Warrior</option>
+              <option>Dinosaur</option>
+              <option>Fish</option>
+              <option>Sea Serpent</option>
+              <option>Reptile</option>
+              <option>Psychic</option>
+              <option>Divine-Beast</option>
+              <option>Creator God</option>
+              <option>Wyrm</option>
+              <option>Cyberse</option>
+              <option>Illusion</option>
             </select>
           </div>
         </div>
@@ -377,8 +398,8 @@
         console.log('Apply filters:', filters);
       });
 
-      // expose for dev
-      window.deckBuilder = { addToDeck, updateCounts };
+      // expose for dev (merge with existing to avoid overwriting deck-builder.js exports)
+      window.deckBuilder = Object.assign(window.deckBuilder || {}, { addToDeck, updateCounts });
       updateCounts();
     })();
   </script>

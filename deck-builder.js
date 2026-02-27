@@ -245,6 +245,20 @@
   function insertCardAtPosition(cardId, section, index){
     if (!cardId) return false;
     if (!['main','extra','side'].includes(section)) section = 'main';
+    // Validate section compatibility for known cards: prevent Extra-only monsters in Main and vice versa
+    try{
+      const card = allCards.find(c=>String(c.id)===String(cardId));
+      if (card){
+        const type = String(card.type||'').toLowerCase();
+        const isExtraType = /fusion|synchro|xyz|link/i.test(type);
+        const isMonster = /monster/i.test(type);
+        if (section === 'extra'){
+          if (!(isMonster && isExtraType)) { flashInvalid(section); return false; }
+        } else if (section === 'main'){
+          if (isMonster && isExtraType) { flashInvalid(section); return false; }
+        }
+      }
+    }catch(e){}
     const combined = deck.main.concat(deck.extra).concat(deck.side);
     const count = combined.filter(id=>String(id)===String(cardId)).length;
     const allowed = allowedCopiesFor(cardId);
@@ -726,35 +740,42 @@
           level: null,
           scale: null
         }));
-        // Asynchronously enrich the first visible page with full card data so the
-        // UI becomes informative shortly after initial render without blocking.
-        (async function enrichVisible(){
+        // Asynchronously enrich card metadata for all banlist IDs in batches so
+        // `allCards` contains reliable `type` and other fields (prevents missing
+        // type causing validation to behave incorrectly).
+        (async function enrichAllBanlist(){
           try{
-            const toFetch = allCards.slice(0, pageSize).map(c=>String(c.id)).filter(Boolean);
-            if (toFetch.length === 0) return;
-            const url = `https://db.ygoprodeck.com/api/v7/cardinfo.php?id=${toFetch.map(encodeURIComponent).join(',')}`;
-            const resp = await fetch(url);
-            if (!resp.ok) return;
-            const data = await resp.json();
-            if (!data || !data.data) return;
-            const map = new Map(data.data.map(d=>[String(d.id), d]));
-            for (let i=0;i<allCards.length && i<pageSize;i++){
-              const a = allCards[i];
-              const d = map.get(String(a.id));
-              if (d){
-                a.name = d.name || a.name;
-                a.type = d.type || a.type;
-                a.race = d.race || a.race;
-                a.desc = d.desc || a.desc;
-                a.atk = (d.atk !== undefined) ? d.atk : a.atk;
-                a.def = (d.def !== undefined) ? d.def : a.def;
-                a.attribute = d.attribute || a.attribute;
-                a.level = (d.level !== undefined) ? d.level : (d.rank !== undefined ? d.rank : a.level);
-                a.scale = (d.scale !== undefined) ? d.scale : (d.pendulum_scale !== undefined ? d.pendulum_scale : a.scale);
-              }
+            const ids = allCards.map(c=>String(c.id)).filter(Boolean);
+            if (ids.length === 0) return;
+            const BATCH = 75; // safe batch size for API URL length
+            for (let i=0;i<ids.length;i+=BATCH){
+              const batch = ids.slice(i, i+BATCH);
+              const url = `https://db.ygoprodeck.com/api/v7/cardinfo.php?id=${batch.map(encodeURIComponent).join(',')}`;
+              try{
+                const resp = await fetch(url);
+                if (!resp.ok) continue;
+                const data = await resp.json();
+                if (!data || !data.data) continue;
+                const map = new Map(data.data.map(d=>[String(d.id), d]));
+                for (let j=0;j<allCards.length;j++){
+                  const a = allCards[j];
+                  const d = map.get(String(a.id));
+                  if (!d) continue;
+                  a.name = d.name || a.name;
+                  a.type = d.type || a.type;
+                  a.race = d.race || a.race;
+                  a.desc = d.desc || a.desc;
+                  a.atk = (d.atk !== undefined) ? d.atk : a.atk;
+                  a.def = (d.def !== undefined) ? d.def : a.def;
+                  a.attribute = d.attribute || a.attribute;
+                  a.level = (d.level !== undefined) ? d.level : (d.rank !== undefined ? d.rank : a.level);
+                  a.scale = (d.scale !== undefined) ? d.scale : (d.pendulum_scale !== undefined ? d.pendulum_scale : a.scale);
+                }
+                // refresh visible page after each batch to update UI progressively
+                try{ displayCards(filteredCards.slice((currentPage-1)*pageSize, (currentPage-1)*pageSize + pageSize)); }catch(e){}
+              }catch(e){ /* ignore batch fetch errors and continue */ }
             }
-            try{ displayCards(filteredCards.slice(0,pageSize)); }catch(e){}
-          }catch(e){}
+          }catch(e){ /* ignore */ }
         })();
       } else {
         const HARDCODED_END_DATE = '2014-08-15';
@@ -861,7 +882,51 @@
         })(id, val);
       }catch(e){}
     });
+    // expose deck state for debugging
+    try{ if (typeof window !== 'undefined') window.KPDeck = deck; }catch(e){}
   }
+
+  // Sorting helpers (group by type priority, then name)
+  function cardTypePriority(type) {
+    if (!type) return 99;
+    const t = String(type).toLowerCase();
+    if (/effect/.test(t)) return 1;
+    if (/normal/.test(t) && /monster/.test(t)) return 2;
+    if (/fusion/.test(t)) return 3;
+    if (/ritual/.test(t)) return 4;
+    if (/synchro/.test(t)) return 5;
+    if (/xyz/.test(t)) return 6;
+    if (/link/.test(t)) return 7;
+    if (/pendulum/.test(t)) return 8;
+    if (/monster/.test(t)) return 9;
+    if (/spell/.test(t)) return 20;
+    if (/trap/.test(t)) return 21;
+    return 99;
+  }
+
+  function sortDeck(section) {
+    if (!Array.isArray(deck[section])) return;
+    const mapped = deck[section].map(id => {
+      const card = allCards.find(c => String(c.id) === String(id));
+      return { id: String(id), name: card ? (card.name || '') : String(id), type: card ? (card.type || '') : '' };
+    });
+    mapped.sort((a,b)=>{
+      const pa = cardTypePriority(a.type); const pb = cardTypePriority(b.type);
+      if (pa !== pb) return pa - pb;
+      return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
+    });
+    deck[section] = mapped.map(x=>x.id);
+  }
+
+  function sortAllDecks(){ sortDeck('main'); sortDeck('extra'); sortDeck('side'); updateDeckDisplay(); }
+
+  // Wire Sort button if present
+  try{
+    const sortBtn = document.getElementById('sort-deck');
+    if (sortBtn) sortBtn.addEventListener('click', ()=>{ sortAllDecks(); });
+    // also expose for console
+    if (typeof window !== 'undefined') window.sortAllDecks = sortAllDecks;
+  }catch(e){}
 
   function updateAllBadges(){ // update badges in search tiles and deck slots
     try{ if (typeof console !== 'undefined' && console && console.debug) console.debug('updateAllBadges: banlist entries=', Object.keys(banlist||{}).length); }catch(e){}
@@ -1228,7 +1293,12 @@
         if (isMonster && c.race) set.add(String(c.race).trim());
       }catch(e){}
     });
-    const arr = Array.from(set).filter(Boolean).sort((a,b)=>a.localeCompare(b));
+    let arr = Array.from(set).filter(Boolean).sort((a,b)=>a.localeCompare(b));
+    // If no races were discovered (e.g., remote fetch delayed or blocked),
+    // fall back to a canonical list so the dropdown is always usable.
+    if (!arr || arr.length === 0) {
+      arr = ['Warrior','Spellcaster','Fairy','Fiend','Zombie','Machine','Aqua','Pyro','Rock','Winged Beast','Plant','Insect','Thunder','Dragon','Beast','Beast-Warrior','Dinosaur','Fish','Sea Serpent','Reptile','Psychic','Divine-Beast','Creator God','Wyrm','Cyberse','Illusion'];
+    }
     // rebuild options
     el.innerHTML = '';
     const any = document.createElement('option'); any.value=''; any.textContent='Any'; el.appendChild(any);
