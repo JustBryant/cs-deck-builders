@@ -585,7 +585,10 @@
     "Black Luster Soldier",
     "Trap Hole",
     "Hole",
-    "Goblin"
+    "Xyz Dragon",
+    "Xyz",
+    "Rebellion",
+    "Puppet"
 
   ];
 
