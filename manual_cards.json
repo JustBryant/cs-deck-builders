@@ -393,5 +393,225 @@
     "id": "6890729",
     "name": "Bonding - DHO",
     "type": "Trap Card"
+  },
+  {
+    "id": "44586426",
+    "name": "Batteryman Solar",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "18621798",
+    "name": "Fire King Avatar Arvata",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "14469229",
+    "name": "Crystal Keeper",
+    "type": "Pendulum Effect Monster"
+  },
+  {
+    "id": "87475570",
+    "name": "Crystal Master",
+    "type": "Pendulum Effect Monster"
+  },
+  {
+    "id": "87259933",
+    "name": "Crystal Conclave",
+    "type": "Trap Card"
+  },
+  {
+    "id": "7714344",
+    "name": "Performapal Uni",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "33103459",
+    "name": "Performapal Corn",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "16617334",
+    "name": "Performapal Rain Goat",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "36527535",
+    "name": "Performapal Revue Dancer",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "15978426",
+    "name": "Performapal Secondonkey",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "73734821",
+    "name": "Performapal Sky Magician",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "3859859",
+    "name": "Performapal Sky Magician Girl",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "122520",
+    "name": "Performapal Sky Pupil",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "20403123",
+    "name": "Performapal Sleight Hand Magician",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "29169993",
+    "name": "Performapal Teeter Totter Hopper",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "55553602",
+    "name": "Performapal Dramatic Theater",
+    "type": "Spell Card"
+  },
+  {
+    "id": "87769556",
+    "name": "Magician's Right Hand",
+    "type": "Spell Card"
+  },
+  {
+    "id": "13758665",
+    "name": "Magician's Left Hand",
+    "type": "Spell Card"
+  },
+  {
+    "id": "40252269",
+    "name": "Magician's Restage",
+    "type": "Spell Card"
+  },
+  {
+    "id": "29092121",
+    "name": "Cipher Biplane",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "79094383",
+    "name": "Cipher Etranger",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "58383100",
+    "name": "Cipher Mirror Knight",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "21999001",
+    "name": "Cipher Twin Raptor",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "81974607",
+    "name": "Cipher Wing",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "55496220",
+    "name": "Cipher Interference",
+    "type": "Spell Card"
+  },
+  {
+    "id": "47882565",
+    "name": "Rank-Up-Magic Cipher Ascension",
+    "type": "Spell Card"
+  },
+  {
+    "id": "99397762",
+    "name": "Cipher Bit",
+    "type": "Trap Card"
+  },
+  {
+    "id": "98905",
+    "name": "Cipher Spectrum",
+    "type": "Trap Card"
+  },
+  {
+    "id": "63992027",
+    "name": "Double Cipher",
+    "type": "Trap Card"
+  },
+  {
+    "id": "18963306",
+    "name": "Galaxy-Eyes Cipher Dragon",
+    "type": "XYZ Monster"
+  },
+  {
+    "id": "2530830",
+    "name": "Galaxy-Eyes Cipher Blade Dragon",
+    "type": "XYZ Monster"
+  },
+  {
+    "id": "12632096",
+    "name": "Neo Galaxy-Eyes Cipher Dragon",
+    "type": "XYZ Monster"
+  },
+  {
+    "id": "28346136",
+    "name": "Galaxy-Eyes Cipher X Dragon",
+    "type": "XYZ Monster"
+  },
+  {
+    "id": "64184058",
+    "name": "Destiny HERO - Decider",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "91691605",
+    "name": "Destiny HERO - Drilldark",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "37780349",
+    "name": "Destiny HERO - Dynatag",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "63362460",
+    "name": "Destiny HERO - Celestial",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "66262416",
+    "name": "Destiny HERO - Dreamer",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "48150362",
+    "name": "Destiny HERO - Drawhand",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "99357565",
+    "name": "D Cubed",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "30757127",
+    "name": "Destiny HERO - Dangerous",
+    "type": "Fusion Monster"
+  },
+  {
+    "id": "90579153",
+    "name": "Destiny HERO - Dystopia",
+    "type": "Fusion Monster"
+  },
+  {
+    "id": "69394324",
+    "name": "Destiny HERO - Dominance",
+    "type": "Fusion Monster"
+  },
+  {
+    "id": "26841274",
+    "name": "D-Fusion",
+    "type": "Trap Card"
   }
 ]
