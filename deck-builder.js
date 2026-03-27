@@ -729,8 +729,15 @@
         else { const v2 = defFilter.value; if (op2 === '==') { if (d !== v2) return false; } else if (op2 === '<') { if (!(d < v2)) return false; } else if (op2 === '<=') { if (!(d <= v2)) return false; } else if (op2 === '>') { if (!(d > v2)) return false; } else if (op2 === '>=') { if (!(d >= v2)) return false; } }
       }
 
-      // text search still applies when provided
-      if (q){ if (!(c.name && c.name.toLowerCase().includes(q)) && !(c.desc && c.desc.toLowerCase().includes(q))) return false; }
+      // text search still applies when provided — match across name + desc + archetypes using tokenized matching
+      if (q) {
+        const normalize = (s) => String(s||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();
+        const qNorm = normalize(q);
+        const tokens = qNorm.split(' ').filter(Boolean);
+        const combined = normalize((c.name||'') + ' ' + (c.desc||'') + ' ' + (Array.isArray(c.archetypes) ? c.archetypes.join(' ') : ''));
+        const tokensMatch = tokens.length > 0 ? tokens.every(t => combined.indexOf(t) !== -1) : false;
+        if (!tokensMatch) return false;
+      }
         // Banlist/limit filter: if set, require the allowed copies for this card to match the selection
         if (banFilter !== null){ try{ const allowed = allowedCopiesFor(c.id); if (Number(allowed) !== Number(banFilter)) return false; }catch(e){} }
       return true;
