@@ -535,11 +535,6 @@
     "type": "Trap Card"
   },
   {
-    "id": "81881839",
-    "name": "Double Exposure",
-    "type": "Trap Card"
-  },
-  {
     "id": "63992027",
     "name": "Double Cipher",
     "type": "Trap Card"
@@ -623,5 +618,20 @@
     "id": "57554544",
     "name": "Fire King Island",
     "type": "Trap Card"
+  },
+  {
+    "id": "81881839",
+    "name": "Double Exposure",
+    "type": "Spell Card"
+  },
+  {
+    "id": "70628672",
+    "name": "Emergeroid Call",
+    "type": "Trap Card"
+  },
+  {
+    "id": "9069157",
+    "name": "Dragonroid",
+    "type": "Effect Monster"
   }
 ]
