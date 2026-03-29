@@ -1454,17 +1454,13 @@ function filterCards() {
 
     const out = allCards.filter(card => {
         if (q) {
-            const nameLow = card.name ? String(card.name).toLowerCase() : '';
-            const descLow = card.desc ? String(card.desc).toLowerCase() : '';
-            const nameNorm = normalize(card.name);
-            const descNorm = normalize(card.desc);
-            const inName = (nameLow && nameLow.includes(q)) || (qNorm && nameNorm && nameNorm.includes(qNorm));
-            const inDesc = (descLow && descLow.includes(q)) || (qNorm && descNorm && descNorm.includes(qNorm));
-            // token match: ensure all query tokens appear somewhere in the combined normalized text
-            const combinedNorm = normalize((card.name||'') + ' ' + (card.desc||'') + ' ' + (Array.isArray(card.archetypes)?card.archetypes.join(' '):''));
-            const tokens = qNorm.split(' ').filter(Boolean);
-            const tokensMatch = tokens.length > 0 ? tokens.every(t => combinedNorm.indexOf(t) !== -1) : false;
-            if (!inName && !inDesc && !tokensMatch) return false;
+                const qLower = String(q).toLowerCase().trim();
+                const nameLow = card.name ? String(card.name).toLowerCase() : '';
+                const descLow = card.desc ? String(card.desc).toLowerCase() : '';
+                // Require the exact query substring to appear in either the name or the description
+                const inName = nameLow && qLower.length > 0 && nameLow.indexOf(qLower) !== -1;
+                const inDesc = descLow && qLower.length > 0 && descLow.indexOf(qLower) !== -1;
+                if (!inName && !inDesc) return false;
         }
         const parsed = parseCardType(card.type);
         if (cat && cat !== 'all' && cat !== 'All') {
