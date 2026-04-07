@@ -663,5 +663,25 @@
     "id": "94689206",
     "name": "Block Dragon",
     "type": "Effect Monster"
+  },
+  {
+    "id": "28865322",
+    "name": "Aether, the Evil Empowering Dragon",
+    "type": "Pendulum Effect Monster"
+  },
+  {
+    "id": "65472618",
+    "name": "Dragodies, the Empowered Warrior",
+    "type": "Pendulum Effect Monster"
+  },
+  {
+    "id": "92870717",
+    "name": "Dragonox, the Empowered Warrior",
+    "type": "Pendulum Effect Monster"
+  },
+  {
+    "id": "54250060",
+    "name": "Empowerment",
+    "type": "Spell Card"
   }
 ]
