@@ -683,5 +683,15 @@
     "id": "54250060",
     "name": "Empowerment",
     "type": "Spell Card"
+  },
+  {
+    "id": "464362",
+    "name": "Frightfur Tiger",
+    "type": "Fusion Monster"
+  },
+  {
+    "id": "47075569",
+    "name": "Performapal Pendulum Sorcerer",
+    "type": "Pendulum Effect Monster"
   }
 ]
