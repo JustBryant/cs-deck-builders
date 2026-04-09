@@ -693,5 +693,10 @@
     "id": "47075569",
     "name": "Performapal Pendulum Sorcerer",
     "type": "Pendulum Effect Monster"
+  },
+  {
+    "id": "42143067",
+    "name": "Doki Doki",
+    "type": "Effect Monster"
   }
 ]
