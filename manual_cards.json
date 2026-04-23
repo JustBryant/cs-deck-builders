@@ -695,6 +695,281 @@
     "type": "Pendulum Effect Monster"
   },
   {
+    "id": "66451379",
+    "name": "Graydle Alligator",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "93445074",
+    "name": "Graydle Cobra",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "29834183",
+    "name": "Graydle Eagle",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "20056760",
+    "name": "Graydle Slime",
+    "type": "Tuner Monster"
+  },
+  {
+    "id": "80250319",
+    "name": "Graydle Slime Jr.",
+    "type": "Tuner Monster"
+  },
+  {
+    "id": "52145422",
+    "name": "Graydle Dragon",
+    "type": "Synchro Monster"
+  },
+  {
+    "id": "2759860",
+    "name": "Graydle Impact",
+    "type": "Spell Card"
+  },
+  {
+    "id": "84442536",
+    "name": "Graydle Combat",
+    "type": "Trap Card"
+  },
+  {
+    "id": "49966595",
+    "name": "Graydle Parasite",
+    "type": "Trap Card"
+  },
+  {
+    "id": "75361204",
+    "name": "Graydle Split",
+    "type": "Trap Card"
+  },
+  {
+    "id": "36956512",
+    "name": "Gadarla, the Mystery Dust Kaiju",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "55063751",
+    "name": "Gameciel, the Sea Turtle Kaiju",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "63941210",
+    "name": "Jizukiru, the Star Destroying Kaiju",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "28674152",
+    "name": "Radian, the Multidimensional Kaiju",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "84769941",
+    "name": "Super Anti-Kaiju War Machine Mecha-Dogoran",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "29913783",
+    "name": "Super Anti-Kaiju War Machine Mecha-Thunder-King",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "48770333",
+    "name": "Thunder King, the Lightningstrike Kaiju",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "99330325",
+    "name": "Interrupted Kaiju Slumber",
+    "type": "Spell Card"
+  },
+  {
+    "id": "11163040",
+    "name": "The Kaiju Files",
+    "type": "Spell Card"
+  },
+  {
+    "id": "81057455",
+    "name": "Kaiju Capture Mission",
+    "type": "Trap Card"
+  },
+  {
+    "id": "51814159",
+    "name": "Raidraptor - Necro Vulture",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "97219708",
+    "name": "Raidraptor - Last Strix",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "83236601",
+    "name": "Raidraptor - Tribute Lanius",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "73347079",
+    "name": "Raidraptor - Force Strix",
+    "type": "XYZ Monster"
+  },
+  {
+    "id": "23603403",
+    "name": "Raidraptor - Satellite Cannon Falcon",
+    "type": "XYZ Monster"
+  },
+  {
+    "id": "23581825",
+    "name": "Rank-Up-Magic Soul Shave Force",
+    "type": "Spell Card"
+  },
+  {
+    "id": "86196216",
+    "name": "Rank-Up-Magic Doom Double Force",
+    "type": "Spell Card"
+  },
+  {
+    "id": "55100740",
+    "name": "Chemicritter Hydron Hawk",
+    "type": "Gemini Monster"
+  },
+  {
+    "id": "18993198",
+    "name": "Chemicritter Oxy Ox",
+    "type": "Gemini Monster"
+  },
+  {
+    "id": "44088292",
+    "name": "Poly-Chemicritter Dioxogre",
+    "type": "Gemini Monster"
+  },
+  {
+    "id": "80476891",
+    "name": "Poly-Chemicritter Hydragon",
+    "type": "Gemini Monster"
+  },
+  {
+    "id": "38026562",
+    "name": "Vola-Chemicritter Methydraco",
+    "type": "XYZ Monster"
+  },
+  {
+    "id": "65959844",
+    "name": "Catalyst Field",
+    "type": "Spell Card"
+  },
+  {
+    "id": "90965652",
+    "name": "Dimer Synthesis",
+    "type": "Spell Card"
+  },
+  {
+    "id": "25669282",
+    "name": "Burnout",
+    "type": "Trap Card"
+  },
+  {
+    "id": "7127502",
+    "name": "Lector Pendulum, the Dracoverlord",
+    "type": "Pendulum Effect Monster"
+  },
+  {
+    "id": "69512157",
+    "name": "Vector Pendulum, the Dracoverlord",
+    "type": "Pendulum Normal Monster"
+  },
+  {
+    "id": "75195825",
+    "name": "Master Pendulum, the Dracoslayer",
+    "type": "Pendulum Normal Monster"
+  },
+  {
+    "id": "14733538",
+    "name": "Draco Face-Off",
+    "type": "Spell Card"
+  },
+  {
+    "id": "22638495",
+    "name": "Dinoster Power, the Mighty Dracoslayer",
+    "type": "Fusion Monster"
+  },
+  {
+    "id": "88722973",
+    "name": "Majester Paladin, the Ascending Dracoslayer",
+    "type": "XYZ Monster"
+  },
+  {
+    "id": "30100551",
+    "name": "Minerva, the Exalted Lightsworn",
+    "type": "XYZ Monster"
+  },
+  {
+    "id": "13332685",
+    "name": "Ame no Habakiri no Mitsurugi",
+    "type": "Ritual Effect Monster"
+  },
+  {
+    "id": "93662626",
+    "name": "Igknight Veteran",
+    "type": "Pendulum Normal Monster"
+  },
+  {
+    "id": "67273917",
+    "name": "Igknight Cavalier",
+    "type": "Pendulum Normal Monster"
+  },
+  {
+    "id": "76751255",
+    "name": "Igknight Reload",
+    "type": "Spell Card"
+  },
+  {
+    "id": "38848158",
+    "name": "Igknights Unite",
+    "type": "Spell Card"
+  },
+  {
+    "id": "56347375",
+    "name": "Ignis Phoenix, the Dracoslayer",
+    "type": "Pendulum Effect Monster"
+  },
+  {
+    "id": "55106249",
+    "name": "Deskbot 006",
+    "type": "Pendulum Effect Monster"
+  },
+  {
+    "id": "97588916",
+    "name": "Deskbot 007",
+    "type": "Pendulum Effect Monster"
+  },
+  {
+    "id": "24573625",
+    "name": "Deskbot 008",
+    "type": "Pendulum Effect Monster"
+  },
+  {
+    "id": "25494711",
+    "name": "Deskbot 009",
+    "type": "Effect Monster"
+  },
+  {
+    "id": "89544521",
+    "name": "Deskbot Jet",
+    "type": "Synchro Monster"
+  },
+  {
+    "id": "12215894",
+    "name": "Deskbot Base",
+    "type": "Spell Card"
+  },
+  {
+    "id": "10449150",
+    "name": "Shuttleroid",
+    "type": "Effect Monster"
+  },
+  {
     "id": "42143067",
     "name": "Doki Doki",
     "type": "Effect Monster"
