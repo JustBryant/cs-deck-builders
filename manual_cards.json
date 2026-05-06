@@ -2,976 +2,1321 @@
   {
     "id": "85840608",
     "name": "Neo Space Connector",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "64655485",
     "name": "Elemental HERO Brave Neos",
-    "type": "Fusion Monster"
+    "type": "Fusion Monster",
+    "source": "names-file"
   },
   {
     "id": "31322640",
     "name": "Allure Palace",
-    "type": "Spell Card"
+    "type": "Spell Card",
+    "source": "names-file"
   },
   {
     "id": "68316358",
     "name": "Allure Dance",
-    "type": "Spell Card"
+    "type": "Spell Card",
+    "source": "names-file"
   },
   {
     "id": "57869175",
     "name": "Fortune Lady Past",
-    "type": "Tuner Monster"
+    "type": "Tuner Monster",
+    "source": "names-file"
   },
   {
     "id": "70252926",
     "name": "Fortune Lady Every",
-    "type": "Synchro Monster"
+    "type": "Synchro Monster",
+    "source": "names-file"
   },
   {
     "id": "27895597",
     "name": "Fortune Lady Calling",
-    "type": "Spell Card"
+    "type": "Spell Card",
+    "source": "names-file"
   },
   {
     "id": "91407982",
     "name": "Fortune Vision",
-    "type": "Spell Card"
+    "type": "Spell Card",
+    "source": "names-file"
   },
   {
     "id": "84218527",
     "name": "Fortune Lady Rewind",
-    "type": "Trap Card"
+    "type": "Trap Card",
+    "source": "names-file"
   },
   {
     "id": "68078978",
     "name": "Fortune Fairy Chee",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "31683874",
     "name": "Fortune Fairy Ann",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "5298175",
     "name": "Fortune Fairy Swee",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "79890560",
     "name": "Fortune Fairy Hu",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "32305461",
     "name": "Fortune Fairy En",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "6311717",
     "name": "Fortune Fairy Hikari",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "67955331",
     "name": "Lucky Loan",
-    "type": "Spell Card"
+    "type": "Spell Card",
+    "source": "names-file"
   },
   {
     "id": "4072687",
     "name": "Unacceptable Result",
-    "type": "Spell Card"
+    "type": "Spell Card",
+    "source": "names-file"
   },
   {
     "id": "31461282",
     "name": "Miracle Stone",
-    "type": "Spell Card"
+    "type": "Spell Card",
+    "source": "names-file"
   },
   {
     "id": "44139064",
     "name": "Megaroid City",
-    "type": "Spell Card"
+    "type": "Spell Card",
+    "source": "names-file"
   },
   {
     "id": "71340250",
     "name": "Mixeroid",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "17745969",
     "name": "Super Vehicroid - Mobile Base",
-    "type": "Fusion Monster"
-  },
-  {
-    "id": "71768839",
-    "name": "I.A.S. -Invasive Alien Species-",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "58066722",
-    "name": "Alien Stealthbuster",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "91231901",
-    "name": "\"A\" Cell Recombination Device",
-    "type": "Spell Card"
-  },
-  {
-    "id": "6022371",
-    "name": "Water Dragon Cluster",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "43017476",
-    "name": "Duoterion",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "82616239",
-    "name": "Light Water Dragon",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "79402185",
-    "name": "Bonding - D2O",
-    "type": "Spell Card"
-  },
-  {
-    "id": "6890729",
-    "name": "Bonding - DHO",
-    "type": "Trap Card"
-  },
-  {
-    "id": "44586426",
-    "name": "Batteryman Solar",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "18621798",
-    "name": "Fire King Avatar Arvata",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "14469229",
-    "name": "Crystal Keeper",
-    "type": "Pendulum Effect Monster"
-  },
-  {
-    "id": "87475570",
-    "name": "Crystal Master",
-    "type": "Pendulum Effect Monster"
-  },
-  {
-    "id": "87259933",
-    "name": "Crystal Conclave",
-    "type": "Trap Card"
-  },
-  {
-    "id": "7714344",
-    "name": "Performapal Uni",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "33103459",
-    "name": "Performapal Corn",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "16617334",
-    "name": "Performapal Rain Goat",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "36527535",
-    "name": "Performapal Revue Dancer",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "15978426",
-    "name": "Performapal Secondonkey",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "73734821",
-    "name": "Performapal Sky Magician",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "3859859",
-    "name": "Performapal Sky Magician Girl",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "122520",
-    "name": "Performapal Sky Pupil",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "20403123",
-    "name": "Performapal Sleight Hand Magician",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "29169993",
-    "name": "Performapal Teeter Totter Hopper",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "55553602",
-    "name": "Performapal Dramatic Theater",
-    "type": "Spell Card"
-  },
-  {
-    "id": "87769556",
-    "name": "Magician's Right Hand",
-    "type": "Spell Card"
-  },
-  {
-    "id": "13758665",
-    "name": "Magician's Left Hand",
-    "type": "Spell Card"
-  },
-  {
-    "id": "40252269",
-    "name": "Magician's Restage",
-    "type": "Spell Card"
-  },
-  {
-    "id": "29092121",
-    "name": "Cipher Biplane",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "79094383",
-    "name": "Cipher Etranger",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "58383100",
-    "name": "Cipher Mirror Knight",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "21999001",
-    "name": "Cipher Twin Raptor",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "81974607",
-    "name": "Cipher Wing",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "55496220",
-    "name": "Cipher Interference",
-    "type": "Spell Card"
-  },
-  {
-    "id": "47882565",
-    "name": "Rank-Up-Magic Cipher Ascension",
-    "type": "Spell Card"
-  },
-  {
-    "id": "99397762",
-    "name": "Cipher Bit",
-    "type": "Trap Card"
-  },
-  {
-    "id": "98905",
-    "name": "Cipher Spectrum",
-    "type": "Trap Card"
-  },
-  {
-    "id": "63992027",
-    "name": "Double Cipher",
-    "type": "Trap Card"
-  },
-  {
-    "id": "18963306",
-    "name": "Galaxy-Eyes Cipher Dragon",
-    "type": "XYZ Monster"
-  },
-  {
-    "id": "2530830",
-    "name": "Galaxy-Eyes Cipher Blade Dragon",
-    "type": "XYZ Monster"
-  },
-  {
-    "id": "12632096",
-    "name": "Neo Galaxy-Eyes Cipher Dragon",
-    "type": "XYZ Monster"
-  },
-  {
-    "id": "28346136",
-    "name": "Galaxy-Eyes Cipher X Dragon",
-    "type": "XYZ Monster"
-  },
-  {
-    "id": "64184058",
-    "name": "Destiny HERO - Decider",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "91691605",
-    "name": "Destiny HERO - Drilldark",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "37780349",
-    "name": "Destiny HERO - Dynatag",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "63362460",
-    "name": "Destiny HERO - Celestial",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "66262416",
-    "name": "Destiny HERO - Dreamer",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "48150362",
-    "name": "Destiny HERO - Drawhand",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "99357565",
-    "name": "D Cubed",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "30757127",
-    "name": "Destiny HERO - Dangerous",
-    "type": "Fusion Monster"
-  },
-  {
-    "id": "90579153",
-    "name": "Destiny HERO - Dystopia",
-    "type": "Fusion Monster"
-  },
-  {
-    "id": "69394324",
-    "name": "Destiny HERO - Dominance",
-    "type": "Fusion Monster"
-  },
-  {
-    "id": "26841274",
-    "name": "D-Fusion",
-    "type": "Trap Card"
-  },
-  {
-    "id": "57554544",
-    "name": "Fire King Island",
-    "type": "Trap Card"
-  },
-  {
-    "id": "81881839",
-    "name": "Double Exposure",
-    "type": "Spell Card"
+    "type": "Fusion Monster",
+    "source": "names-file"
   },
   {
     "id": "70628672",
     "name": "Emergeroid Call",
-    "type": "Trap Card"
+    "type": "Trap Card",
+    "source": "names-file"
   },
   {
     "id": "9069157",
     "name": "Dragonroid",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "58066722",
+    "name": "Alien Stealthbuster",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "71768839",
+    "name": "I.A.S. -Invasive Alien Species-",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "91231901",
+    "name": "\"A\" Cell Recombination Device",
+    "type": "Spell Card",
+    "source": "names-file"
+  },
+  {
+    "id": "6022371",
+    "name": "Water Dragon Cluster",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "43017476",
+    "name": "Duoterion",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "82616239",
+    "name": "Light Water Dragon",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "79402185",
+    "name": "Bonding - D2O",
+    "type": "Spell Card",
+    "source": "names-file"
+  },
+  {
+    "id": "6890729",
+    "name": "Bonding - DHO",
+    "type": "Trap Card",
+    "source": "names-file"
+  },
+  {
+    "id": "44586426",
+    "name": "Batteryman Solar",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "18621798",
+    "name": "Fire King Avatar Arvata",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "14469229",
+    "name": "Crystal Keeper",
+    "type": "Pendulum Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "87475570",
+    "name": "Crystal Master",
+    "type": "Pendulum Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "87259933",
+    "name": "Crystal Conclave",
+    "type": "Trap Card",
+    "source": "names-file"
+  },
+  {
+    "id": "7714344",
+    "name": "Performapal Uni",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "33103459",
+    "name": "Performapal Corn",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "16617334",
+    "name": "Performapal Rain Goat",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "36527535",
+    "name": "Performapal Revue Dancer",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "73734821",
+    "name": "Performapal Sky Magician",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "3859859",
+    "name": "Performapal Sky Magician Girl",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "122520",
+    "name": "Performapal Sky Pupil",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "20403123",
+    "name": "Performapal Sleight Hand Magician",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "29169993",
+    "name": "Performapal Teeter Totter Hopper",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "55553602",
+    "name": "Performapal Dramatic Theater",
+    "type": "Spell Card",
+    "source": "names-file"
+  },
+  {
+    "id": "87769556",
+    "name": "Magician's Right Hand",
+    "type": "Spell Card",
+    "source": "names-file"
+  },
+  {
+    "id": "13758665",
+    "name": "Magician's Left Hand",
+    "type": "Spell Card",
+    "source": "names-file"
+  },
+  {
+    "id": "40252269",
+    "name": "Magician's Restage",
+    "type": "Spell Card",
+    "source": "names-file"
+  },
+  {
+    "id": "29092121",
+    "name": "Cipher Biplane",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "79094383",
+    "name": "Cipher Etranger",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "58383100",
+    "name": "Cipher Mirror Knight",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "21999001",
+    "name": "Cipher Twin Raptor",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "81974607",
+    "name": "Cipher Wing",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "55496220",
+    "name": "Cipher Interference",
+    "type": "Spell Card",
+    "source": "names-file"
+  },
+  {
+    "id": "47882565",
+    "name": "Rank-Up-Magic Cipher Ascension",
+    "type": "Spell Card",
+    "source": "names-file"
+  },
+  {
+    "id": "99397762",
+    "name": "Cipher Bit",
+    "type": "Trap Card",
+    "source": "names-file"
+  },
+  {
+    "id": "98905",
+    "name": "Cipher Spectrum",
+    "type": "Trap Card",
+    "source": "names-file"
+  },
+  {
+    "id": "63992027",
+    "name": "Double Cipher",
+    "type": "Trap Card",
+    "source": "names-file"
+  },
+  {
+    "id": "81881839",
+    "name": "Double Exposure",
+    "type": "Spell Card",
+    "source": "names-file"
+  },
+  {
+    "id": "18963306",
+    "name": "Galaxy-Eyes Cipher Dragon",
+    "type": "XYZ Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "2530830",
+    "name": "Galaxy-Eyes Cipher Blade Dragon",
+    "type": "XYZ Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "12632096",
+    "name": "Neo Galaxy-Eyes Cipher Dragon",
+    "type": "XYZ Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "28346136",
+    "name": "Galaxy-Eyes Cipher X Dragon",
+    "type": "XYZ Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "64184058",
+    "name": "Destiny HERO - Decider",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "91691605",
+    "name": "Destiny HERO - Drilldark",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "37780349",
+    "name": "Destiny HERO - Dynatag",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "63362460",
+    "name": "Destiny HERO - Celestial",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "66262416",
+    "name": "Destiny HERO - Dreamer",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "48150362",
+    "name": "Destiny HERO - Drawhand",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "99357565",
+    "name": "D Cubed",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "30757127",
+    "name": "Destiny HERO - Dangerous",
+    "type": "Fusion Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "90579153",
+    "name": "Destiny HERO - Dystopia",
+    "type": "Fusion Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "69394324",
+    "name": "Destiny HERO - Dominance",
+    "type": "Fusion Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "26841274",
+    "name": "D-Fusion",
+    "type": "Trap Card",
+    "source": "names-file"
   },
   {
     "id": "46613515",
     "name": "Clear Kuriboh",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "70914287",
     "name": "Kuribabylon",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "44632120",
     "name": "Kuribah",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "71036835",
     "name": "Kuribee",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "34419588",
     "name": "Kuribeh",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "7021574",
     "name": "Kuriboo",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "78355370",
     "name": "Kuribohrn",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "50185950",
     "name": "Relinkuriboh",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "33245030",
-    "name": "Sphere Kuriboh",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "6309986",
     "name": "Five Star Twilight",
-    "type": "Spell Card"
+    "type": "Spell Card",
+    "source": "names-file"
   },
   {
     "id": "85250352",
     "name": "Volcanic Blaze Accelerator",
-    "type": "Spell Card"
+    "type": "Spell Card",
+    "source": "names-file"
   },
   {
     "id": "11637481",
     "name": "U.A. Libero Spiker",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "49936169",
     "name": "U.A. Locker Room",
-    "type": "Spell Card"
+    "type": "Spell Card",
+    "source": "names-file"
   },
   {
     "id": "36322312",
     "name": "Boot-Up Admiral - Destroyer Dynamo",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "938717",
     "name": "Boot-Up Corporal - Command Dynamo",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "63717421",
     "name": "Boot-Up Order - Gear Charge",
-    "type": "Spell Card"
+    "type": "Spell Card",
+    "source": "names-file"
   },
   {
     "id": "9715126",
     "name": "Boot-Up Order - Gear Force",
-    "type": "Trap Card"
+    "type": "Trap Card",
+    "source": "names-file"
   },
   {
     "id": "44026393",
     "name": "Mecha Phantom Beast Raiten",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "80839052",
     "name": "Koa'ki Meiru Supplier",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "85136114",
     "name": "Machina Possesstorage",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "54563536",
     "name": "Machina Resavenger",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "45674286",
     "name": "Machina Unclaspare",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "13247801",
     "name": "Machina Defense Perimeter",
-    "type": "Spell Card"
+    "type": "Spell Card",
+    "source": "names-file"
   },
   {
     "id": "91011603",
     "name": "Nordic Smith Ivaldi",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "65626958",
     "name": "Nordic Beast Gullinbursti",
-    "type": "Tuner Monster"
+    "type": "Tuner Monster",
+    "source": "names-file"
   },
   {
     "id": "27024795",
     "name": "Alviss of the Nordic Alfar",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "7320132",
     "name": "Nordic Relic Hlidskjalf",
-    "type": "Spell Card"
+    "type": "Spell Card",
+    "source": "names-file"
   },
   {
     "id": "64797746",
     "name": "Nordic Relic Svalinn",
-    "type": "Trap Card"
+    "type": "Trap Card",
+    "source": "names-file"
   },
   {
     "id": "52502677",
     "name": "Gladiator Beast Attorix",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "67385964",
     "name": "Gladiator Beast Noxious",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "88996322",
     "name": "Gladiator Beast Vespasius",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "26582143",
     "name": "Gladiator Beast Gistel",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "66290900",
     "name": "Gladiator Beast United",
-    "type": "Spell Card"
+    "type": "Spell Card",
+    "source": "names-file"
   },
   {
     "id": "52394047",
     "name": "Gladiator Naumachia",
-    "type": "Trap Card"
+    "type": "Trap Card",
+    "source": "names-file"
   },
   {
     "id": "66206748",
     "name": "Masked HERO Fountain",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "58288218",
     "name": "Masked HERO Furnace",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "10808715",
     "name": "Masked HERO Dusk Crow",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "85672957",
     "name": "Masked HERO Atomic",
-    "type": "Fusion Monster"
+    "type": "Fusion Monster",
+    "source": "names-file"
   },
   {
     "id": "27780618",
     "name": "Vision HERO Vyon",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "82697428",
     "name": "Vision HERO Witch Raider",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "54185227",
     "name": "Vision HERO Gravito",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "22865492",
     "name": "Vision HERO Increase",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "61320914",
     "name": "Vision HERO Minimum Ray",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "96693371",
     "name": "Vision HERO Multiply Guy",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "83414006",
     "name": "Vision HERO Poisoner",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "19186123",
     "name": "Vision Release",
-    "type": "Spell Card"
+    "type": "Spell Card",
+    "source": "names-file"
   },
   {
     "id": "57425061",
     "name": "Vision Fusion",
-    "type": "Spell Card"
+    "type": "Spell Card",
+    "source": "names-file"
   },
   {
     "id": "91392974",
     "name": "Apparition",
-    "type": "Trap Card"
+    "type": "Trap Card",
+    "source": "names-file"
   },
   {
     "id": "69529337",
     "name": "Triamid Dancer",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "95923441",
     "name": "Triamid Hunter",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "32912040",
     "name": "Triamid Master",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "45383307",
     "name": "Triamid Cruiser",
-    "type": "Spell Card"
+    "type": "Spell Card",
+    "source": "names-file"
   },
   {
     "id": "9989792",
     "name": "Triamid Fortress",
-    "type": "Spell Card"
+    "type": "Spell Card",
+    "source": "names-file"
   },
   {
     "id": "72772445",
     "name": "Triamid Kingolem",
-    "type": "Spell Card"
+    "type": "Spell Card",
+    "source": "names-file"
   },
   {
     "id": "96100333",
     "name": "Triamid Pulse",
-    "type": "Trap Card"
+    "type": "Trap Card",
+    "source": "names-file"
   },
   {
     "id": "94689206",
     "name": "Block Dragon",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "28865322",
-    "name": "Aether, the Evil Empowering Dragon",
-    "type": "Pendulum Effect Monster"
-  },
-  {
-    "id": "65472618",
-    "name": "Dragodies, the Empowered Warrior",
-    "type": "Pendulum Effect Monster"
-  },
-  {
-    "id": "92870717",
-    "name": "Dragonox, the Empowered Warrior",
-    "type": "Pendulum Effect Monster"
-  },
-  {
-    "id": "54250060",
-    "name": "Empowerment",
-    "type": "Spell Card"
-  },
-  {
-    "id": "464362",
-    "name": "Frightfur Tiger",
-    "type": "Fusion Monster"
-  },
-  {
-    "id": "47075569",
-    "name": "Performapal Pendulum Sorcerer",
-    "type": "Pendulum Effect Monster"
-  },
-  {
-    "id": "66451379",
-    "name": "Graydle Alligator",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "93445074",
-    "name": "Graydle Cobra",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "29834183",
-    "name": "Graydle Eagle",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "20056760",
-    "name": "Graydle Slime",
-    "type": "Tuner Monster"
-  },
-  {
-    "id": "80250319",
-    "name": "Graydle Slime Jr.",
-    "type": "Tuner Monster"
-  },
-  {
-    "id": "52145422",
-    "name": "Graydle Dragon",
-    "type": "Synchro Monster"
-  },
-  {
-    "id": "2759860",
-    "name": "Graydle Impact",
-    "type": "Spell Card"
-  },
-  {
-    "id": "84442536",
-    "name": "Graydle Combat",
-    "type": "Trap Card"
-  },
-  {
-    "id": "49966595",
-    "name": "Graydle Parasite",
-    "type": "Trap Card"
-  },
-  {
-    "id": "75361204",
-    "name": "Graydle Split",
-    "type": "Trap Card"
-  },
-  {
-    "id": "36956512",
-    "name": "Gadarla, the Mystery Dust Kaiju",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "55063751",
-    "name": "Gameciel, the Sea Turtle Kaiju",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "63941210",
-    "name": "Jizukiru, the Star Destroying Kaiju",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "28674152",
-    "name": "Radian, the Multidimensional Kaiju",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "84769941",
-    "name": "Super Anti-Kaiju War Machine Mecha-Dogoran",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "29913783",
-    "name": "Super Anti-Kaiju War Machine Mecha-Thunder-King",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "48770333",
-    "name": "Thunder King, the Lightningstrike Kaiju",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "99330325",
-    "name": "Interrupted Kaiju Slumber",
-    "type": "Spell Card"
-  },
-  {
-    "id": "11163040",
-    "name": "The Kaiju Files",
-    "type": "Spell Card"
-  },
-  {
-    "id": "81057455",
-    "name": "Kaiju Capture Mission",
-    "type": "Trap Card"
-  },
-  {
-    "id": "51814159",
-    "name": "Raidraptor - Necro Vulture",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "97219708",
-    "name": "Raidraptor - Last Strix",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "83236601",
-    "name": "Raidraptor - Tribute Lanius",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "73347079",
-    "name": "Raidraptor - Force Strix",
-    "type": "XYZ Monster"
-  },
-  {
-    "id": "23603403",
-    "name": "Raidraptor - Satellite Cannon Falcon",
-    "type": "XYZ Monster"
-  },
-  {
-    "id": "23581825",
-    "name": "Rank-Up-Magic Soul Shave Force",
-    "type": "Spell Card"
-  },
-  {
-    "id": "86196216",
-    "name": "Rank-Up-Magic Doom Double Force",
-    "type": "Spell Card"
-  },
-  {
-    "id": "55100740",
-    "name": "Chemicritter Hydron Hawk",
-    "type": "Gemini Monster"
-  },
-  {
-    "id": "18993198",
-    "name": "Chemicritter Oxy Ox",
-    "type": "Gemini Monster"
-  },
-  {
-    "id": "44088292",
-    "name": "Poly-Chemicritter Dioxogre",
-    "type": "Gemini Monster"
-  },
-  {
-    "id": "80476891",
-    "name": "Poly-Chemicritter Hydragon",
-    "type": "Gemini Monster"
-  },
-  {
-    "id": "38026562",
-    "name": "Vola-Chemicritter Methydraco",
-    "type": "XYZ Monster"
-  },
-  {
-    "id": "65959844",
-    "name": "Catalyst Field",
-    "type": "Spell Card"
-  },
-  {
-    "id": "90965652",
-    "name": "Dimer Synthesis",
-    "type": "Spell Card"
-  },
-  {
-    "id": "25669282",
-    "name": "Burnout",
-    "type": "Trap Card"
-  },
-  {
-    "id": "7127502",
-    "name": "Lector Pendulum, the Dracoverlord",
-    "type": "Pendulum Effect Monster"
-  },
-  {
-    "id": "69512157",
-    "name": "Vector Pendulum, the Dracoverlord",
-    "type": "Pendulum Normal Monster"
-  },
-  {
-    "id": "75195825",
-    "name": "Master Pendulum, the Dracoslayer",
-    "type": "Pendulum Normal Monster"
-  },
-  {
-    "id": "14733538",
-    "name": "Draco Face-Off",
-    "type": "Spell Card"
-  },
-  {
-    "id": "22638495",
-    "name": "Dinoster Power, the Mighty Dracoslayer",
-    "type": "Fusion Monster"
-  },
-  {
-    "id": "88722973",
-    "name": "Majester Paladin, the Ascending Dracoslayer",
-    "type": "XYZ Monster"
-  },
-  {
-    "id": "30100551",
-    "name": "Minerva, the Exalted Lightsworn",
-    "type": "XYZ Monster"
-  },
-  {
-    "id": "13332685",
-    "name": "Ame no Habakiri no Mitsurugi",
-    "type": "Ritual Effect Monster"
-  },
-  {
-    "id": "93662626",
-    "name": "Igknight Veteran",
-    "type": "Pendulum Normal Monster"
-  },
-  {
-    "id": "67273917",
-    "name": "Igknight Cavalier",
-    "type": "Pendulum Normal Monster"
-  },
-  {
-    "id": "76751255",
-    "name": "Igknight Reload",
-    "type": "Spell Card"
-  },
-  {
-    "id": "38848158",
-    "name": "Igknights Unite",
-    "type": "Spell Card"
-  },
-  {
-    "id": "56347375",
-    "name": "Ignis Phoenix, the Dracoslayer",
-    "type": "Pendulum Effect Monster"
-  },
-  {
-    "id": "55106249",
-    "name": "Deskbot 006",
-    "type": "Pendulum Effect Monster"
-  },
-  {
-    "id": "97588916",
-    "name": "Deskbot 007",
-    "type": "Pendulum Effect Monster"
-  },
-  {
-    "id": "24573625",
-    "name": "Deskbot 008",
-    "type": "Pendulum Effect Monster"
-  },
-  {
-    "id": "25494711",
-    "name": "Deskbot 009",
-    "type": "Effect Monster"
-  },
-  {
-    "id": "89544521",
-    "name": "Deskbot Jet",
-    "type": "Synchro Monster"
-  },
-  {
-    "id": "12215894",
-    "name": "Deskbot Base",
-    "type": "Spell Card"
-  },
-  {
-    "id": "10449150",
-    "name": "Shuttleroid",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
   },
   {
     "id": "42143067",
     "name": "Doki Doki",
-    "type": "Effect Monster"
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "28865322",
+    "name": "Aether, the Evil Empowering Dragon",
+    "type": "Pendulum Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "65472618",
+    "name": "Dragodies, the Empowered Warrior",
+    "type": "Pendulum Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "92870717",
+    "name": "Dragonox, the Empowered Warrior",
+    "type": "Pendulum Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "54250060",
+    "name": "Empowerment",
+    "type": "Spell Card",
+    "source": "names-file"
+  },
+  {
+    "id": "47075569",
+    "name": "Performapal Pendulum Sorcerer",
+    "type": "Pendulum Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "80250319",
+    "name": "Graydle Slime Jr.",
+    "type": "Tuner Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "84442536",
+    "name": "Graydle Combat",
+    "type": "Trap Card",
+    "source": "names-file"
+  },
+  {
+    "id": "36956512",
+    "name": "Gadarla, the Mystery Dust Kaiju",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "63941210",
+    "name": "Jizukiru, the Star Destroying Kaiju",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "84769941",
+    "name": "Super Anti-Kaiju War Machine Mecha-Dogoran",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "29913783",
+    "name": "Super Anti-Kaiju War Machine Mecha-Thunder-King",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "48770333",
+    "name": "Thunder King, the Lightningstrike Kaiju",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "99330325",
+    "name": "Interrupted Kaiju Slumber",
+    "type": "Spell Card",
+    "source": "names-file"
+  },
+  {
+    "id": "11163040",
+    "name": "The Kaiju Files",
+    "type": "Spell Card",
+    "source": "names-file"
+  },
+  {
+    "id": "51814159",
+    "name": "Raidraptor - Necro Vulture",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "97219708",
+    "name": "Raidraptor - Last Strix",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "83236601",
+    "name": "Raidraptor - Tribute Lanius",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "73347079",
+    "name": "Raidraptor - Force Strix",
+    "type": "XYZ Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "23603403",
+    "name": "Raidraptor - Satellite Cannon Falcon",
+    "type": "XYZ Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "23581825",
+    "name": "Rank-Up-Magic Soul Shave Force",
+    "type": "Spell Card",
+    "source": "names-file"
+  },
+  {
+    "id": "86196216",
+    "name": "Rank-Up-Magic Doom Double Force",
+    "type": "Spell Card",
+    "source": "names-file"
+  },
+  {
+    "id": "81599449",
+    "name": "Chemicritter Carbo Crab",
+    "type": "Gemini Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "55100740",
+    "name": "Chemicritter Hydron Hawk",
+    "type": "Gemini Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "18993198",
+    "name": "Chemicritter Oxy Ox",
+    "type": "Gemini Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "44088292",
+    "name": "Poly-Chemicritter Dioxogre",
+    "type": "Gemini Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "80476891",
+    "name": "Poly-Chemicritter Hydragon",
+    "type": "Gemini Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "38026562",
+    "name": "Vola-Chemicritter Methydraco",
+    "type": "XYZ Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "65959844",
+    "name": "Catalyst Field",
+    "type": "Spell Card",
+    "source": "names-file"
+  },
+  {
+    "id": "90965652",
+    "name": "Dimer Synthesis",
+    "type": "Spell Card",
+    "source": "names-file"
+  },
+  {
+    "id": "25669282",
+    "name": "Burnout",
+    "type": "Trap Card",
+    "source": "names-file"
+  },
+  {
+    "id": "7127502",
+    "name": "Lector Pendulum, the Dracoverlord",
+    "type": "Pendulum Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "75195825",
+    "name": "Master Pendulum, the Dracoslayer",
+    "type": "Pendulum Normal Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "14733538",
+    "name": "Draco Face-Off",
+    "type": "Spell Card",
+    "source": "names-file"
+  },
+  {
+    "id": "22638495",
+    "name": "Dinoster Power, the Mighty Dracoslayer",
+    "type": "Fusion Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "13332685",
+    "name": "Ame no Habakiri no Mitsurugi",
+    "type": "Ritual Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "38848158",
+    "name": "Igknights Unite",
+    "type": "Spell Card",
+    "source": "names-file"
+  },
+  {
+    "id": "56347375",
+    "name": "Ignis Phoenix, the Dracoslayer",
+    "type": "Pendulum Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "97588916",
+    "name": "Deskbot 007",
+    "type": "Pendulum Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "24573625",
+    "name": "Deskbot 008",
+    "type": "Pendulum Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "25494711",
+    "name": "Deskbot 009",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "12215894",
+    "name": "Deskbot Base",
+    "type": "Spell Card",
+    "source": "names-file"
+  },
+  {
+    "id": "10449150",
+    "name": "Shuttleroid",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "73240432",
+    "name": "Edge Imp Cotton Eater",
+    "type": "Pendulum Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "45215225",
+    "name": "Fluffal Angel",
+    "type": "Pendulum Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "77522571",
+    "name": "Frightfur Meister",
+    "type": "Pendulum Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "29904964",
+    "name": "Arisen Gaia the Fierce Knight",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "92510265",
+    "name": "Black Luster Soldier - Sacred Soldier",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "38695361",
+    "name": "Envoy of Chaos",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "79234734",
+    "name": "Super Soldier Soul",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "40089744",
+    "name": "Gateway to Chaos",
+    "type": "Spell Card",
+    "source": "names-file"
+  },
+  {
+    "id": "14094090",
+    "name": "Super Soldier Ritual",
+    "type": "Spell Card",
+    "source": "names-file"
+  },
+  {
+    "id": "45948430",
+    "name": "Super Soldier Synthesis",
+    "type": "Spell Card",
+    "source": "names-file"
+  },
+  {
+    "id": "32360466",
+    "name": "Beginning of Heaven and Earth",
+    "type": "Trap Card",
+    "source": "names-file"
+  },
+  {
+    "id": "73694478",
+    "name": "Super Soldier Rebirth",
+    "type": "Trap Card",
+    "source": "names-file"
+  },
+  {
+    "id": "799183",
+    "name": "Super Soldier Shield",
+    "type": "Trap Card",
+    "source": "names-file"
+  },
+  {
+    "id": "59762399",
+    "name": "Performapal Odd-Eyes Light Phoenix",
+    "type": "Pendulum Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "86157908",
+    "name": "Performapal Odd-Eyes Unicorn",
+    "type": "Pendulum Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "67754901",
+    "name": "Odd-Eyes Mirage Dragon",
+    "type": "Pendulum Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "93149655",
+    "name": "Odd-Eyes Phantom Dragon",
+    "type": "Pendulum Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "82768499",
+    "name": "Spiral Flame Strike",
+    "type": "Spell Card",
+    "source": "names-file"
+  },
+  {
+    "id": "56132807",
+    "name": "Apple Magician Girl",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "20747792",
+    "name": "Berry Magician Girl",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "7198399",
+    "name": "Chocolate Magician Girl",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "82627406",
+    "name": "Kiwi Magician Girl",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "34318086",
+    "name": "Lemon Magician Girl",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "55010259",
+    "name": "Gold Gadget",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "29021114",
+    "name": "Silver Gadget",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "42023223",
+    "name": "Alpha The Electromagnet Warrior",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "79418928",
+    "name": "Beta The Electromagnet Warrior",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "15502037",
+    "name": "Gamma The Electromagnet Warrior",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "42901635",
+    "name": "Berserkion the Electromagna Warrior",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "4740489",
+    "name": "Magnetic Field",
+    "type": "Spell Card",
+    "source": "names-file"
+  },
+  {
+    "id": "77133792",
+    "name": "Magnet Conversion",
+    "type": "Trap Card",
+    "source": "names-file"
+  },
+  {
+    "id": "12262393",
+    "name": "Delta The Magnet Warrior",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "368382",
+    "name": "Dinomist Brachion",
+    "type": "Pendulum Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "37752990",
+    "name": "Dinomist Ceratops",
+    "type": "Pendulum Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "38988538",
+    "name": "Dinomist Plesios",
+    "type": "Pendulum Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "64973287",
+    "name": "Dinomist Pteran",
+    "type": "Pendulum Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "63251695",
+    "name": "Dinomist Rex",
+    "type": "Pendulum Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "1580833",
+    "name": "Dinomist Stegosaur",
+    "type": "Pendulum Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "5067884",
+    "name": "Dinomist Spinos",
+    "type": "Pendulum Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "32134638",
+    "name": "Dinomist Ankylos",
+    "type": "Pendulum Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "77116346",
+    "name": "Dinomist Charge",
+    "type": "Spell Card",
+    "source": "names-file"
+  },
+  {
+    "id": "41554273",
+    "name": "Dinomist Rush",
+    "type": "Trap Card",
+    "source": "names-file"
+  },
+  {
+    "id": "74582050",
+    "name": "Dinomist Eruption",
+    "type": "Trap Card",
+    "source": "names-file"
+  },
+  {
+    "id": "13647631",
+    "name": "Heavy Freight Train Derricrane",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "49032236",
+    "name": "Number 81: Superdreadnought Rail Cannon Super Dora",
+    "type": "XYZ Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "58604027",
+    "name": "The Legendary Exodia Incarnate",
+    "type": "Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "64043465",
+    "name": "Obliterate!!!",
+    "type": "Trap Card",
+    "source": "names-file"
   }
 ]

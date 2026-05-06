@@ -588,7 +588,9 @@
     "Xyz Dragon",
     "Xyz",
     "Rebellion",
-    "Puppet"
+    "Puppet",
+    "Stardust",
+    "Goblin"
 
   ];
 
