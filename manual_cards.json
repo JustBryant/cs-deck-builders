@@ -1318,5 +1318,11 @@
     "name": "Obliterate!!!",
     "type": "Trap Card",
     "source": "names-file"
+  },
+  {
+    "id": "42378577",
+    "name": "Pendulum Switch",
+    "type": "Trap Card",
+    "source": "names-file"
   }
 ]
