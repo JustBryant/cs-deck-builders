@@ -228,12 +228,6 @@
     "source": "names-file"
   },
   {
-    "id": "16617334",
-    "name": "Performapal Rain Goat",
-    "type": "Effect Monster",
-    "source": "names-file"
-  },
-  {
     "id": "36527535",
     "name": "Performapal Revue Dancer",
     "type": "Effect Monster",
@@ -810,12 +804,6 @@
     "source": "names-file"
   },
   {
-    "id": "47075569",
-    "name": "Performapal Pendulum Sorcerer",
-    "type": "Pendulum Effect Monster",
-    "source": "names-file"
-  },
-  {
     "id": "80250319",
     "name": "Graydle Slime Jr.",
     "type": "Tuner Monster",
@@ -972,21 +960,9 @@
     "source": "names-file"
   },
   {
-    "id": "75195825",
-    "name": "Master Pendulum, the Dracoslayer",
-    "type": "Pendulum Normal Monster",
-    "source": "names-file"
-  },
-  {
     "id": "14733538",
     "name": "Draco Face-Off",
     "type": "Spell Card",
-    "source": "names-file"
-  },
-  {
-    "id": "22638495",
-    "name": "Dinoster Power, the Mighty Dracoslayer",
-    "type": "Fusion Monster",
     "source": "names-file"
   },
   {
@@ -1128,6 +1104,18 @@
     "source": "names-file"
   },
   {
+    "id": "71863024",
+    "name": "Performapal Radish Horse",
+    "type": "Pendulum Effect Monster",
+    "source": "names-file"
+  },
+  {
+    "id": "17540705",
+    "name": "Performapal Dag Daggerman",
+    "type": "Pendulum Effect Monster",
+    "source": "names-file"
+  },
+  {
     "id": "67754901",
     "name": "Odd-Eyes Mirage Dragon",
     "type": "Pendulum Effect Monster",
@@ -1236,36 +1224,6 @@
     "source": "names-file"
   },
   {
-    "id": "37752990",
-    "name": "Dinomist Ceratops",
-    "type": "Pendulum Effect Monster",
-    "source": "names-file"
-  },
-  {
-    "id": "38988538",
-    "name": "Dinomist Plesios",
-    "type": "Pendulum Effect Monster",
-    "source": "names-file"
-  },
-  {
-    "id": "64973287",
-    "name": "Dinomist Pteran",
-    "type": "Pendulum Effect Monster",
-    "source": "names-file"
-  },
-  {
-    "id": "63251695",
-    "name": "Dinomist Rex",
-    "type": "Pendulum Effect Monster",
-    "source": "names-file"
-  },
-  {
-    "id": "1580833",
-    "name": "Dinomist Stegosaur",
-    "type": "Pendulum Effect Monster",
-    "source": "names-file"
-  },
-  {
     "id": "5067884",
     "name": "Dinomist Spinos",
     "type": "Pendulum Effect Monster",
@@ -1275,12 +1233,6 @@
     "id": "32134638",
     "name": "Dinomist Ankylos",
     "type": "Pendulum Effect Monster",
-    "source": "names-file"
-  },
-  {
-    "id": "77116346",
-    "name": "Dinomist Charge",
-    "type": "Spell Card",
     "source": "names-file"
   },
   {

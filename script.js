@@ -331,7 +331,7 @@ const pageSize = 20;
 const imageBaseUrl = 'https://raw.githubusercontent.com/JustBryant/KDR-Revamped-Images/main/full_tcg/';
 
 // Hardcoded end date for Kingdoms Purists format - change this to your cutoff date
-const HARDCODED_END_DATE = '2015-12-05';
+const HARDCODED_END_DATE = '2016-01-15';
 
 // Filter option lists
 const monsterMainTypes = ['Any','Normal','Effect','Ritual','Fusion','Synchro','Xyz','Link','Pendulum'];
