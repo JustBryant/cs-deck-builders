@@ -588,9 +588,7 @@
     "Xyz Dragon",
     "Xyz",
     "Rebellion",
-    "Puppet",
-    "Archfiend"
-
+    "Puppet"
   ];
 
   // Optional: if you paste a pre-filtered mapping below as `window.__CARD_ARCHETYPES_EMBEDDED__`,
