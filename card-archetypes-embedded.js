@@ -589,8 +589,7 @@
     "Xyz",
     "Rebellion",
     "Puppet",
-    "Stardust",
-    "Goblin"
+    "Archfiend"
 
   ];
 
