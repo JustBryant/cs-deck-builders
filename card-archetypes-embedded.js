@@ -562,11 +562,9 @@
   window.ARCHETYPE_BLACKLIST = [
     "Pendulum",
     "Utopic",
-    "Jinzo",
     "Battleguard",
     "Celtic Guard",
     "Elder Entity",
-    "Magician Girl",
     "Chaos",
     "Firewall",
     "Buster Blader",
@@ -576,19 +574,18 @@
     "Power Tool",
     "Forbidden",
     "Eyes Restrict",
-    "Blue-Eyes",
     "Shark",
     "Rose Dragon",
     "Counter",
     "Fusion",
     "Polymerization",
-    "Black Luster Soldier",
     "Trap Hole",
     "Hole",
     "Xyz Dragon",
     "Xyz",
     "Rebellion",
     "Puppet"
+
   ];
 
   // Optional: if you paste a pre-filtered mapping below as `window.__CARD_ARCHETYPES_EMBEDDED__`,
