@@ -1312,5 +1312,11 @@
     "name": "Rocket Hand",
     "type": "Trap Card",
     "image": "https://images.ygoprodeck.com/images/cards/13317419.jpg"
+  },
+  {
+    "id": "80237445",
+    "name": "Artifact Mjollnir",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/80237445.jpg"
   }
 ]
