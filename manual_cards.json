@@ -952,5 +952,47 @@
     "name": "The Legendary Exodia Incarnate",
     "type": "Effect Monster",
     "image": "https://images.ygoprodeck.com/images/cards/58604027.jpg"
+  },
+  {
+    "id": "91392974",
+    "name": "Apparition",
+    "type": "Trap Card",
+    "image": "https://images.ygoprodeck.com/images/cards/91392974.jpg"
+  },
+  {
+    "id": "19186123",
+    "name": "Vision Release",
+    "type": "Spell Card",
+    "image": "https://images.ygoprodeck.com/images/cards/19186123.jpg"
+  },
+  {
+    "id": "57425061",
+    "name": "Vision Fusion",
+    "type": "Spell Card",
+    "image": "https://images.ygoprodeck.com/images/cards/57425061.jpg"
+  },
+  {
+    "id": "77133792",
+    "name": "Magnet Conversion",
+    "type": "Trap Card",
+    "image": "https://images.ygoprodeck.com/images/cards/77133792.jpg"
+  },
+  {
+    "id": "4740489",
+    "name": "Magnetic Field",
+    "type": "Spell Card",
+    "image": "https://images.ygoprodeck.com/images/cards/4740489.jpg"
+  },
+  {
+    "id": "4628897",
+    "name": "Imperion Magnum the Superconductive Battlebot",
+    "type": "Fusion Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/4628897.jpg"
+  },
+  {
+    "id": "6309986",
+    "name": "Five Star Twilight",
+    "type": "Spell Card",
+    "image": "https://images.ygoprodeck.com/images/cards/6309986.jpg"
   }
 ]
