@@ -994,5 +994,323 @@
     "name": "Five Star Twilight",
     "type": "Spell Card",
     "image": "https://images.ygoprodeck.com/images/cards/6309986.jpg"
+  },
+  {
+    "id": "69304426",
+    "name": "Artifact Vajra",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/69304426.jpg"
+  },
+  {
+    "id": "91754175",
+    "name": "Caninetaur",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/91754175.jpg"
+  },
+  {
+    "id": "37798171",
+    "name": "Depth Shark",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/37798171.jpg"
+  },
+  {
+    "id": "64319467",
+    "name": "Double Fin Shark",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/64319467.jpg"
+  },
+  {
+    "id": "67120578",
+    "name": "Gagaga Head",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/67120578.jpg"
+  },
+  {
+    "id": "91718579",
+    "name": "Gogogo Aristera & Dexia",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/91718579.jpg"
+  },
+  {
+    "id": "99581584",
+    "name": "Guard Penguin",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/99581584.jpg"
+  },
+  {
+    "id": "13647631",
+    "name": "Heavy Freight Train Derricrane",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/13647631.jpg"
+  },
+  {
+    "id": "10000040",
+    "name": "Holactie the Creator of Light",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/10000040.jpg"
+  },
+  {
+    "id": "54320860",
+    "name": "Infernity Patriarch",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/54320860.jpg"
+  },
+  {
+    "id": "43436049",
+    "name": "Junk Breaker",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/43436049.jpg"
+  },
+  {
+    "id": "58242947",
+    "name": "Junk Collector",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/58242947.jpg"
+  },
+  {
+    "id": "6442944",
+    "name": "Kaiser Sea Snake",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/6442944.jpg"
+  },
+  {
+    "id": "94919024",
+    "name": "Lunalight Crimson Fox",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/94919024.jpg"
+  },
+  {
+    "id": "54537489",
+    "name": "Mare Mare",
+    "type": "Tuner Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/54537489.jpg"
+  },
+  {
+    "id": "93715853",
+    "name": "Mekanikal Arkfiend",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/93715853.jpg"
+  },
+  {
+    "id": "63193879",
+    "name": "Saber Shark",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/63193879.jpg"
+  },
+  {
+    "id": "10449150",
+    "name": "Shuttleroid",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/10449150.jpg"
+  },
+  {
+    "id": "90303176",
+    "name": "Silent Angler",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/90303176.jpg"
+  },
+  {
+    "id": "49919798",
+    "name": "Symphonic Warrior Synthess",
+    "type": "Flip Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/49919798.jpg"
+  },
+  {
+    "id": "80532587",
+    "name": "Elder Entity N'tss",
+    "type": "Fusion Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/80532587.jpg"
+  },
+  {
+    "id": "29929832",
+    "name": "Marine Beast",
+    "type": "Fusion Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/29929832.jpg"
+  },
+  {
+    "id": "89870349",
+    "name": "Masked HERO Blast",
+    "type": "Fusion Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/89870349.jpg"
+  },
+  {
+    "id": "80516007",
+    "name": "Rare Fish",
+    "type": "Fusion Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/80516007.jpg"
+  },
+  {
+    "id": "32485271",
+    "name": "Rose Spectre of Dunn",
+    "type": "Fusion Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/32485271.jpg"
+  },
+  {
+    "id": "25853045",
+    "name": "Full Armored Black Ray Lancer",
+    "type": "XYZ Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/25853045.jpg"
+  },
+  {
+    "id": "99469936",
+    "name": "Full Armored Crystalzero Lancer",
+    "type": "XYZ Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/99469936.jpg"
+  },
+  {
+    "id": "10000030",
+    "name": "Magi Magi ☆ Magician Gal",
+    "type": "XYZ Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/10000030.jpg"
+  },
+  {
+    "id": "49032236",
+    "name": "Number 81: Superdreadnought Rail Cannon Super Dora",
+    "type": "XYZ Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/49032236.jpg"
+  },
+  {
+    "id": "23187256",
+    "name": "Number 93: Utopia Kaiser",
+    "type": "XYZ Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/23187256.jpg"
+  },
+  {
+    "id": "62070231",
+    "name": "Number 94: Crystalzero",
+    "type": "XYZ Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/62070231.jpg"
+  },
+  {
+    "id": "34945480",
+    "name": "Outer Entity Azathot",
+    "type": "XYZ Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/34945480.jpg"
+  },
+  {
+    "id": "8809344",
+    "name": "Outer Entity Nyarla",
+    "type": "XYZ Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/8809344.jpg"
+  },
+  {
+    "id": "33909817",
+    "name": "Sylvan Princessprite",
+    "type": "XYZ Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/33909817.jpg"
+  },
+  {
+    "id": "12948099",
+    "name": "Old Entity Cthugua",
+    "type": "Synchro Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/12948099.jpg"
+  },
+  {
+    "id": "97792247",
+    "name": "Stardust Assault Warrior",
+    "type": "Synchro Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/97792247.jpg"
+  },
+  {
+    "id": "75988594",
+    "name": "Superheavy Samurai Swordmaster Musashi",
+    "type": "Synchro Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/75988594.jpg"
+  },
+  {
+    "id": "32787239",
+    "name": "Performapal Trumpanda",
+    "type": "Pendulum Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/32787239.jpg"
+  },
+  {
+    "id": "12525049",
+    "name": "Symphonic Warrior Guitaar",
+    "type": "Pendulum Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/12525049.jpg"
+  },
+  {
+    "id": "5399521",
+    "name": "Symphonic Warrior Miccs",
+    "type": "Pendulum Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/5399521.jpg"
+  },
+  {
+    "id": "4820694",
+    "name": "Constellar Tempest",
+    "type": "Spell Card",
+    "image": "https://images.ygoprodeck.com/images/cards/4820694.jpg"
+  },
+  {
+    "id": "49702428",
+    "name": "Dark Burning Attack",
+    "type": "Spell Card",
+    "image": "https://images.ygoprodeck.com/images/cards/49702428.jpg"
+  },
+  {
+    "id": "75190122",
+    "name": "Dark Burning Magic",
+    "type": "Spell Card",
+    "image": "https://images.ygoprodeck.com/images/cards/75190122.jpg"
+  },
+  {
+    "id": "26920296",
+    "name": "Dreamland",
+    "type": "Spell Card",
+    "image": "https://images.ygoprodeck.com/images/cards/26920296.jpg"
+  },
+  {
+    "id": "40854824",
+    "name": "Rainbow Refraction",
+    "type": "Spell Card",
+    "image": "https://images.ygoprodeck.com/images/cards/40854824.jpg"
+  },
+  {
+    "id": "76136345",
+    "name": "Revolving Switchyard",
+    "type": "Spell Card",
+    "image": "https://images.ygoprodeck.com/images/cards/76136345.jpg"
+  },
+  {
+    "id": "35037880",
+    "name": "Saber Reflection",
+    "type": "Spell Card",
+    "image": "https://images.ygoprodeck.com/images/cards/35037880.jpg"
+  },
+  {
+    "id": "61258740",
+    "name": "Sea Lord's Amulet",
+    "type": "Spell Card",
+    "image": "https://images.ygoprodeck.com/images/cards/61258740.jpg"
+  },
+  {
+    "id": "75304793",
+    "name": "Symph Amplifire",
+    "type": "Spell Card",
+    "image": "https://images.ygoprodeck.com/images/cards/75304793.jpg"
+  },
+  {
+    "id": "40450317",
+    "name": "Ties of the Brethren",
+    "type": "Spell Card",
+    "image": "https://images.ygoprodeck.com/images/cards/40450317.jpg"
+  },
+  {
+    "id": "48680970",
+    "name": "Eternal Soul",
+    "type": "Trap Card",
+    "image": "https://images.ygoprodeck.com/images/cards/48680970.jpg"
+  },
+  {
+    "id": "66194206",
+    "name": "Lightsworn Judgment",
+    "type": "Trap Card",
+    "image": "https://images.ygoprodeck.com/images/cards/66194206.jpg"
+  },
+  {
+    "id": "13317419",
+    "name": "Rocket Hand",
+    "type": "Trap Card",
+    "image": "https://images.ygoprodeck.com/images/cards/13317419.jpg"
   }
 ]
