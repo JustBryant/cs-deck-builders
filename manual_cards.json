@@ -622,5 +622,335 @@
     "name": "Manticore of Smashing",
     "type": "Effect Monster",
     "image": "https://images.ygoprodeck.com/images/cards/64538914.jpg"
+  },
+  {
+    "id": "27780618",
+    "name": "Vision HERO Vyon",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/27780618.jpg"
+  },
+  {
+    "id": "82697428",
+    "name": "Vision HERO Witch Raider",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/82697428.jpg"
+  },
+  {
+    "id": "54185227",
+    "name": "Vision HERO Gravito",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/54185227.jpg"
+  },
+  {
+    "id": "22865492",
+    "name": "Vision HERO Increase",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/22865492.jpg"
+  },
+  {
+    "id": "61320914",
+    "name": "Vision HERO Minimum Ray",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/61320914.jpg"
+  },
+  {
+    "id": "96693371",
+    "name": "Vision HERO Multiply Guy",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/96693371.jpg"
+  },
+  {
+    "id": "83414006",
+    "name": "Vision HERO Poisoner",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/83414006.jpg"
+  },
+  {
+    "id": "42023223",
+    "name": "Alpha The Electromagnet Warrior",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/42023223.jpg"
+  },
+  {
+    "id": "79418928",
+    "name": "Beta The Electromagnet Warrior",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/79418928.jpg"
+  },
+  {
+    "id": "15502037",
+    "name": "Gamma The Electromagnet Warrior",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/15502037.jpg"
+  },
+  {
+    "id": "42901635",
+    "name": "Berserkion the Electromagna Warrior",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/42901635.jpg"
+  },
+  {
+    "id": "78355370",
+    "name": "Kuribohrn",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/78355370.jpg"
+  },
+  {
+    "id": "70914287",
+    "name": "Kuribabylon",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/70914287.jpg"
+  },
+  {
+    "id": "44632120",
+    "name": "Kuribah",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/44632120.jpg"
+  },
+  {
+    "id": "71036835",
+    "name": "Kuribee",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/71036835.jpg"
+  },
+  {
+    "id": "34419588",
+    "name": "Kuribeh",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/34419588.jpg"
+  },
+  {
+    "id": "7021574",
+    "name": "Kuriboo",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/7021574.jpg"
+  },
+  {
+    "id": "45383307",
+    "name": "Triamid Cruiser",
+    "type": "Spell Card",
+    "image": "https://images.ygoprodeck.com/images/cards/45383307.jpg"
+  },
+  {
+    "id": "69529337",
+    "name": "Triamid Dancer",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/69529337.jpg"
+  },
+  {
+    "id": "9989792",
+    "name": "Triamid Fortress",
+    "type": "Spell Card",
+    "image": "https://images.ygoprodeck.com/images/cards/9989792.jpg"
+  },
+  {
+    "id": "95923441",
+    "name": "Triamid Hunter",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/95923441.jpg"
+  },
+  {
+    "id": "72772445",
+    "name": "Triamid Kingolem",
+    "type": "Spell Card",
+    "image": "https://images.ygoprodeck.com/images/cards/72772445.jpg"
+  },
+  {
+    "id": "32912040",
+    "name": "Triamid Master",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/32912040.jpg"
+  },
+  {
+    "id": "96100333",
+    "name": "Triamid Pulse",
+    "type": "Trap Card",
+    "image": "https://images.ygoprodeck.com/images/cards/96100333.jpg"
+  },
+  {
+    "id": "68406755",
+    "name": "Triamid Sphinx",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/68406755.jpg"
+  },
+  {
+    "id": "64576557",
+    "name": "Triamid Loading",
+    "type": "Spell Card",
+    "image": "https://images.ygoprodeck.com/images/cards/64576557.jpg"
+  },
+  {
+    "id": "67385964",
+    "name": "Gladiator Beast Noxious",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/67385964.jpg"
+  },
+  {
+    "id": "52502677",
+    "name": "Gladiator Beast Attorix",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/52502677.jpg"
+  },
+  {
+    "id": "88996322",
+    "name": "Gladiator Beast Vespasius",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/88996322.jpg"
+  },
+  {
+    "id": "52394047",
+    "name": "Gladiator Naumachia",
+    "type": "Trap Card",
+    "image": "https://images.ygoprodeck.com/images/cards/52394047.jpg"
+  },
+  {
+    "id": "66290900",
+    "name": "Gladiator Beast United",
+    "type": "Spell Card",
+    "image": "https://images.ygoprodeck.com/images/cards/66290900.jpg"
+  },
+  {
+    "id": "58288218",
+    "name": "Masked HERO Furnace",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/58288218.jpg"
+  },
+  {
+    "id": "66206748",
+    "name": "Masked HERO Fountain",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/66206748.jpg"
+  },
+  {
+    "id": "85672957",
+    "name": "Masked HERO Atomic",
+    "type": "Fusion Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/85672957.jpg"
+  },
+  {
+    "id": "36322312",
+    "name": "Boot-Up Admiral - Destroyer Dynamo",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/36322312.jpg"
+  },
+  {
+    "id": "938717",
+    "name": "Boot-Up Corporal - Command Dynamo",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/938717.jpg"
+  },
+  {
+    "id": "63717421",
+    "name": "Boot-Up Order - Gear Charge",
+    "type": "Spell Card",
+    "image": "https://images.ygoprodeck.com/images/cards/63717421.jpg"
+  },
+  {
+    "id": "54250060",
+    "name": "Empowerment",
+    "type": "Spell Card",
+    "image": "https://images.ygoprodeck.com/images/cards/54250060.jpg"
+  },
+  {
+    "id": "65472618",
+    "name": "Dragodies, the Empowered Warrior",
+    "type": "Pendulum Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/65472618.jpg"
+  },
+  {
+    "id": "92870717",
+    "name": "Dragonox, the Empowered Warrior",
+    "type": "Pendulum Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/92870717.jpg"
+  },
+  {
+    "id": "28865322",
+    "name": "Aether, the Evil Empowering Dragon",
+    "type": "Pendulum Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/28865322.jpg"
+  },
+  {
+    "id": "81599449",
+    "name": "Chemicritter Carbo Crab",
+    "type": "Gemini Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/81599449.jpg"
+  },
+  {
+    "id": "55100740",
+    "name": "Chemicritter Hydron Hawk",
+    "type": "Gemini Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/55100740.jpg"
+  },
+  {
+    "id": "18993198",
+    "name": "Chemicritter Oxy Ox",
+    "type": "Gemini Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/18993198.jpg"
+  },
+  {
+    "id": "44088292",
+    "name": "Poly-Chemicritter Dioxogre",
+    "type": "Gemini Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/44088292.jpg"
+  },
+  {
+    "id": "80476891",
+    "name": "Poly-Chemicritter Hydragon",
+    "type": "Gemini Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/80476891.jpg"
+  },
+  {
+    "id": "38026562",
+    "name": "Vola-Chemicritter Methydraco",
+    "type": "XYZ Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/38026562.jpg"
+  },
+  {
+    "id": "25669282",
+    "name": "Burnout",
+    "type": "Trap Card",
+    "image": "https://images.ygoprodeck.com/images/cards/25669282.jpg"
+  },
+  {
+    "id": "90965652",
+    "name": "Dimer Synthesis",
+    "type": "Spell Card",
+    "image": "https://images.ygoprodeck.com/images/cards/90965652.jpg"
+  },
+  {
+    "id": "65959844",
+    "name": "Catalyst Field",
+    "type": "Spell Card",
+    "image": "https://images.ygoprodeck.com/images/cards/65959844.jpg"
+  },
+  {
+    "id": "72305034",
+    "name": "Geminize Lord Golknight",
+    "type": "Gemini Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/72305034.jpg"
+  },
+  {
+    "id": "80758812",
+    "name": "Gemini Ablation",
+    "type": "Trap Card",
+    "image": "https://images.ygoprodeck.com/images/cards/80758812.jpg"
+  },
+  {
+    "id": "54485355",
+    "name": "Sublimation Knight",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/54485355.jpg"
+  },
+  {
+    "id": "64043465",
+    "name": "Obliterate!!!",
+    "type": "Trap Card",
+    "image": "https://images.ygoprodeck.com/images/cards/64043465.jpg"
+  },
+  {
+    "id": "58604027",
+    "name": "The Legendary Exodia Incarnate",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/58604027.jpg"
   }
 ]
