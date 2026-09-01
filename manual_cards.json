@@ -1318,5 +1318,11 @@
     "name": "Artifact Mjollnir",
     "type": "Effect Monster",
     "image": "https://images.ygoprodeck.com/images/cards/80237445.jpg"
+  },
+  {
+    "id": "59805313",
+    "name": "Volcanic Rimfire",
+    "type": "Effect Monster",
+    "image": "https://images.ygoprodeck.com/images/cards/59805313.jpg"
   }
 ]
