@@ -426,7 +426,7 @@
   "Cyberdark",
   "Gate Guardian",
   "Mekk-Knight",
-  "Code Talker",
+  "Code Talker",n warn
   "Rose",
   "Sylvan",
   "Parshath",
@@ -584,7 +584,9 @@
     "Xyz Dragon",
     "Xyz",
     "Rebellion",
-    "Puppet"
+    "Puppet",
+    "Stardust",
+    "Goblin"
 
   ];
 
