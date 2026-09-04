@@ -426,7 +426,7 @@
   "Cyberdark",
   "Gate Guardian",
   "Mekk-Knight",
-  "Code Talker",
+  "Code Talker",n warn
   "Rose",
   "Sylvan",
   "Parshath",
@@ -584,8 +584,13 @@
     "Xyz Dragon",
     "Xyz",
     "Rebellion",
-    "Puppet"
-
+    "Puppet",
+    "Stardust",
+    "Goblin",
+    "Call of the Haunted",
+    "Solemn Strike",
+    "Polymerization",
+    "Mirror Trap"
   ];
 
   // Optional: if you paste a pre-filtered mapping below as `window.__CARD_ARCHETYPES_EMBEDDED__`,
